@@ -1,0 +1,79 @@
+<%- include("../partials/admin/header", { title: "Users" , adminName: typeof adminName !=="undefined" ? adminName
+    : "Admin" }) %>
+
+    <div class="dashboard-content" style="padding: 20px 17px;">
+
+        <div class="content-header"
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="font-size:28px; font-weight:600; color:#333;">Users</h1>
+        </div>
+
+        <div class="table-container"
+            style="background:white; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="background:#e8e8e8; padding:15px; text-align:left;">ID</th>
+                        <th style="background:#e8e8e8; padding:15px; text-align:left;">Name</th>
+                        <th style="background:#e8e8e8; padding:15px; text-align:left;">Email</th>
+                        <th style="background:#e8e8e8; padding:15px; text-align:left;">User Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <% users.forEach((user, index)=> { %>
+                        <tr style="border-bottom:1px solid #e8e8e8;">
+                            <td style="padding:15px;">
+                                <%= index + 1 %>
+                            </td>
+                            <td style="padding:15px;">
+                                <%= user.fullname %>
+                            </td>
+                            <td style="padding:15px;">
+                                <%= user.email %>
+                            </td>
+                            <td style="padding:15px;">
+
+
+                                <% if (user.isBlocked) { %>
+
+                                    <button class="unblock-btn" onclick="unblockUser('<%= user._id %>')">
+                                        Unblock
+                                    </button>
+
+                                    <% } else { %>
+
+                                        <button class="block-btn" onclick="blockUser('<%= user._id %>')">
+                                            Block
+                                        </button>
+
+                                        <% } %>
+
+
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+
+            </table>
+
+            <div class="container mt-3">
+                <nav aria-label="Page Navigation">
+                    <ul class="pagination">
+                        <% for (let i=1; i <=totalPages; i++) { %>
+                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                    </ul>
+                </nav>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <%- include("../partials/admin/footer") %>

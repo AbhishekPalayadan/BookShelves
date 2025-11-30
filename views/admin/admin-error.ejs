@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Admin</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .error-box {
+            text-align: center;
+            padding: 40px 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+
+        .warning {
+            font-size: 65px;
+            color: #ff2e2e; /* Red color for ⚠️ */
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #ff3b3b;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #e03131;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-box">
+        <div class="warning">⚠️</div>
+
+        <h2>Something Went Wrong</h2>
+        <p>An unexpected error occurred. Please try again later.</p>
+
+        <a href="/admin" class="btn">Go to Dashboard</a>
+    </div>
+
+</body>
+</html>

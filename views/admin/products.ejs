@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Products - Bookshelves</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 220px;
+            background-color: #f9f9f9;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 30px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .sidebar-brand {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            padding: 0 10px;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #efefef;
+        }
+
+        .nav-link.active {
+            background-color: #e8e8e8;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            margin: 20px 10px 0 10px;
+            padding: 12px 20px;
+            background-color: #FF4757;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff3838;
+        }
+
+        /* Main Content Area */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #f5f5f5;
+        }
+
+        .search-bar input::placeholder {
+            color: #999;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            cursor: pointer;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .products-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .add-product-btn {
+            padding: 12px 24px;
+            background-color: #FF4757;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-product-btn:hover {
+            background-color: #ff3838;
+        }
+
+        /* Filter and Sort Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: white;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group select {
+            border: none;
+            background-color: white;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            color: #333;
+        }
+
+        .sort-group {
+            background-color: white;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .sort-option {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .sort-option:hover {
+            background-color: #FF4757;
+            color: white;
+            border-color: #FF4757;
+        }
+
+        /* Table Styling */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .products-table thead {
+            background-color: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .products-table th {
+            padding: 15px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .products-table th:last-child {
+            border-right: none;
+        }
+
+        .products-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .products-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .product-image {
+            width: 50px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .action-icons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: color 0.3s;
+            padding: 5px 8px;
+        }
+
+        .action-icons button:hover {
+            color: #FF4757;
+        }
+
+        .delete-btn {
+            color: #999 !important;
+        }
+
+        .delete-btn:hover {
+            color: #FF4757 !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                flex-direction: row;
+                padding: 15px 20px;
+                align-items: center;
+                overflow-x: auto;
+            }
+
+            .nav-menu {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                flex: 1;
+                padding: 0 10px;
+            }
+
+            .nav-item {
+                margin-bottom: 0;
+            }
+
+            .logout-btn {
+                margin: 0;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .products-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .products-table {
+                font-size: 12px;
+            }
+
+            .products-table th,
+            .products-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📚</div>
+            <div class="sidebar-brand">Bookshelves</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">Products</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Order Lists</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Users</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Sales</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Coupons</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Category</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Banner</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Offer</a>
+            </li>
+        </ul>
+
+        <button class="logout-btn">Logout</button>
+    </aside>
+
+
+    <div class="main-container">
+
+        <header class="header">
+            <div class="search-bar">
+                <input type="text" placeholder="Search">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="header-logo">
+                <span>📚</span>
+                <span>Bookshelves</span>
+            </div>
+        </header>
+
+
+        <div class="content">
+
+            <div class="products-header">
+                <h1>Products</h1>
+                <button class="add-product-btn">Add New Product +</button>
+            </div>
+
+
+            <div class="controls">
+                <div class="control-group">
+                    <span class="control-label">Filter By</span>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">Product Category</span>
+                    <select>
+                        <option>All Categories</option>
+                        <option>Fiction</option>
+                        <option>Horror</option>
+                        <option>Romance</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">Price</span>
+                    <select>
+                        <option>All Prices</option>
+                        <option>Low to High</option>
+                        <option>High to Low</option>
+                    </select>
+                </div>
+                <div class="sort-group">
+                    <span class="control-label">Sort</span>
+                    <button class="sort-option">Price High-Low</button>
+                    <button class="sort-option">Price Low-High</button>
+                    <button class="sort-option">Last added first</button>
+                </div>
+            </div>
+
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><img src="/placeholder.svg?height=70&width=50" alt="Inherited" class="product-image"></td>
+                        <td>Inherited</td>
+                        <td>Horror</td>
+                        <td>₹ 4,500.00</td>
+                        <td>100</td>
+                        <td>
+                            <div class="action-icons">
+                                <button title="Edit">✎</button>
+                                <button class="delete-btn" title="Delete">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><img src="/placeholder.svg?height=70&width=50" alt="The Night Of Horror"
+                                class="product-image"></td>
+                        <td>The Night Of Horror</td>
+                        <td>Horror</td>
+                        <td>₹ 4,500.00</td>
+                        <td>100</td>
+                        <td>
+                            <div class="action-icons">
+                                <button title="Edit">✎</button>
+                                <button class="delete-btn" title="Delete">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><img src="/placeholder.svg?height=70&width=50" alt="The Death Pact" class="product-image">
+                        </td>
+                        <td>The Death Pact</td>
+                        <td>Horror</td>
+                        <td>₹ 4,500.00</td>
+                        <td>100</td>
+                        <td>
+                            <div class="action-icons">
+                                <button title="Edit">✎</button>
+                                <button class="delete-btn" title="Delete">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><img src="/placeholder.svg?height=70&width=50" alt="My Story" class="product-image"></td>
+                        <td>My Story</td>
+                        <td>Horror</td>
+                        <td>₹ 4,500.00</td>
+                        <td>100</td>
+                        <td>
+                            <div class="action-icons">
+                                <button title="Edit">✎</button>
+                                <button class="delete-btn" title="Delete">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><img src="/placeholder.svg?height=70&width=50" alt="The Cabin" class="product-image"></td>
+                        <td>The Cabin</td>
+                        <td>Horror</td>
+                        <td>₹ 4,500.00</td>
+                        <td>100</td>
+                        <td>
+                            <div class="action-icons">
+                                <button title="Edit">✎</button>
+                                <button class="delete-btn" title="Delete">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

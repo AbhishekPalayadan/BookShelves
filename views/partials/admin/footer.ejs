@@ -1,0 +1,40 @@
+</div>
+
+</div>
+<script>
+    function blockUser(id) {
+        Swal.fire({
+            title: "Block this user?",
+            text: "The user will not be able to login.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#FF3B30",
+            cancelButtonColor: "#aaa",
+            confirmButtonText: "Yes, Block"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/blockCustomer/?id=${id}`;
+            }
+        });
+    }
+
+    function unblockUser(id) {
+        Swal.fire({
+            title: "Unblock this user?",
+            text: "The user will regain access.",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#34C759",
+            cancelButtonColor: "#aaa",
+            confirmButtonText: "Yes, Unblock"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/unblockCustomer/?id=${id}`;
+            }
+        });
+    }
+</script>
+
+</body>
+
+</html>

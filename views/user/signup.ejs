@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Shelves SignUp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+
+
+        header {
+            background-color: #fff;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .logo img {
+            width: 50px;
+
+            height: auto;
+
+            object-fit: contain;
+
+            vertical-align: middle;
+        }
+
+
+        .logo svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+            flex: 1;
+            margin-left: 50px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #e53935;
+        }
+
+        .search-login {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            width: 100%;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icons a {
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+
+        .hero {
+            background-color: #fff;
+            padding: 60px 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 15px;
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .hero-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .hero-images img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 0 40px;
+        }
+
+        .section-title .line {
+            width: 4px;
+            height: 24px;
+            background-color: #e53935;
+        }
+
+        .section-title h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-title .see-all {
+            margin-left: auto;
+            background-color: #e53935;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+        }
+
+
+        .flash-sales {
+            background-color: #fff;
+            padding: 30px 40px;
+            margin-bottom: 20px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .book-card {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-image {
+            width: 100%;
+            height: 250px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .book-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .book-price {
+            color: #e53935;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .book-price .original {
+            color: #999;
+            text-decoration: line-through;
+            margin-right: 10px;
+        }
+
+        .book-rating {
+            color: #ffc107;
+            font-size: 12px;
+        }
+
+
+        .categories {
+            background-color: #fff;
+            padding: 30px 40px;
+            margin-bottom: 20px;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .category-card {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .category-image {
+            width: 100%;
+            height: 180px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+
+        .category-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+
+        .new-arrivals {
+            background-color: #fff;
+            padding: 30px 40px;
+            margin-bottom: 20px;
+        }
+
+
+        .popular-brands {
+            background-color: #fff;
+            padding: 30px 40px;
+            margin-bottom: 20px;
+        }
+
+        .brands-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            align-items: center;
+        }
+
+        .brand-logo {
+            width: 100%;
+            height: 100px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .brand-logo:hover {
+            background-color: #e8e8e8;
+        }
+
+
+        .best-selling {
+            background-color: #fff;
+            padding: 30px 40px;
+            margin-bottom: 20px;
+        }
+
+
+        footer {
+            background-color: #2b2b2b;
+            color: #fff;
+            padding: 40px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-column h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .footer-column p,
+        .footer-column a {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .footer-column a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #444;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .books-grid,
+            .categories-grid,
+            .brands-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hero-images {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <img src="/images/book-icon.png" alt="BooksBound Logo">
+            <span>Bookshelves</span>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+        </nav>
+    </header>
+
+    <main
+        style="background-color: #fff; min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px;">
+        <div
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; max-width: 1000px; width: 100%; align-items: center;">
+
+            <div style="
+  background-color: #f2f2f2;
+  border-radius: 12px;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* makes it perfectly square */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+">
+                <img src="/images/book-banner1.png" alt="Books Display" style="
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+    ">
+            </div>
+
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="margin-bottom: 10px;">
+                    <h2 style="font-size: 32px; margin-bottom: 10px; color: #000;">Create an account</h2>
+                    <p style="font-size: 14px; color: #666;">Enter your details below</p>
+                </div>
+
+                <% if (message) { %>
+                    <div
+                        style="background-color: #ffe6e6; color: #b30000; padding: 10px; border-radius: 6px; text-align: center; font-weight: 500;">
+                        <%= message %>
+                    </div>
+                    <% } %>
+
+                        <form style="display: flex; flex-direction: column; gap: 15px;" id="signform" method="post"
+                            action="/signup" novalidate>
+                            <input type="text" placeholder="Full Name" name="fullname" id="fullname"
+                                style="border: none; border-bottom: 1px solid #ddd; padding: 12px 0; font-size: 14px; background: transparent; outline: none;">
+                            <div id="error1" class="error-message"></div>
+
+                            <input type="email" placeholder="Email" name="email" id="email"
+                                style="border: none; border-bottom: 1px solid #ddd; padding: 12px 0; font-size: 14px; background: transparent; outline: none;">
+                            <div id="error2" class="error-message"></div>
+
+                            <div style="position: relative;">
+                                <input type="password" placeholder="Password" name="password" id="password"
+                                    style="border: none; border-bottom: 1px solid #ddd; padding: 12px 40px 12px 0; font-size: 14px; background: transparent; outline: none; width: 100%;">
+                                <span id="togglePassword"
+                                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; display: none;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </span>
+                            </div>
+                            <div id="error3" class="error-message"></div>
+
+                            <input type="password" placeholder="Confirm Password" name="cPassword" id="confirm-password"
+                                style="border: none; border-bottom: 1px solid #ddd; padding: 12px 0; font-size: 14px; background: transparent; outline: none; width: 100%;">
+                            <div id="error4" class="error-message"></div>
+
+                            <button type="submit"
+                                style="background-color: #1a1a1a; color: #fff; border: none; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 4px; margin-top: 10px;">
+                                Create Account
+                            </button>
+                        </form>
+
+                        <a href="/auth/google" style="background-color: #fff; border: 1px solid #ddd; padding: 14px; font-size: 14px; 
+          cursor: pointer; display: flex; align-items: center; justify-content: center; 
+          gap: 10px; border-radius: 4px; color: inherit; text-decoration: none;">
+                            <i class="fa-brands fa-google"></i> Sign up with Google
+                        </a>
+
+
+                        <div style="text-align: center; font-size: 14px; color: #666; margin-top: 10px;">
+                            Already have an account?
+                            <a href="/login" style="color: #000; text-decoration: none; font-weight: 600;">Log In</a>
+                        </div>
+            </div>
+        </div>
+    </main>
+
+
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Exclusive</h3>
+                <p>Subscribe</p>
+                <p>Get 10% off your first order</p>
+            </div>
+            <div class="footer-column">
+                <h3>Support</h3>
+                <a href="#">111 Bijoy Sarani, Dhaka</a>
+                <a href="#">exclusive@gmail.com</a>
+                <a href="#">+88015-88888-9999</a>
+            </div>
+            <div class="footer-column">
+                <h3>Account</h3>
+                <a href="#">Login / Register</a>
+                <a href="#">Cart</a>
+                <a href="#">Wishlist</a>
+                <a href="#">Shop</a>
+            </div>
+            <div class="footer-column">
+                <h3>Quick Link</h3>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Use</a>
+                <a href="#">FAQ</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-column">
+                <h3>Download App</h3>
+                <p>Save $3 with App New User Only</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Bookshelves. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>
+
+
+<style>
+    .error-message {
+        color: #b30000;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+    }
+</style>
+
+<script>
+    const nameId = document.getElementById('fullname');
+    const emailId = document.getElementById('email');
+    const passId = document.getElementById('password');
+    const cPassId = document.getElementById('confirm-password');
+
+    const error1 = document.getElementById('error1');
+    const error2 = document.getElementById('error2');
+    const error3 = document.getElementById('error3');
+    const error4 = document.getElementById('error4');
+
+    const signform = document.getElementById('signform');
+
+    function nameValidateChecking() {
+        const nameval = nameId.value.trim();
+        const namepattern = /^[A-Za-z\s]+$/;
+        if (nameval === "") {
+            error1.style.display = "block";
+            error1.innerHTML = "Please enter your name";
+        } else if (!namepattern.test(nameval)) {
+            error1.style.display = "block";
+            error1.innerHTML = "Name can only contain letters and spaces";
+        } else {
+            error1.style.display = "none";
+        }
+    }
+
+    function emailValidateChecking() {
+        const emailval = emailId.value.trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(emailval)) {
+            error2.style.display = "block";
+            error2.innerHTML = "Invalid email format";
+        } else {
+            error2.style.display = "none";
+        }
+    }
+
+    function passValidateChecking() {
+        const passVal = passId.value.trim();
+        const cPassVal = cPassId.value.trim();
+        const alpha = /[a-zA-Z]/;
+        const digit = /\d/;
+
+        if (passVal.length < 8) {
+            error3.style.display = "block";
+            error3.innerHTML = "Password must be at least 8 characters";
+        } else if (!alpha.test(passVal) || !digit.test(passVal)) {
+            error3.style.display = "block";
+            error3.innerHTML = "Password must contain letters and numbers";
+        } else {
+            error3.style.display = "none";
+        }
+
+        if (passVal !== cPassVal) {
+            error4.style.display = "block";
+            error4.innerHTML = "Passwords do not match";
+        } else {
+            error4.style.display = "none";
+        }
+    }
+
+    signform.addEventListener('submit', (e) => {
+        nameValidateChecking();
+        emailValidateChecking();
+        passValidateChecking();
+        if (error1.innerHTML || error2.innerHTML || error3.innerHTML || error4.innerHTML) {
+            e.preventDefault();
+        }
+    });
+
+
+    const togglePass = document.getElementById("togglePassword");
+    const icon = togglePass.querySelector("i");
+    passId.addEventListener("input", () => {
+        togglePass.style.display = passId.value ? "block" : "none";
+    });
+
+    togglePass.addEventListener("click", () => {
+        const type = passId.type === "password" ? "text" : "password";
+        passId.type = type;
+        cPassId.type = type;
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+    });
+
+</script>

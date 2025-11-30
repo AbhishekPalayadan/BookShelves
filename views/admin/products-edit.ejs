@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - Bookshelves Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: white;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        .nav-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: #e8e8e8;
+        }
+
+        .logout-btn {
+            background-color: #ff3b3b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background-color: #e63030;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: white;
+            padding: 20px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-bar {
+            width: 300px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+        }
+
+        .content {
+            padding: 40px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+
+        .form-container {
+            display: flex;
+            gap: 40px;
+        }
+
+        .left-section {
+            flex: 0 0 300px;
+        }
+
+        .product-image {
+            width: 280px;
+            height: 280px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 30px;
+            border: 2px solid #ddd;
+        }
+
+        .image-upload-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .file-input-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #999;
+            border-radius: 8px;
+            background-color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .file-input-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .right-section {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            grid-column: 1 / -1;
+        }
+
+        .form-group.half {
+            grid-column: span 1;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px;
+            border: 1px solid #999;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #333;
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+        }
+
+        .price-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            grid-column: 1 / -1;
+        }
+
+        .price-row .form-group {
+            grid-column: span 1;
+        }
+
+        .button-group {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .update-btn {
+            flex: 1;
+            background-color: #ff3b3b;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .update-btn:hover {
+            background-color: #e63030;
+        }
+
+        .cancel-btn {
+            flex: 1;
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .cancel-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        @media (max-width: 1024px) {
+            .form-container {
+                flex-direction: column;
+            }
+
+            .right-section {
+                grid-template-columns: 1fr;
+            }
+
+            .price-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <span style="font-size: 24px;">📚</span>
+            <span>Bookshelves</span>
+        </div>
+        <div class="nav-menu">
+            <a href="#" class="nav-item">Dashboard</a>
+            <a href="#" class="nav-item active">Products</a>
+            <a href="#" class="nav-item">Order Lists</a>
+            <a href="#" class="nav-item">Users</a>
+            <a href="#" class="nav-item">Sales</a>
+            <a href="#" class="nav-item">Coupons</a>
+            <a href="#" class="nav-item">Category</a>
+            <a href="#" class="nav-item">Banner</a>
+            <a href="#" class="nav-item">Offer</a>
+        </div>
+        <button class="logout-btn">Logout</button>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <input type="text" class="search-bar" placeholder="Search">
+        </div>
+        <div class="content">
+            <div class="page-title">Edit Product</div>
+
+            <form class="form-container">
+                <div class="left-section">
+                    <img src="/placeholder.svg?height=280&width=280" alt="Product" class="product-image">
+                    <label class="image-upload-label">Change Product Image</label>
+                    <input type="file" id="fileInput" style="display: none;">
+                    <button type="button" class="file-input-btn"
+                        onclick="document.getElementById('fileInput').click()">File</button>
+                </div>
+
+                <div class="right-section">
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input type="text" id="productName" placeholder="Type name here" value="The Death Pact">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="author">Author</label>
+                        <input type="text" id="author" placeholder="Type author name here" value="Susan Summers">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description"
+                            placeholder="Type Description here">An enchanting blend of mystery and intrigue, The Death Pact by Susan Summers captures the essence of suspense with twists as sharp as fresh revelations.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publisher">Publisher</label>
+                        <input type="text" id="publisher" placeholder="Type name here" value="Horror Publications">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publishedDate">Published Date</label>
+                        <input type="date" id="publishedDate" value="2024-01-15">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category">
+                            <option selected>Horror</option>
+                            <option>Fiction</option>
+                            <option>Romance</option>
+                            <option>Thriller</option>
+                            <option>Biography</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stockQuantity">Stock Quantity</label>
+                        <input type="number" id="stockQuantity" placeholder="230" value="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pageCount">Page Count</label>
+                        <input type="text" id="pageCount" placeholder="Type Page Count here" value="320">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <input type="text" id="language" placeholder="English" value="English">
+                    </div>
+
+                    <div class="price-row">
+                        <div class="form-group">
+                            <label for="regularPrice">Regular Price</label>
+                            <input type="text" id="regularPrice" placeholder="₹ 4500" value="₹ 4500">
+                        </div>
+                        <div class="form-group">
+                            <label for="salePrice">Sale Price</label>
+                            <input type="text" id="salePrice" placeholder="₹ 3300" value="₹ 3300">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="update-btn">Update</button>
+                        <button type="button" class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

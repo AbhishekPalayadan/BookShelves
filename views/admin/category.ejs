@@ -1,0 +1,206 @@
+<%- include("../partials/admin/header", { title: "Category" , adminName: typeof adminName !=="undefined" ? adminName
+    : "Admin" }) %>
+
+    <div class="dashboard-content" style="padding: 20px 17px;">
+
+        <div class="content-header"
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="font-size:28px; font-weight:600; color:#333;">Add Category</h1>
+        </div>
+
+
+        <div class="form-section"
+            style="background:white; border:1px solid #ddd; border-radius:8px; padding:25px; margin-bottom:25px;">
+
+            <form action="/admin/addCategory" method="POST" onsubmit="return handleFormSubmit(event)"
+                style="width:100%; display:flex; gap:20px; flex-wrap:wrap;">
+
+                <div style="flex:1; min-width:250px;">
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>Category Name :</label>
+                        <input type="text" name="name" placeholder="Enter Category Name"
+                            style="padding:10px; width:100%; border:1px solid #ddd;">
+                    </div>
+                </div>
+                <p id="name-error" class="error-message" style="color:red; display:none;"></p>
+
+
+                <div style="flex:1; min-width:250px;">
+                    <div class="form-group">
+                        <label>Category Description :</label>
+                        <textarea id="descriptionId" name="description" placeholder="Enter Category Description"
+                            style="padding:10px; width:100%; height:120px; border:1px solid #ddd;"></textarea>
+                    </div>
+                </div>
+                <p id="description-error" class="error-message" style="color:red; display:none;"></p>
+
+
+                <div style="width:100%; display:flex; justify-content:flex-end;">
+                    <button type="submit" style="background:#ff4757; border:none; color:white; padding:10px 18px;
+                       border-radius:6px; font-size:14px; cursor:pointer;">
+                        Add Category
+                    </button>
+                </div>
+
+            </form>
+
+
+            <div style="clear:both;"></div>
+
+        </div>
+
+        <!-- Category Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Category Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <% cat.forEach((cat, index)=> { %>
+                        <tr>
+                            <td>
+                                <%= index + 1 %>
+                            </td>
+                            <td>
+                                <%= cat.name %>
+                            </td>
+                            <td>
+                                <%= cat.description %>
+                            </td>
+
+                            <!-- TOGGLE -->
+                            <td>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" <%=cat.isListed ? 'checked' : '' %>
+                                    onchange="toggleCategory('<%= cat._id %>')">
+                                        <span class="slider"></span>
+                                </label>
+                            </td>
+
+                            <!-- EDIT ICON -->
+                            <td>
+                                <a href="/admin/editCategory/<%= cat._id %>" class="action-icon">✏️</a>
+                            </td>
+
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page Navigation">
+            <ul class="pagination">
+                <% for (let i=1; i <=totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>">
+                            <%= i %>
+                        </a>
+                    </li>
+                    <% } %>
+            </ul>
+        </nav>
+
+    </div>
+
+    <%- include("../partials/admin/footer") %>
+
+        <script>
+            function handleFormSubmit(event) {
+                event.preventDefault();
+
+                if (!validateForm()) {
+                    return false;
+                }
+
+                const name = document.getElementsByName("name")[0].value;
+                const description = document.getElementById("descriptionId").value;
+
+                fetch('/admin/addCategory', {
+                    method: "POST",
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ name, description })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.error); });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        location.reload();
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops',
+                            text: error.message === "Category already exists"
+                                ? "Category already exists"
+                                : "Error while adding category"
+                        });
+                    });
+
+                return false;
+            }
+
+
+            function validateForm() {
+                clearErrorMessages();
+                const name = document.getElementsByName("name")[0].value.trim();
+                const description = document.getElementById("descriptionId").value.trim();
+                isValid = true;
+
+
+                if (name === "") {
+                    displayErrorMessage("name-error", "Please enter a name");
+                    isValid = false
+                } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                    displayErrorMessage("name-error", "Category name should contain only alphabetic charecter");
+                    isValid = false;
+                }
+
+                if (description === "") {
+                    displayErrorMessage("description-error", "Please enter a description")
+                    isValid = false;
+                }
+                return isValid;
+            }
+
+
+            function displayErrorMessage(elementId, message) {
+                var errorElement = document.getElementById(elementId);
+                errorElement.innerText = message;
+                errorElement.style.display = "block"
+            }
+
+            function clearErrorMessages() {
+                const errorElements = document.getElementsByClassName("error-message");
+                Array.from(errorElements).forEach((element) => {
+                    element.innerText = "";
+                    element.style.display = "none"
+                })
+            }
+
+
+
+
+
+            function toggleCategory(id) {
+                Swal.fire({
+                    title: "Change category status?",
+                    icon: "question",
+                    showCancelButton: true
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        window.location.href = `/admin/toggleCategory?id=${id}`;
+                    }
+                });
+            }
+        </script>
