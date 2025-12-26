@@ -4,9 +4,52 @@
     <div class="dashboard-content" style="padding: 20px 17px;">
 
         <div class="content-header"
-            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h1 style="font-size:28px; font-weight:600; color:#333;">Users</h1>
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    
+        <h1 style="font-size:28px; font-weight:600; color:#333;">Users</h1>
+    
+        <div style="display:flex; align-items:center; gap:10px;">
+    
+        
+            <form action="/admin/users" method="GET" style="display:flex; gap:8px; align-items:center;">
+                <div style="position:relative;">
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        name="search" 
+                        placeholder="Search Users..." 
+                        value="<%= query.search || '' %>"
+                        style="padding:10px 30px 10px 10px; border:1px solid #ccc; border-radius:5px;"
+                    >
+            
+                    <span 
+                    id="clearBtn"
+                    onclick="clearSearch()"
+                    style="
+                        position:absolute;
+                        right:8px;
+                        top:50%;
+                        transform:translateY(-50%);
+                        cursor:pointer;
+                        font-size:16px;
+                        color:#888;
+                        display: <%= query.search ? 'block' : 'none' %>;
+                    "
+                >×</span>
+        
+                </div>
+            
+                <button type="submit" 
+                    style="padding:10px 14px; border:none; background:#1e90ff; color:white; border-radius:5px;">
+                    Search
+                </button>
+            </form>
+            
+            
+    
+        
         </div>
+    </div>
 
         <div class="table-container"
             style="background:white; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden;">
@@ -37,13 +80,13 @@
 
                                 <% if (user.isBlocked) { %>
 
-                                    <button class="unblock-btn" onclick="unblockUser('<%= user._id %>')">
+                                    <button class="unblock-btn" onclick="unblockUser('<%= user._id %>','<%= currentPage %>')">
                                         Unblock
                                     </button>
 
                                     <% } else { %>
 
-                                        <button class="block-btn" onclick="blockUser('<%= user._id %>')">
+                                        <button class="block-btn" onclick="blockUser('<%= user._id %>','<%= currentPage %>')">
                                             Block
                                         </button>
 
@@ -56,24 +99,40 @@
                 </tbody>
 
             </table>
+<div class="container mt-3">
+    <nav aria-label="Page Navigation">
+        <ul class="pagination">
 
-            <div class="container mt-3">
-                <nav aria-label="Page Navigation">
-                    <ul class="pagination">
-                        <% for (let i=1; i <=totalPages; i++) { %>
-                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>">
-                                    <%= i %>
-                                </a>
-                            </li>
-                            <% } %>
-                    </ul>
-                </nav>
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=1&search=<%= search %>&limit=<%= limit %>">First</a>
+            </li>
 
-            </div>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&search=<%= search %>&limit=<%= limit %>">
+                        <%= i %>
+                    </a>
+                </li>
+            <% } %>
+
+            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= totalPages %>&search=<%= search %>&limit=<%= limit %>">Last</a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+
 
         </div>
 
     </div>
 
+    <script>
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = "";         
+            input.form.submit();       
+        }
+        </script>
     <%- include("../partials/admin/footer") %>

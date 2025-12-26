@@ -1,0 +1,188 @@
+<%- include("../../views/partials/user/header") %>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <div class="container"
+        style="min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; background-color: #fff; margin-bottom: 110px;">
+
+        <form id="otp-form" action="/verify-forgot-otp" method="post" class="otp-form"
+            style="max-width: 500px; width: 100%; text-align: center;">
+
+            <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 15px; color: #000;">Enter the OTP</h1>
+
+            <p style="color: #666; font-size: 14px; margin-bottom: 40px;">The OTP has been sent to your registered email
+            </p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="otp" name="otp" required placeholder="Enter the OTP"
+                    style="flex: 1; padding: 12px 15px; border: none; border-bottom: 1px solid #ddd; font-size: 14px; background-color: #f9f9f9;">
+
+
+                <button type="button" id="resendOtpBtn"
+                    style="background-color: #000; color: #fff; padding: 12px 20px; border-radius: 4px; cursor: pointer;">
+                    Resend OTP
+                </button>
+
+            </div>
+
+            <div class="timer" id="timerText" style="color: #ff1744; font-size: 12px; margin-bottom: 30px;">
+                0:30 seconds remaining
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="/signup" style="color: #000;">Go back</a>
+
+
+                <button type="submit" id="verifyBtn"
+                    style="background-color: #000; color: #fff; padding: 12px 50px; border-radius: 4px; cursor: pointer;">
+                    Verify
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <%- include("../../views/partials/user/footer") %>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    let timeLeft = 30;
+    let timerInterval;
+    const timerElement = document.getElementById('timerText');
+    const resendBtn = document.getElementById('resendOtpBtn');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const otpInput = document.getElementById('otp');
+    const otpForm = document.getElementById('otp-form');
+
+    function startTimer() {
+        resendBtn.disabled = true;
+        resendBtn.style.opacity = "0.5";
+        clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60);
+                const s = timeLeft % 60;
+                timerElement.textContent = `${m}:${s.toString().padStart(2, "0")} seconds remaining`;
+            } else {
+                clearInterval(timerInterval);
+                timerElement.textContent = "You can resend the OTP now.";
+                resendBtn.disabled = false;
+                resendBtn.style.opacity = "1";
+            }
+        }, 1000);
+    }
+
+
+    startTimer();
+
+ 
+    function isValidOtp(otp) {
+        return /^\d{6}$/.test(otp);
+    }
+
+
+    otpForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const otp = otpInput.value.trim();
+
+        if (!isValidOtp(otp)) {
+            Swal.fire({
+                icon: "error",
+                title: "Invalid OTP",
+                text: "Enter a 6-digit numeric OTP."
+            });
+            otpInput.focus();
+            return;
+        }
+
+        verifyBtn.disabled = true;
+        verifyBtn.style.opacity = "0.6";
+
+        $.post("/verify-forgot-otp", { otp })
+            .done(function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "OTP Verified",
+                        showConfirmButton: false,
+                        timer: 1400
+                    }).then(() => window.location.href = response.redirectUrl);
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Invalid OTP",
+                        text: response.message || "Please try again."
+                    });
+                }
+            })
+            .fail(function () {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Something went wrong. Try again."
+                });
+            })
+            .always(function () {
+                verifyBtn.disabled = false;
+                verifyBtn.style.opacity = "1";
+            });
+    });
+
+    
+    resendBtn.addEventListener("click", function () {
+        if (resendBtn.disabled) return;
+
+
+        resendBtn.disabled = true;
+        resendBtn.style.opacity = "0.6";
+
+        $.post("/resend-forgot-otp")
+            .done(function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "OTP Resent",
+                        showConfirmButton: false,
+                        timer: 1200
+                    });
+
+            
+                    timeLeft = 30;
+                    startTimer();
+
+          
+                    otpInput.value = "";
+                    otpInput.focus();
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: response.message || "Unable to resend OTP"
+                    });
+                
+                    resendBtn.disabled = false;
+                    resendBtn.style.opacity = "1";
+                }
+            })
+            .fail(function () {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Network error. Try again."
+                });
+                resendBtn.disabled = false;
+                resendBtn.style.opacity = "1";
+            });
+    });
+
+
+    otpInput.addEventListener("keyup", function (e) {
+        if (e.key === "Enter") {
+            otpForm.requestSubmit(); 
+        }
+    });
+});
+</script>

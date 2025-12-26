@@ -1,188 +1,207 @@
 <%-include("../../views/partials/user/header")%>
 
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Book<br>Bound</h1>
-            <p>Where Every Story<br>Finds a Reader</p>
-        </div>
-        <div class="hero-images">
+<section class="hero">
+    <img src="/images/book-banner3.png" class="hero-banner" alt="Banner Image">
 
-        </div>
-    </section>
-
-
-    <section class="flash-sales">
-        <div class="section-title">
-            <div class="line"></div>
-            <h2>New</h2>
-            <span style="color: #999;">Flash Sales</span>
-            <button class="see-all">See all</button>
-        </div>
-        <div class="books-grid">
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Death Pact">
-                </div>
-                <div class="book-title">Death Pact</div>
-                <div class="book-price"><span class="original">₹350</span>₹280</div>
-                <div class="book-rating">★★★★★ (128)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Mountain Landscape">
-                </div>
-                <div class="book-title">The Mountain Sky</div>
-                <div class="book-price"><span class="original">₹420</span>₹350</div>
-                <div class="book-rating">★★★★☆ (95)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Poetry">
-                </div>
-                <div class="book-title">A Tale of Mysteries</div>
-                <div class="book-price"><span class="original">₹450</span>₹360</div>
-                <div class="book-rating">★★★★★ (156)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Lord of Rings">
-                </div>
-                <div class="book-title">The Lord of the Rings</div>
-                <div class="book-price"><span class="original">₹599</span>₹499</div>
-                <div class="book-rating">★★★★★ (245)</div>
-            </div>
-        </div>
-    </section>
+    <div class="hero-text">
+        <h1>Book<br>Bound</h1>
+        <p>Where Every Story<br>Finds a Reader</p>
+    </div>
+</section>
 
 
-    <section class="categories">
-        <div class="section-title">
-            <div class="line"></div>
-            <h2>Categories</h2>
-        </div>
-        <div class="categories-grid">
-            <div class="category-card">
-                <div class="category-image">📖</div>
-                <div class="category-name">Fiction</div>
-            </div>
-            <div class="category-card">
-                <div class="category-image">🔴</div>
-                <div class="category-name">Horror</div>
-            </div>
-            <div class="category-card">
-                <div class="category-image">🚨</div>
-                <div class="category-name">Crime</div>
-            </div>
-            <div class="category-card">
-                <div class="category-image">🎬</div>
-                <div class="category-name">Love Story</div>
-            </div>
-        </div>
-    </section>
+
+<section class="top-picks">
+<div class="section-title">
+    <div class="line"></div>
+    <h2>Top Picks</h2>
+    <span class="section-title-2">Editor's Choice</span>
+    <a href="/products" class="see-all">View all</a>
+</div>
+
+    <div class="books-grid">
+        <% if (topPicks && topPicks.length > 0) { %>
+            <% topPicks.forEach(product => { %>
+
+<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
+    <div class="product-image">
+        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+    </div>
+
+    <div class="product-info">
+        <p class="product-name"><%= product.product_name %></p>
+
+        <p class="product-price">
+            <span class="price-sale">₹<%= product.sale_price %></span>
+            <% if (product.sale_price < product.regular_price) { %>
+                <span class="price-original">₹<%= product.regular_price %></span>
+            <% } %>
+        </p>
+
+        <div class="product-rating">⭐⭐⭐⭐⭐</div>
+    </div>
+</a>
+            <% }) %>
+        <% } else { %>
+            <p>No top picks available</p>
+        <% } %>
+    </div>
+</section>
 
 
-    <section class="new-arrivals">
-        <div class="section-title">
-            <div class="line"></div>
-            <h2>Featured</h2>
-            <span style="color: #999;">New Arrivals</span>
-            <button class="see-all">See all</button>
-        </div>
-        <div class="books-grid">
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="The Mountain">
-                </div>
-                <div class="book-title">The Mountain in Twilight</div>
-                <div class="book-price"><span class="original">₹380</span>₹290</div>
-                <div class="book-rating">★★★★☆ (87)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Night Prince">
-                </div>
-                <div class="book-title">The Little Prince</div>
-                <div class="book-price"><span class="original">₹320</span>₹250</div>
-                <div class="book-rating">★★★★★ (312)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Animal Farm">
-                </div>
-                <div class="book-title">Animal Farm</div>
-                <div class="book-price"><span class="original">₹350</span>₹280</div>
-                <div class="book-rating">★★★★☆ (203)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="The Man in Forest">
-                </div>
-                <div class="book-title">The Man in the Forest</div>
-                <div class="book-price"><span class="original">₹400</span>₹320</div>
-                <div class="book-rating">★★★★★ (156)</div>
-            </div>
-        </div>
-    </section>
 
 
-    <section class="popular-brands">
-        <div class="section-title">
-            <div class="line"></div>
-            <h2>Popular Book Brands</h2>
-            <span style="margin-left: auto;">← →</span>
-        </div>
-        <div class="brands-grid">
-            <div class="brand-logo">Penguin Books</div>
-            <div class="brand-logo">Harper Collins</div>
-            <div class="brand-logo">Macmillan</div>
-            <div class="brand-logo">Hachette</div>
-            <div class="brand-logo">Simon & Schuster</div>
-            <div class="brand-logo">Springer</div>
-        </div>
-    </section>
-
-    <section class="best-selling">
-        <div class="section-title">
-            <div class="line"></div>
-            <h2>Top Results</h2>
-            <span style="color: #999;">Best Selling Books</span>
-            <button class="see-all">View all</button>
-        </div>
-        <div class="books-grid">
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Educated">
-                </div>
-                <div class="book-title">Educated</div>
-                <div class="book-price"><span class="original">₹450</span>₹350</div>
-                <div class="book-rating">★★★★★ (524)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Warpath Count">
-                </div>
-                <div class="book-title">Woman Born She Count</div>
-                <div class="book-price"><span class="original">₹480</span>₹380</div>
-                <div class="book-rating">★★★★☆ (412)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Olympian">
-                </div>
-                <div class="book-title">Olimpian</div>
-                <div class="book-price"><span class="original">₹520</span>₹420</div>
-                <div class="book-rating">★★★★★ (398)</div>
-            </div>
-            <div class="book-card">
-                <div class="book-image">
-                    <img src="/placeholder.svg?height=250&width=180" alt="Subtle Art">
-                </div>
-                <div class="book-title">The Subtle Art of Not Giving</div>
-                <div class="book-price"><span class="original">₹380</span>₹300</div>
-                <div class="book-rating">★★★★☆ (687)</div>
-            </div>
-        </div>
-    </section>
 
 
-    <%include("../../views/partials/user/footer")%>
+<section class="categories">
+    <div class="section-title">
+        <div class="line"></div>
+        <h2>Categories</h2>
+    </div>
+
+    <ul class="category-list">
+        <% if (categories && categories.length > 0) { %>
+            <% categories.forEach(cat => { %>
+                <li class="category-item">
+                    <a href="/products?category=<%= cat._id %>">
+                        <%= cat.name %>
+                    </a>
+                </li>
+                
+            <% }) %>
+        <% } else { %>
+            <li>No categories available</li>
+        <% } %>
+    </ul>
+</section>
+
+
+
+
+<section class="new-arrivals">
+    <div class="section-title">
+        <div class="line"></div>
+        <h2>Featured</h2>
+        <span class="section-title-2">New Arrivals</span>
+        <a href="/products" class="see-all">View all</a>
+    </div>
+
+
+    <div class="books-grid">
+    <% if (products && products.length > 0) { %>
+        <% products.forEach(product => { %>
+<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
+    <div class="product-image">
+        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+    </div>
+
+    <div class="product-info">
+        <p class="product-name"><%= product.product_name %></p>
+
+        <p class="product-price">
+            <span class="price-sale">₹<%= product.sale_price %></span>
+            <% if (product.sale_price < product.regular_price) { %>
+                <span class="price-original">₹<%= product.regular_price %></span>
+            <% } %>
+        </p>
+
+        <div class="product-rating">⭐⭐⭐⭐⭐</div>
+    </div>
+</a>
+        <% }) %>
+    <% } else { %>
+        <p>No products found</p>
+    <% } %>
+</div>
+
+
+
+
+</section>
+
+<!-- 
+<section class="popular-brands">
+    <div class="section-title">
+        <div class="line"></div>
+        <h2>Popular Publishers</h2>
+    </div>
+
+    <div class="publisher-cards">
+
+        <div class="publisher-card">
+            <img src="/images/publishers/penguin.png" class="pub-logo-img" alt="Penguin Books">
+            <h3>Penguin Books</h3>
+            <p>Classic & modern bestselling literature.</p>
+        </div>
+
+        <div class="publisher-card">
+            <img src="/images/publishers/harpercollins.png" class="pub-logo-img" alt="Harper Collins">
+            <h3>Harper Collins</h3>
+            <p>Worldwide fiction & non-fiction favorites.</p>
+        </div>
+
+        <div class="publisher-card">
+            <img src="/images/publishers/macmillan.png" class="pub-logo-img" alt="Macmillan">
+            <h3>Macmillan</h3>
+            <p>Leading academic & literary publisher.</p>
+        </div>
+
+        <div class="publisher-card">
+            <img src="/images/publishers/hachette.png" class="pub-logo-img" alt="Hachette">
+            <h3>Hachette</h3>
+            <p>Home of global authors and top titles.</p>
+        </div>
+
+        <div class="publisher-card">
+            <img src="/images/publishers/simon.png" class="pub-logo-img" alt="Simon & Schuster">
+            <h3>Simon & Schuster</h3>
+            <p>Powerful storytelling across genres.</p>
+        </div>
+
+        <div class="publisher-card">
+            <img src="/images/publishers/springer.png" class="pub-logo-img" alt="Springer">
+            <h3>Springer</h3>
+            <p>Trusted scientific & educational books.</p>
+        </div>
+
+    </div>
+</section> -->
+
+<section class="trending-section">
+    <div class="section-title">
+        <div class="line"></div>
+        <h2>Trending Now</h2>
+        <span class="section-title-2">Popular Among Readers</span>
+        <a href="/products" class="see-all">View all</a>
+    </div>
+
+    <div class="books-grid">
+        <% if (trending && trending.length > 0) { %>
+            <% trending.forEach(product => { %>
+<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
+    <div class="product-image">
+        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+    </div>
+
+    <div class="product-info">
+        <p class="product-name"><%= product.product_name %></p>
+
+        <p class="product-price">
+            <span class="price-sale">₹<%= product.sale_price %></span>
+            <% if (product.sale_price < product.regular_price) { %>
+                <span class="price-original">₹<%= product.regular_price %></span>
+            <% } %>
+        </p>
+
+        <div class="product-rating">⭐⭐⭐⭐⭐</div>
+    </div>
+</a>
+            <% }) %>
+        <% } else { %>
+            <p>No trending books available</p>
+        <% } %>
+    </div>
+</section>
+
+
+   <%-include("../../views/partials/user/footer")%>

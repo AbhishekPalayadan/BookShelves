@@ -140,15 +140,18 @@
             <h1>Admin Login</h1>
         </div>
 
-        <form action="/admin/login" method="POST">
+        <form action="/admin/login" id="form" method="POST">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter Email Here" required>
+                <input id="email" name="email" placeholder="Enter Email Here">
+                <p id="emailError" style="color: red;"><%= errors?.email %></p>
+
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter Password Here" required>
+                <input type="password" id="password" name="password" placeholder="Enter Password Here">
+                <p id="passError" style="color: red;"><%= errors?.password %></p>
             </div>
 
             <button type="submit" class="login-button">Login</button>
@@ -156,5 +159,42 @@
 
     </div>
 </body>
+<script>
+    const form = document.getElementById('form')
+    const emailInput= document.getElementById('email')
+    const passwordInput= document.getElementById('password')
+    const emailError = document.getElementById('emailError');
+    const passError = document.getElementById('passError');
+
+    form.addEventListener('submit', (e) => {
+        let valid=true;
+
+        emailError.innerText="";
+        passError.innerText="";
+
+        const email=emailInput.value.trim();
+        const password=passwordInput.value.trim();
+
+        if(email===""){
+            emailError.innerText="Email cannot be empty";
+            valid=false;
+        }
+
+        const emailPattern=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(email !=="" && !emailPattern.test(email)){
+            emailError.innerText="Please enter a valid email address";
+            valid=false
+        }
+
+        if(password===""){
+            passError.innerText="Password cannot be empty";
+            valid=false;
+        }
+
+        if(!valid){
+            e.preventDefault();
+        }
+    })
+</script>
 
 </html>

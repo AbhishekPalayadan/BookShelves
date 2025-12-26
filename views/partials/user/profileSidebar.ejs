@@ -1,0 +1,164 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+            /* Sidebar */
+            .profile-sidebar {
+            display: flex;
+            flex-direction:column;
+            background: #fff;
+            border-radius: 8px;
+            padding: 30px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-circle {
+            width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+        }
+
+        .avatar-name {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    background: #f1f1f1;
+    padding: 6px 16px;
+    border-radius: 20px;
+}
+
+        .profile-menu {
+            list-style: none;
+        }
+
+        .profile-menu li {
+            margin-bottom: 5px;
+        }
+
+        .profile-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+
+        .profile-menu a:hover {
+            background: #fff0f0;
+            color: #ff4757;
+        }
+
+        .profile-menu a.active {
+            color: #ff4757;
+            font-weight: 600;
+        }
+        .logout-btn {
+            margin-top: auto;
+            text-align: center;
+            padding: 12px;
+            border: none;
+            background: #ff4757;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .avatar-img{
+            width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f1f1f1;
+        }
+        .avatar-initial {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+}
+.avatar-initial2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+}
+</style>
+
+<aside class="profile-sidebar">
+    <div class="profile-avatar">
+        <div class="avatar-circle">
+            <% if (user.profileImage) { %>
+                <img 
+                    src="<%= user.profileImage %>" 
+                    alt="Profile Avatar"
+                    class="avatar-img"
+                >
+            <% } else { %>
+                <span class="avatar-initial2">
+                    <%= user.fullname.charAt(0).toUpperCase() %>
+                </span>
+            <% } %>
+        </div>
+        <span class="avatar-name"><%= user.fullname %></span>
+    </div>
+    
+
+    <ul class="profile-menu">
+        <li><a href="/userProfile" class="<%= activeMenu === 'profile' ? 'active' : '' %>">My Profile</a></li>
+        <li><a href="/address" class="<%= activeMenu === 'address' ? 'active' : '' %>">Address Book</a></li>
+        <li><a href="/orders" class="<%= activeMenu === 'orders' ? 'active' : '' %>">My Orders</a></li>
+        <li><a href="/wishlist" class="<%= activeMenu === 'wishlist' ? 'active' : '' %>">My Wishlist</a></li>
+        <li><a href="/wallet" class="<%= activeMenu === 'wallet' ? 'active' : '' %>">Wallet</a></li>
+        <li><a href="coupons" class="<%= activeMenu === 'coupons' ? 'active' : '' %>">Coupons</a></li>
+    </ul>
+
+    <a href="/logout" id="logoutBtn" class="logout-btn">Logout</a>
+</aside>
+
+<script>
+    document.addEventListener('DOMContentLoaded',()=>{
+        const logoutBtn=document.getElementById('logoutBtn');
+        if(!logoutBtn)return;
+
+        logoutBtn.addEventListener('click',async (e)=>{
+            e.preventDefault();
+
+            const result=await Swal.fire({
+                title:"Are you sure?",
+                text:"You will be logged out from your account.",
+                icon:"warning",
+                showCancelButton:true,
+                confirmButtonColor:'#e53935',
+                cancelButtonColor:'#6c757d',
+                confirmButtonText:'Yes,logout',
+                cancelButtonText:'Cancel',
+                reverseButtons:true
+            })
+                if(result.isConfirmed){
+                    try {
+                        const res=await fetch('/logout',{method:"POST"});
+                        
+                        if(res.ok){
+                            window.location.href='/login'
+                        }else{
+                            Swal.fire('Error','Logout Failed.Try again','error')
+                        }
+                    } catch (error) {
+                        Swal.fire('Error','Network error.Try again','error')
+                    }
+                }
+            })
+        })
+</script>

@@ -608,12 +608,25 @@
     }
 
     signform.addEventListener('submit', (e) => {
+
+            error1.style.display = "none";
+    error2.style.display = "none";
+    error3.style.display = "none";
+    error4.style.display = "none";
+
+
         nameValidateChecking();
         emailValidateChecking();
         passValidateChecking();
-        if (error1.innerHTML || error2.innerHTML || error3.innerHTML || error4.innerHTML) {
-            e.preventDefault();
-        }
+if (
+    error1.style.display === "block" ||
+    error2.style.display === "block" ||
+    error3.style.display === "block" ||
+    error4.style.display === "block"
+) {
+    e.preventDefault();
+}
+
     });
 
 

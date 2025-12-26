@@ -44,15 +44,27 @@ const productSchema = new mongoose.Schema({
         enum: ['available', 'out_of_stock', 'removed'],
         default: 'available'
     },
-    ratings: {
+    average_ratings: {
         type: Number,
         default: 0
     },
     number_of_reviews: {
         type: Number,
         default: 0
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 }, { timestamps: true })
+
+
+productSchema.index({ product_name: "text" });
+productSchema.index({ sale_price: 1 });
+productSchema.index({ category_id: 1 });
+productSchema.index({ author: 1 });
+productSchema.index({ average_ratings: -1 });
+productSchema.index({ createdAt: -1 });
 
 
 const Product = mongoose.model("Product", productSchema)

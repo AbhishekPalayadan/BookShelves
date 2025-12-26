@@ -34,6 +34,19 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    resetOtp:{
+        type:String
+    },
+    dob:{
+        type:Date
+    },
+    resetOtpExpire:{
+        type:Date
+    },
+    profileImage:{
+        type:String,
+        default:null
     }
 }, { timestamps: true });
 

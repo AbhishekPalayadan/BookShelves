@@ -1,0 +1,274 @@
+<%- include("../partials/user/header",{user}) %>
+
+
+<link rel="stylesheet" href="/css/products.css">
+
+<div class="product-page-container">
+
+  
+    <aside class="sidebar">
+
+        <h2 class="sidebar-title">Filters</h2>
+ 
+    <div class="filter-section">
+        <h3>Sort By</h3>
+
+        <div class="sort-sidebar">
+            <a onclick="applySort('popularity')" 
+               class="<%= query.sort === 'popularity' ? 'active-sort' : '' %>">
+                Popularity
+            </a>
+
+            <a onclick="applySort('new')" 
+               class="<%= query.sort === 'new' ? 'active-sort' : '' %>">
+                Newest First
+            </a>
+
+            <a onclick="applySort('price_low')" 
+               class="<%= query.sort === 'price_low' ? 'active-sort' : '' %>">
+                Price: Low → High
+            </a>
+
+            <a onclick="applySort('price_high')" 
+               class="<%= query.sort === 'price_high' ? 'active-sort' : '' %>">
+                Price: High → Low
+            </a>
+        </div>
+    </div>
+    <hr style="margin-top: -10px;margin-bottom: 18px;">
+<div class="filter-section">
+    <h3>Category</h3>
+    <div class="filter-options">
+        <% categories.forEach(cat => { %>
+            <label>
+<input
+    type="checkbox"
+    name="category"
+    value="<%= cat._id %>"
+    onchange="applyFilters()"
+    <%= query.category && query.category.split(",").includes(String(cat._id)) ? 'checked' : '' %>
+>
+
+                <%= cat.name %>
+            </label>
+        <% }) %>
+    </div>
+</div>
+<hr style="margin-top: -10px;margin-bottom: 18px;">
+
+<div class="filter-section">
+    <h3>Price Range</h3>
+    <div class="filter-options">
+
+        <label>
+            <input type="checkbox"
+                name="price"
+                value="0-200"
+                onchange="applyFilters()"
+                <%= query.price && query.price.split(",").includes("0-200") ? "checked" : "" %>
+>
+            Under ₹200
+        </label>
+
+        <label>
+            <input type="checkbox"
+                name="price"
+                value="200-500"
+                onchange="applyFilters()"
+                <%= query.price && query.price.split(",").includes("200-500") ? "checked" : "" %>
+>
+            ₹200 – ₹500
+        </label>
+
+        <label>
+            <input type="checkbox"
+                name="price"
+                value="500-1000"
+                onchange="applyFilters()"
+               <%= query.price && query.price.split(",").includes("500-1000") ? "checked" : "" %>
+>
+            ₹500 – ₹1000
+        </label>
+
+        <label>
+            <input type="checkbox"
+                name="price"
+                value=">1000"
+                onchange="applyFilters()"
+                <%= query.price && query.price.split(",").includes(">1000") ? "checked" : "" %>
+>
+            ₹1000 – above
+        </label>
+
+    </div>
+</div>
+<button class="clear-btn" onclick="clearFilters()">Clear Filters</button>
+
+    </aside>
+
+    
+
+    <main class="main-content">
+        <div class="breadcrumb">
+    <a href="/">Home</a> /
+    <span>All Books</span>
+</div>
+
+
+<div class="content-header"
+style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; margin-top: 8px;">
+
+<h1 style="font-size:28px; font-weight:600; color:#333; margin-left: 10px;">All Books</h1>
+
+<div style="display:flex; align-items:center; gap:10px;">
+
+
+    <form action="/products" method="GET" style="display:flex; gap:8px;">
+        <input 
+            type="text" 
+            name="search" 
+            placeholder="Search Users..." 
+            value="<%= query.search || '' %>"
+            style="padding:10px; border:1px solid #ccc; border-radius:5px;"
+        >
+        <button type="submit" 
+            style="padding:10px 14px; border:none; background:#ff4d4d; color:white; border-radius:5px;">
+            Search
+        </button>
+    </form>
+
+
+</div>
+</div>
+
+
+        <div class="products-grid">
+            <% if (products.length > 0) { %>
+
+                <% products.forEach(product => { %>
+
+<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
+    <div class="product-image">
+        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+    </div>
+
+    <div class="product-info">
+        <p class="product-name"><%= product.product_name %></p>
+
+        <p class="product-price">
+            <span class="price-sale">₹<%= product.sale_price %></span>
+            <% if (product.sale_price < product.regular_price) { %>
+                <span class="price-original">₹<%= product.regular_price %></span>
+            <% } %>
+        </p>
+
+        <div class="product-rating">⭐⭐⭐⭐⭐</div>
+    </div>
+</a>
+
+
+                <% }) %>
+
+            <% } else { %>
+                <p>No products found.</p>
+            <% } %>
+        </div>
+
+        <%
+let queryString = "";
+
+Object.keys(query).forEach(key => {
+    if (key !== "page") {  // do not include old page value
+        queryString += `&${key}=${query[key]}`;
+    }
+});
+%>
+
+<div class="pagination">
+
+    <% if (currentPage > 1) { %>
+        <a href="?page=<%= currentPage - 1 %><%= queryString %>" class="page-btn">◀</a>
+    <% } else { %>
+        <span class="page-btn disabled">◀</span>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="?page=<%= i %><%= queryString %>" 
+           class="page-number <%= currentPage === i ? 'active' : '' %>">
+            <%= i %>
+        </a>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+        <a href="?page=<%= currentPage + 1 %><%= queryString %>" class="page-btn">▶</a>
+    <% } else { %>
+        <span class="page-btn disabled">▶</span>
+    <% } %>
+
+</div>
+
+    </main>
+</div>
+
+<script>
+function applyFilters() {
+    const url = new URL(window.location.href);
+
+
+const selectedCategories = [...document.querySelectorAll("input[name='category']:checked")]
+    .map(c => c.value);
+
+if (selectedCategories.length > 0) {
+    url.searchParams.set("category", selectedCategories.join(","));
+} else {
+    url.searchParams.delete("category");
+}
+
+
+const selectedPrices = [...document.querySelectorAll("input[name='price']:checked")]
+    .map(p => p.value); 
+
+if (selectedPrices.length > 0) {
+    url.searchParams.set("price", selectedPrices.join(",")); 
+} else {
+    url.searchParams.delete("price");
+}
+
+
+
+    url.searchParams.set("page", 1);
+
+    window.location.href = url.toString();
+}
+
+function applySort(sort) {
+    const url = new URL(window.location.href);
+
+    url.searchParams.set("sort", sort);
+    url.searchParams.set("page", 1);
+
+    window.location.href = url.toString();
+}
+
+
+function clearFilters() {
+    const url = new URL(window.location.href);
+
+
+    url.searchParams.delete("category");
+    url.searchParams.delete("price");
+    url.searchParams.delete("sort");
+    url.searchParams.delete("search");
+    url.searchParams.set("page", 1);
+
+
+    document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+
+    window.location.href = url.toString();
+}
+
+</script>
+
+
+
+<%- include("../partials/user/footer") %>

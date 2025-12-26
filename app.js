@@ -16,6 +16,7 @@ console.log(User)
 
 Database();
 
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(nocache())

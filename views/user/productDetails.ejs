@@ -1,0 +1,365 @@
+<%- include("../../views/partials/user/header", { user }) %>
+
+
+<div class="breadcrumb" style="margin-left: 80px;">
+    <a href="/">Home</a> /
+    <a href="/products">All Books</a> /
+    <span><%= product.product_name %></span>
+</div>
+
+
+<main class="product-details-page">
+
+    <div class="product-container">
+
+
+<div class="product-image-section">
+
+
+<div class="main-image-wrapper zoom-container">
+    <img id="mainImage" class="main-image"
+         src="/uploads/product-images/<%= product.images[0] %>" 
+         alt="<%= product.product_name %>">
+</div>
+
+
+    <div class="thumbnail-row">
+        <% product.images.forEach(img => { %>
+            <img 
+                src="/uploads/product-images/<%= img %>" 
+                class="thumbnail"
+                onclick="changeImage(this.src)">
+        <% }) %>
+    </div>
+
+</div>
+
+
+        <div class="product-info">
+
+<h1 class="pd-title"><%= product.product_name %></h1>
+<p class="pd-author">by <span><%= product.author %></span></p>
+
+            <div class="rating">
+                ⭐⭐⭐⭐☆ (524)
+            </div>
+
+            <div class="price-box">
+                <span class="new-price">₹<%= product.sale_price %></span>
+                <% if (product.sale_price < product.regular_price) { %>
+                    <span class="old-price">₹<%= product.regular_price %></span>
+                <% } %>
+            </div>
+
+            <p class="product-description">
+               Discover a thoughtfully crafted book designed to deliver an engaging reading experience. Printed with premium-quality pages and a comfortable layout, this book is perfect for readers who enjoy stories that inspire, entertain, and stay with you. Whether you're exploring new ideas or escaping into a gripping tale, this edition offers clarity, durability, and a smooth reading flow—making it an ideal addition to any bookshelf."
+            </p>
+
+
+
+
+<% if (product.stock > 10) { %>
+
+    <p class="stock-status in">✔ In Stock</p>
+
+<% } else if (product.stock > 0) { %>
+
+    <p class="stock-status low">⏳ Only <%= product.stock %> left in stock</p>
+
+<% } else { %>
+
+    <p class="stock-status out">❌ Out of Stock</p>
+
+    <div class="unavailable-box">
+        This product is currently unavailable.
+    </div>
+
+<% } %>
+
+<% if (product.stock > 0) { %>
+    <div class="quantity-section">
+        <label>Quantity:</label>
+    
+    
+        <div class="qty-box">
+            <button class="qty-btn" onclick="decreaseQty()">-</button>
+            <input id="qtyInput" type="number" value="1" min="1" readonly>
+            <button class="qty-btn" onclick="increaseQty()">+</button>
+        </div>
+    </div>
+
+    <div class="button-group">
+        <button class="add-to-cart-btn">Add to Cart</button>
+
+        <button class="wishlist-btn" id="wishlistBtn">
+            <i id="wishlistIcon" class="fa-regular fa-heart"></i>
+        </button>
+    </div>
+
+    <button class="buy-now-btn">Buy Now</button>
+
+<% } else { %>
+
+    <div class="button-group">
+        <button class="add-to-cart-btn btn-disabled">Add to Cart</button>
+
+        <button class="wishlist-btn" id="wishlistBtn">
+            <i id="wishlistIcon" class="fa-regular fa-heart"></i>
+        </button>
+    </div>
+
+    <button class="buy-now-btn btn-disabled">Buy Now</button>
+
+<% } %>
+
+
+
+
+            <div class="delivery-info">
+
+                <div class="delivery-box">
+                    <div class="delivery-icon">🚚</div>
+                    <div>
+                        <h4>Free Delivery</h4>
+                        <p>Delivery available on all orders</p>
+                    </div>
+                </div>
+
+                <div class="delivery-box">
+                    <div class="delivery-icon">🔄</div>
+                    <div>
+                        <h4>30 Days Return</h4>
+                        <p>Free return policy</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+<div class="tabs">
+<div class="tab active" onclick="showTab('description', this)">Description</div>
+<div class="tab" onclick="showTab('reviews', this)">Reviews</div>
+
+</div>
+
+
+<div id="description" class="tab-content active">
+    
+    <h2>Description</h2>
+    <p><%= product.description %></p>
+
+  
+    <div class="book-details-box">
+        <h3>Key Book Details</h3>
+
+        <ul class="details-list">
+            <li><span>Title:</span> <%= product.product_name %></li>
+            <li><span>Author:</span> <%= product.author %></li>
+            <li><span>Language:</span> <%= product.language %></li>
+
+            <% if (product.published_date) { %>
+            <li><span>Published Date:</span> 
+                <%= new Date(product.published_date).toLocaleDateString("en-IN", {
+                    day: "numeric", month: "long", year: "numeric"
+                }) %>
+            </li>
+            <% } %>
+
+            <li><span>Category:</span> 
+                <%= product.category_id ? product.category_id.name : "N/A" %>
+            </li>
+
+            <% if (product.pages) { %>
+            <li><span>Pages:</span> <%= product.pages %></li>
+            <% } %>
+        </ul>
+    </div>
+
+    <div class="static-features">
+        <h3>Book Features</h3>
+        <ul>
+            <li>High-quality paperback / hardcover finish</li>
+            <li>Crisp and clear printing</li>
+            <li>Easy-to-read font and formatting</li>
+            <li>Lightweight and comfortable to hold</li>
+            <li>Perfect for gifting to readers of all ages</li>
+            <li>Publisher-certified original copy</li>
+        </ul>
+    </div>
+
+</div>
+
+
+<div id="reviews" class="tab-content">
+    <h2>Customer Reviews</h2>
+
+  <!--  <div class="review-form-box">
+    <h3>Write a Review</h3>
+
+
+    <div class="star-rating">
+        <input type="radio" name="rating" id="star5" value="5">
+        <label for="star5">★</label>
+
+        <input type="radio" name="rating" id="star4" value="4">
+        <label for="star4">★</label>
+
+        <input type="radio" name="rating" id="star3" value="3">
+        <label for="star3">★</label>
+
+        <input type="radio" name="rating" id="star2" value="2">
+        <label for="star2">★</label>
+
+        <input type="radio" name="rating" id="star1" value="1">
+        <label for="star1">★</label>
+    </div>
+
+    <textarea class="review-input" placeholder="Write your review..." rows="4"></textarea>
+
+
+    <button class="submit-review-btn">Submit Review</button>
+</div>
+-->
+
+    <div class="review">
+        <h4>⭐ ⭐ ⭐ ⭐ ⭐ Excellent Read!</h4>
+        <p>"Amazing book! The story kept me hooked from start to finish. Definitely worth buying."</p>
+        <small>- Rahul M.</small>
+    </div>
+
+    <div class="review">
+        <h4>⭐ ⭐ ⭐ ⭐ Great Quality</h4>
+        <p>"Paper quality and printing are really good. Very comfortable to read. Fast delivery too!"</p>
+        <small>- Ananya S.</small>
+    </div>
+
+    <div class="review">
+        <h4>⭐ ⭐ ⭐ ⭐ ⭐ Highly Recommended</h4>
+        <p>"One of the best books I’ve read this year. Perfect for gifting as well."</p>
+        <small>- Vivek K.</small>
+    </div>
+
+    <div class="review">
+        <h4>⭐ ⭐ ⭐ ⭐ Good Experience</h4>
+        <p>"Enjoyed it a lot. Smooth writing style and very engaging chapters."</p>
+        <small>- Priya R.</small>
+    </div>
+</div>
+
+
+
+
+    <div class="related-section">
+
+        <div class="related-header">
+            <h3>Related Books</h3>
+            <a href="/products" class="see-all">See All</a>
+        </div>
+
+        <div class="related-grid">
+
+            <% if (trending && trending.length > 0) { %>
+                <% trending.forEach(product => { %>
+
+<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
+    <div class="product-image">
+        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+    </div>
+
+    <div class="product-info">
+        <p class="product-name"><%= product.product_name %></p>
+
+        <p class="product-price">
+            <span class="price-sale">₹<%= product.sale_price %></span>
+            <% if (product.sale_price < product.regular_price) { %>
+                <span class="price-original">₹<%= product.regular_price %></span>
+            <% } %>
+        </p>
+
+        <div class="product-rating">⭐⭐⭐⭐⭐</div>
+    </div>
+</a>
+                <% }) %>
+            <% } else { %>
+                <p>No related books found.</p>
+            <% } %>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+    function changeImage(src) {
+        document.getElementById('mainImage').src = src;
+    }
+
+const mainImageWrapper = document.querySelector(".zoom-container");
+const mainImageZoom = document.getElementById("mainImage");
+
+
+mainImageWrapper.addEventListener("mousemove", (e) => {
+    const rect = mainImageWrapper.getBoundingClientRect();
+
+    let x = (e.clientX - rect.left) / rect.width;
+    let y = (e.clientY - rect.top) / rect.height;
+
+    mainImageZoom.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+    mainImageZoom.style.transform = "scale(2.5)";
+});
+
+
+mainImageWrapper.addEventListener("mouseleave", () => {
+    mainImageZoom.style.transform = "scale(1)";
+});
+
+
+function showTab(tabName, clickedTab) {
+
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+
+    clickedTab.classList.add('active');
+
+
+    document.getElementById(tabName).classList.add('active');
+}
+
+
+    function increaseQty() {
+        let qty = document.getElementById("qtyInput");
+        qty.value = parseInt(qty.value) + 1;
+    }
+
+    function decreaseQty() {
+        let qty = document.getElementById("qtyInput");
+        if (qty.value > 1) {
+            qty.value = parseInt(qty.value) - 1;
+        }
+    }
+
+    const wishlistBtn = document.getElementById("wishlistBtn");
+const wishlistIcon = document.getElementById("wishlistIcon");
+
+wishlistBtn.addEventListener("click", () => {
+    wishlistBtn.classList.toggle("active");
+    wishlistIcon.classList.toggle("fa-solid");
+    wishlistIcon.classList.toggle("fa-regular");
+});
+
+
+</script>
+
+<%- include("../../views/partials/user/footer") %>

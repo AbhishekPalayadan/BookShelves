@@ -404,8 +404,8 @@
         </div>
         <nav>
             <a href="/">Home</a>
-            <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
         </nav>
     </header>
 
@@ -547,11 +547,11 @@
         const type = password.getAttribute("type");
 
         if (type === "password") {
-            password.setAttribute("type", "text");   // show password
+            password.setAttribute("type", "text");   
             eyeIcon.classList.remove("fa-eye");
-            eyeIcon.classList.add("fa-eye-slash");        // change icon
+            eyeIcon.classList.add("fa-eye-slash");       
         } else {
-            password.setAttribute("type", "password"); // hide password
+            password.setAttribute("type", "password"); 
             eyeIcon.classList.remove("fa-eye-slash");
             eyeIcon.classList.add("fa-eye");
         }

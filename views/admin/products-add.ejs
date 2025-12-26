@@ -1,389 +1,630 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include("../partials/admin/header", { title: "Add Product" , adminName: "Admin" , activeMenu: "products" }) %>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Product - Bookshelves Admin</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"
+    onload="this.media='all'" media="print" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f5f5f5;
-            display: flex;
-            min-height: 100vh;
-        }
+  <style>
+    .add-product-wrapper {
+      padding: 20px 17px;
+    }
 
-        .sidebar {
-            width: 200px;
-            background-color: white;
-            padding: 20px;
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
-        }
+    .product-card {
+      background: #fff;
+      padding: 22px;
+      border-radius: 10px;
+      border: 1px solid #e6e6e6;
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            font-weight: bold;
-            font-size: 16px;
-        }
+    .left-column {
+      width: 280px;
+      min-width: 220px;
+    }
 
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
-            margin-bottom: 20px;
-        }
+    .main-preview {
+      width: 100%;
+      height: 280px;
+      border-radius: 12px;
+      background: #f7f7f7;
+      border: 2px dashed #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .nav-item {
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: #333;
-            transition: background-color 0.3s;
-            font-size: 14px;
-        }
+    .main-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      cursor: pointer;
+      display: block;
+    }
 
-        .nav-item:hover,
-        .nav-item.active {
-            background-color: #e8e8e8;
-        }
+    .placeholder {
+      text-align: center;
+      color: #888;
+    }
 
-        .logout-btn {
-            background-color: #ff3b3b;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            width: 100%;
-        }
+    .select-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 11px;
+      border: 2px solid #888;
+      border-radius: 8px;
+      background: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-        .logout-btn:hover {
-            background-color: #e63030;
-        }
+    .thumbs {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
 
-        .main-content {
-            flex: 1;
-            margin-left: 200px;
-            display: flex;
-            flex-direction: column;
-        }
+    .thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
 
-        .header {
-            background-color: white;
-            padding: 20px 40px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
 
-        .search-bar {
-            width: 300px;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f0f0f0;
-        }
+    .thumb .rm,
+    .thumb .crop {
+      position: absolute;
+      z-index: 5;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px;
+      border-radius: 4px;
+    }
 
-        .content {
-            padding: 40px;
-            flex: 1;
-            overflow-y: auto;
-        }
+    .thumb .rm {
+      top: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.7);
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
 
-        .page-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            text-decoration: underline;
-        }
+    .thumb .crop {
+      bottom: 6px;
+      right: 6px;
+      background: #4caf50;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
 
-        .form-container {
-            display: flex;
-            gap: 40px;
-        }
+    .main-crop-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 30;
+      font-weight: 600;
+    }
 
-        .left-section {
-            flex: 0 0 300px;
-        }
+    .cropper-container img {
+      max-width: none !important;
+    }
 
-        .book-illustration {
-            background-color: #ffc66d;
-            width: 280px;
-            height: 280px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
+    .right-column {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      min-width: 320px;
+    }
 
-        .book-icon {
-            font-size: 80px;
-            color: rgba(0, 0, 0, 0.2);
-        }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+    }
 
-        .book-illustration::before {
-            content: '';
-            position: absolute;
-            left: 20px;
-            top: 20px;
-            width: 2px;
-            height: 240px;
-            background-color: rgba(0, 0, 0, 0.1);
-        }
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
 
-        .book-illustration::after {
-            content: '';
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            height: 3px;
-            background-color: rgba(0, 0, 0, 0.1);
-        }
+    .submit-btn {
+      grid-column: 1 / -1;
+      padding: 12px;
+      background: #ff3b3b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+  </style>
 
-        .image-upload-label {
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .file-input-btn {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #999;
-            border-radius: 8px;
-            background-color: white;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .file-input-btn:hover {
-            background-color: #f0f0f0;
-        }
-
-        .right-section {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            grid-column: 1 / -1;
-        }
-
-        .form-group.half {
-            grid-column: span 1;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            padding: 12px;
-            border: 1px solid #999;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #333;
-            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
-        }
-
-        .price-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            grid-column: 1 / -1;
-        }
-
-        .price-row .form-group {
-            grid-column: span 1;
-        }
-
-        .add-btn {
-            grid-column: 1 / -1;
-            background-color: #ff3b3b;
-            color: white;
-            border: none;
-            padding: 14px 40px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-
-        .add-btn:hover {
-            background-color: #e63030;
-        }
-
-        @media (max-width: 1024px) {
-            .form-container {
-                flex-direction: column;
-            }
-
-            .right-section {
-                grid-template-columns: 1fr;
-            }
-
-            .price-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div class="sidebar">
-        <div class="logo">
-            <span style="font-size: 24px;">📚</span>
-            <span>Bookshelves</span>
-        </div>
-        <div class="nav-menu">
-            <a href="#" class="nav-item">Dashboard</a>
-            <a href="#" class="nav-item active">Products</a>
-            <a href="#" class="nav-item">Order Lists</a>
-            <a href="#" class="nav-item">Users</a>
-            <a href="#" class="nav-item">Sales</a>
-            <a href="#" class="nav-item">Coupons</a>
-            <a href="#" class="nav-item">Category</a>
-            <a href="#" class="nav-item">Banner</a>
-            <a href="#" class="nav-item">Offer</a>
-        </div>
-        <button class="logout-btn">Logout</button>
+  <div class="add-product-wrapper">
+    <div class="content-header"
+      style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+      <h1 style="font-size:28px; font-weight:600; color:#333;">Add New Product</h1>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <input type="text" class="search-bar" placeholder="Search">
+    <div class="product-card">
+
+      <div class="left-column">
+        <div class="main-preview" id="mainPreviewBox">
+          <img id="imgViewMain" src="" alt="Main preview" style="display:none;">
+          <div id="placeholderBlock" class="placeholder">
+            <i class="fa-solid fa-image" style="font-size:56px; display:block; margin-bottom:8px;"></i>
+            <div style="font-weight:600">Product Image</div>
+            <div style="font-size:13px; color:#999;">(No image selected)</div>
+          </div>
+
+          <button id="mainCropBtn" class="main-crop-btn" type="button" style="display:none;">Crop</button>
         </div>
-        <div class="content">
-            <div class="page-title">Add New Product</div>
 
-            <form class="form-container">
-                <div class="left-section">
-                    <div class="book-illustration">
-                        <div style="text-align: center;">
-                            <div style="font-size: 60px; margin-bottom: 10px;">📖</div>
-                            <div style="font-weight: bold; font-size: 18px; color: #333;">BOOK</div>
-                        </div>
-                    </div>
-                    <label class="image-upload-label">Choose Product Image</label>
-                    <input type="file" id="fileInput" style="display: none;">
-                    <button type="button" class="file-input-btn"
-                        onclick="document.getElementById('fileInput').click()">File</button>
-                </div>
+        <input type="file" id="input1" name="images" accept="image/*" multiple style="display:none;">
+        <button type="button" class="select-btn" onclick="document.getElementById('input1').click()">Select Images (max
+          4)</button>
 
-                <div class="right-section">
-                    <div class="form-group">
-                        <label for="productName">Product Name</label>
-                        <input type="text" id="productName" placeholder="Type name here">
-                    </div>
+        <div id="addedImagesContainer" class="thumbs" aria-live="polite"></div>
+      </div>
 
-                    <div class="form-group">
-                        <label for="author">Author</label>
-                        <input type="text" id="author" placeholder="Type author name here">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" placeholder="Type Description here"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="publisher">Publisher</label>
-                        <input type="text" id="publisher" placeholder="Type name here">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="publishedDate">Published Date</label>
-                        <input type="date" id="publishedDate" placeholder="Type date here">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <select id="category">
-                            <option>Horror</option>
-                            <option>Fiction</option>
-                            <option>Romance</option>
-                            <option>Thriller</option>
-                            <option>Biography</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="stockQuantity">Stock Quantity</label>
-                        <input type="number" id="stockQuantity" placeholder="230" value="230">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="pageCount">Page Count</label>
-                        <input type="text" id="pageCount" placeholder="Type Page Count here">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="language">Language</label>
-                        <input type="text" id="language" placeholder="English" value="English">
-                    </div>
-
-                    <div class="price-row">
-                        <div class="form-group">
-                            <label for="regularPrice">Regular Price</label>
-                            <input type="text" id="regularPrice" placeholder="₹ 4500" value="₹ 4500">
-                        </div>
-                        <div class="form-group">
-                            <label for="salePrice">Sale Price</label>
-                            <input type="text" id="salePrice" placeholder="₹ 3300" value="₹ 3300">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="add-btn">Add</button>
-                </div>
-            </form>
+      <div class="right-column">
+        <div class="form-field">
+          <label>Product Name</label>
+          <input type="text" name="productName" id="productName" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
         </div>
+
+        <div class="form-field">
+          <label>Author</label>
+          <input type="text" name="author" id="author" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field" style="grid-column:1 / -1;">
+          <label>Description</label>
+          <textarea name="description" id="description" rows="4"></textarea>
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Publisher</label>
+          <input type="text" id="publisher" name="publisher" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Published Date</label>
+          <input type="date" id="published_date" name="publishedDate" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Category</label>
+          <select name="category">
+            <% cat.forEach(category=> { %>
+              <option value="<%= category._id %>">
+                <%= category.name %>
+              </option>
+              <% }) %>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Stock Quantity</label>
+          <input type="number" id="stockQuantity" name="stockQuantity" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Page Count</label>
+          <input type="number" id="pageCount" name="pageCount" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Language</label>
+          <input type="text" id="language" name="language" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Regular Price</label>
+          <input type="number" id="regular_price" name="regularPrice" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <div class="form-field">
+          <label>Sale Price</label>
+          <input type="number" id="sale_price" name="salePrice" />
+          <p class="error-message" style="color:red; font-size:12px;"></p>
+        </div>
+
+        <button type="submit" form="productForm" class="submit-btn" style="grid-column:1 / -1;">Add Product</button>
+      </div>
+
+      <form id="productForm" action="/admin/addProducts" method="POST" enctype="multipart/form-data"
+        style="display:none;"></form>
+
     </div>
-</body>
+  </div>
 
-</html>
+  <div id="cropModal"
+    style="position:fixed; inset:0; background:rgba(0,0,0,0.65); display:none; justify-content:center; align-items:center; z-index:9999;">
+    <div style="width:90%; max-width:920px; background:#fff; padding:14px; border-radius:10px;">
+      <h3 style="margin:6px 0 12px;">Crop Image</h3>
+      <div style="max-height:72vh; overflow:auto;">
+        <img id="cropImage" src="" style="max-width:100%; display:block; margin:0 auto;">
+      </div>
+      <div style="text-align:right; margin-top:12px;">
+        <button id="cancelCrop" type="button"
+          style="padding:8px 12px; border-radius:6px; background:#ccc; border:none; margin-right:8px;">Cancel</button>
+        <button id="applyCrop" type="button"
+          style="padding:8px 12px; border-radius:6px; background:#4caf50; color:#fff; border:none;">Apply Crop</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+let cropper=null;
+document.querySelector('.submit-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+
+  
+    document.querySelectorAll('.error-message').forEach(el => el.innerText = "");
+
+    let isValid = true;
+
+    const productName = document.getElementById('productName').value.trim();
+    const author = document.getElementById('author').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const publisher = document.getElementById('publisher').value.trim();
+    const published_date = document.getElementById('published_date').value.trim();
+    const stockQuantity = document.getElementById('stockQuantity').value.trim();
+    const pageCount = document.getElementById('pageCount').value.trim();
+    const language = document.getElementById('language').value.trim();
+    const regular_price = document.getElementById('regular_price').value.trim();
+    const sale_price = document.getElementById('sale_price').value.trim();
+
+
+    function showError(id, msg) {
+        const field = document.getElementById(id);
+        const errorTag = field.parentElement.querySelector('.error-message');
+        if (errorTag) errorTag.innerText = msg;
+        isValid = false;
+    }
+
+
+    if (!productName) showError("productName", "Product name is required");
+    if (!author) showError("author", "Author is required");
+    if (!description) showError("description", "Description is required");
+    if (!publisher) showError("publisher", "Publisher is required");
+    if (!published_date) showError("published_date", "Published date is required");
+
+    if (!stockQuantity || stockQuantity <= 0)
+        showError("stockQuantity", "Stock must be greater than 0");
+
+    if (!pageCount || pageCount <= 0)
+        showError("pageCount", "Page count must be greater than 0");
+
+    if (!language)
+        showError("language", "Language is required");
+
+    if (!regular_price || regular_price <= 0)
+        showError("regular_price", "Regular price is required");
+
+    if (sale_price && Number(sale_price) > Number(regular_price))
+        showError("sale_price", "Sale price cannot be greater than regular price");
+
+    if (filesDT.files.length === 0) {
+        alert("At least one image is required");
+        isValid = false;
+    }
+
+    if (!isValid) return;
+
+
+    const formData = new FormData();
+
+    const fields = document.querySelectorAll(
+        '.right-column .form-field input, .right-column .form-field textarea, .right-column .form-field select'
+    );
+
+    fields.forEach(el => {
+        formData.append(el.name, el.value);
+    });
+
+    Array.from(filesDT.files).forEach(file => {
+        formData.append('images', file, file.name);
+    });
+
+    fetch('/admin/addProducts', {
+        method: 'POST',
+        body: formData
+    }).then(async res => {
+        if (res.redirected) {
+            window.location.href = res.url;
+            return;
+        }
+        if (!res.ok) {
+            alert("Upload failed");
+            return;
+        }
+
+        alert("Product added successfully!");
+        window.location.href = "/admin/products";
+
+    }).catch(err => {
+        alert("Network error");
+        console.error(err);
+    });
+});
+
+
+
+    const input1 = document.getElementById('input1');
+    const addedImagesContainer = document.getElementById('addedImagesContainer');
+    const imgViewMain = document.getElementById('imgViewMain');
+    const placeholderBlock = document.getElementById('placeholderBlock');
+    const mainCropBtn = document.getElementById('mainCropBtn');
+    const productForm = document.getElementById('productForm');
+
+    const cropModal = document.getElementById('cropModal');
+    const cropImage = document.getElementById('cropImage');
+    const cancelCrop = document.getElementById('cancelCrop');
+    const applyCrop = document.getElementById('applyCrop');
+
+    let originalFiles = [];
+    let filesDT = new DataTransfer();
+    let mainIndex = null;
+    function objectUrlForFile(file) {
+      return URL.createObjectURL(file);
+    }
+
+    input1.addEventListener('change', (e) => {
+      const selected = Array.from(e.target.files || []);
+      const available = 4 - originalFiles.length;
+      if (selected.length > available) {
+        alert('Max 4 images allowed. You can add ' + available + ' more.');
+        selected.splice(available);
+      }
+
+      selected.forEach(file => {
+        originalFiles.push(file);
+        filesDT.items.add(file);
+      });
+
+      input1.files = filesDT.files;
+
+      if (originalFiles.length > 0) {
+        mainIndex = Math.max(0, originalFiles.length - selected.length);
+      }
+
+      renderThumbnails();
+    });
+
+    function renderThumbnails() {
+      const files = Array.from(filesDT.files || []);
+      addedImagesContainer.innerHTML = '';
+
+      if (!files.length) {
+        imgViewMain.style.display = 'none';
+        placeholderBlock.style.display = 'block';
+        mainCropBtn.style.display = 'none';
+        mainIndex = null;
+        return;
+      }
+
+      if (mainIndex === null || mainIndex >= files.length) mainIndex = 0;
+
+      updateMainPreviewFromIndex(mainIndex);
+
+      files.forEach((file, idx) => {
+        const div = document.createElement('div');
+        div.className = 'thumb';
+        div.setAttribute('data-idx', idx);
+
+        const img = document.createElement('img');
+        img.src = objectUrlForFile(file);
+        img.alt = 'thumb-' + idx;
+        div.appendChild(img);
+
+        div.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+
+    mainIndex = idx;
+    updateMainPreviewFromIndex(idx);
+});
+
+
+        const rm = document.createElement('button');
+        rm.className = 'rm';
+        rm.type = 'button';
+        rm.innerHTML = '&times;';
+        rm.title = 'Remove';
+        rm.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          removeImage(idx);
+        });
+        div.appendChild(rm);
+
+        addedImagesContainer.appendChild(div);
+      });
+    }
+
+    function updateMainPreviewFromIndex(index) {
+      const file = filesDT.files[index];
+      if (!file) {
+        imgViewMain.style.display = 'none';
+        placeholderBlock.style.display = 'block';
+        mainCropBtn.style.display = 'none';
+        return;
+      }
+      imgViewMain.src = objectUrlForFile(file);
+      imgViewMain.style.display = 'block';
+      placeholderBlock.style.display = 'none';
+      mainCropBtn.style.display = 'inline-block';
+    }
+
+    function removeImage(index) {
+      const newOriginals = [];
+      const newDT = new DataTransfer();
+
+      originalFiles.forEach((f, i) => { if (i !== index) newOriginals.push(f); });
+      Array.from(filesDT.files).forEach((f, i) => { if (i !== index) newDT.items.add(f); });
+
+      originalFiles = newOriginals;
+      filesDT = newDT;
+
+      input1.files = filesDT.files;
+
+      if (originalFiles.length === 0) mainIndex = null;
+      else if (index < mainIndex) mainIndex--;
+      else if (index === mainIndex) mainIndex = 0;
+
+      renderThumbnails();
+    }
+
+    function openCropper(index) {
+      const orig = originalFiles[index];
+      if (!orig) return alert('Original image not found for cropping');
+
+      cropImage.src = objectUrlForFile(orig);
+      cropModal.style.display = 'flex';
+
+      if (cropper) { cropper.destroy(); cropper = null; }
+
+      cropper = new Cropper(cropImage, {
+        viewMode: 1,
+        autoCropArea: 1,
+        movable: true,
+        zoomable: true,
+        aspectRatio: 3 / 4
+      });
+
+      cropModal.dataset.currentIndex = index;
+    }
+
+    imgViewMain.addEventListener('click', () => {
+      if (mainIndex !== null) openCropper(mainIndex);
+    });
+    mainCropBtn.addEventListener('click', () => {
+      if (mainIndex !== null) openCropper(mainIndex);
+    });
+
+    applyCrop.addEventListener('click', () => {
+      if (!cropper) return;
+      const index = parseInt(cropModal.dataset.currentIndex, 10);
+      if (Number.isNaN(index)) return;
+
+      cropper.getCroppedCanvas().toBlob((blob) => {
+        if (!blob) return alert('Crop failed');
+
+        const orig = originalFiles[index];
+        const ext = (orig && orig.name && orig.name.split('.').pop()) || 'png';
+        const newName = `cropped_${Date.now()}.${ext}`;
+
+        const newFile = new File([blob], newName, { type: blob.type || 'image/png' });
+
+        const newDT = new DataTransfer();
+        Array.from(filesDT.files).forEach((f, i) => {
+          if (i === index) newDT.items.add(newFile);
+          else newDT.items.add(f);
+        });
+        filesDT = newDT;
+
+        input1.files = filesDT.files;
+
+        updateMainPreviewFromIndex(index);
+        renderThumbnails();
+
+        cropper.destroy();
+        cropper = null;
+        cropModal.style.display = 'none';
+        delete cropModal.dataset.currentIndex;
+      }, 'image/png');
+    });
+
+    cancelCrop.addEventListener('click', () => {
+      if (cropper) { cropper.destroy(); cropper = null; }
+      cropModal.style.display = 'none';
+      delete cropModal.dataset.currentIndex;
+    });
+
+
+    function assembleAndSubmitForm() {
+      productForm.innerHTML = '';
+
+      const visibleFields = document.querySelectorAll('.right-column .form-field input, .right-column .form-field textarea, .right-column .form-field select');
+      visibleFields.forEach(el => {
+        const clone = document.createElement('input');
+        clone.type = 'hidden';
+        clone.name = el.name;
+        clone.value = el.value;
+        productForm.appendChild(clone);
+      });
+
+      Array.from(filesDT.files).forEach((file, i) => {
+        productForm.appendChild(fileToFormField(file, `images`));
+      });
+
+      productForm.submit();
+    }
+
+    function fileToFormField(file, fieldName) {
+      return null;
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (input1.files && input1.files.length) {
+        const dt = new DataTransfer();
+        Array.from(input1.files).forEach(f => {
+          originalFiles.push(f);
+          dt.items.add(f);
+        });
+        filesDT = dt;
+        input1.files = filesDT.files;
+        renderThumbnails();
+      }
+    });
+  </script>
+
+  <%- include("../partials/admin/footer") %>

@@ -3,8 +3,8 @@ const User = require('../../models/userSchema')
 const customerInfo = async (req, res) => {
     try {
         let search = req.query.search || "";
-        let page = req.query.page || 1;
-        const limit = 5;
+        let page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
 
         const userData = await User.find({
             isAdmin: false,
@@ -13,6 +13,7 @@ const customerInfo = async (req, res) => {
                 { email: { $regex: ".*" + search + ".*", $options: "i" } }
             ]
         })
+            .sort({ createdAt: -1 })
             .limit(limit)
             .skip((page - 1) * limit);
 
@@ -28,7 +29,11 @@ const customerInfo = async (req, res) => {
             users: userData,
             adminName: "Admin",
             totalPages: Math.ceil(count / limit),
-            currentPage: page
+            currentPage: page,
+            activeMenu: "users",
+            search: search,
+            limit: limit,
+            query: req.query
         });
 
     } catch (error) {
@@ -40,20 +45,22 @@ const customerInfo = async (req, res) => {
 const customerBlocked = async (req, res) => {
     try {
         let id = req.query.id;
+        let page = req.query.page || 1;
         await User.updateOne({ _id: id }, { $set: { isBlocked: true } });
-        res.redirect("/admin/users")
+        res.redirect(`/admin/users?page=${page}`)
     } catch (error) {
-        res.redirect("/pageError")
+        res.redirect("/admin/pageError")
     }
 }
 
 const customerUnblocked = async (req, res) => {
     try {
         let id = req.query.id;
+        let page = req.query.page;
         await User.updateOne({ _id: id }, { $set: { isBlocked: false } })
-        res.redirect("/admin/users")
+        res.redirect(`/admin/users?page=${page}`)
     } catch (error) {
-        res.redirect('/pageError')
+        res.redirect('/admin/pageError')
     }
 }
 

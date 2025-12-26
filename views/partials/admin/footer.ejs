@@ -2,7 +2,7 @@
 
 </div>
 <script>
-    function blockUser(id) {
+    function blockUser(id,page) {
         Swal.fire({
             title: "Block this user?",
             text: "The user will not be able to login.",
@@ -13,12 +13,12 @@
             confirmButtonText: "Yes, Block"
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = `/admin/blockCustomer/?id=${id}`;
+                window.location.href = `/admin/blockCustomer/?id=${id}&page=${page}`;
             }
         });
     }
 
-    function unblockUser(id) {
+    function unblockUser(id,page) {
         Swal.fire({
             title: "Unblock this user?",
             text: "The user will regain access.",
@@ -29,7 +29,7 @@
             confirmButtonText: "Yes, Unblock"
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = `/admin/unblockCustomer/?id=${id}`;
+                window.location.href = `/admin/unblockCustomer/?id=${id}&page=${page}`;
             }
         });
     }

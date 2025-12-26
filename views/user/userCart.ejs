@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Bookshelves</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+
+
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #000;
+            font-size: 15px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ff4757;
+        }
+
+
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #ff4757;
+        }
+
+        .breadcrumb-divider {
+            margin: 0 8px;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .welcome-text .customer-name {
+            color: #ff4757;
+            font-weight: 600;
+        }
+
+        /* Profile Layout */
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .sidebar-top{
+            flex:1
+        }
+
+        .profile-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .profile-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .edit-profile-btn {
+            padding: 10px 24px;
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+
+        .edit-profile-btn:hover {
+            background: #ff3838;
+        }
+
+
+        .profile-info-section {
+    background: #ffffff;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+
+
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.info-item {
+    background: #fafafa;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .info-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .info-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+        /* Security Section */
+        .security-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .security-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .security-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .security-btn {
+            padding: 12px 24px;
+            background: #fff;
+            color: #ff4757;
+            border: 2px solid #ff4757;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .security-btn:hover {
+            background: #ff4757;
+            color: #fff;
+        }
+
+        .security-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-content {
+                padding: 25px 20px;
+            }
+
+            .security-actions {
+                flex-direction: column;
+            }
+
+            .security-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%-include("../../views/partials/user/header")%>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <div>
+                <a href="/">Home</a>
+                <span class="breadcrumb-divider">/</span>
+                <span>My Account</span>
+            </div>
+            <div class="welcome-text">
+                Welcome! <span class="customer-name"><%= user.fullname %></span>
+            </div>
+        </div>
+        <div class="cart-layout">
+
+            <!-- Cart Items -->
+            <div class="cart-items-section">
+    
+                <% if (cartItems.length === 0) { %>
+                    <div class="empty-cart">
+                        <img 
+                        src="/images/empty-cart.png" 
+                        alt="Empty Cart"
+                        class="empty-cart-img"
+                        >
+                        <h3>Your cart is empty</h3>
+                        <p>Looks like you haven't added anything to your cart yet.</p>
+                        <a href="/products" class="continue-shopping-btn">
+                            Continue Shopping
+                        </a>
+                    </div>
+                <% } else { %>
+    
+                    <% cartItems.forEach(item => { %>
+                        <div class="cart-item">
+                            <img src="<%= item.product.image %>" class="cart-item-image">
+    
+                            <div class="cart-item-details">
+                                <h3 class="cart-item-title">
+                                    <%= item.product.name %>
+                                </h3>
+    
+                                <p class="in-stock">In Stock</p>
+    
+                                <div class="quantity-selector">
+                                    <label>Quantity:</label>
+                                    <input type="number" value="<%= item.quantity %>" min="1">
+                                </div>
+                            </div>
+    
+                            <div class="cart-item-price">
+                                ₹ <%= item.product.price * item.quantity %>
+                            </div>
+    
+                            <button class="remove-btn">
+                                Remove
+                            </button>
+                        </div>
+                    <% }) %>
+    
+                <% } %>
+    
+            </div>
+    
+            <% if(cartItems.length>0){ %>
+                        <!-- Cart Summary -->
+            <div class="cart-summary">
+                <h3>Cart Total</h3>
+    
+                <div class="summary-row">
+                    <span>Total:</span>
+                    <span>₹ <%= cartTotal %></span>
+                </div>
+    
+                <button class="checkout-btn">
+                    Proceed to Checkout
+                </button>
+            </div>
+            <% } %>
+    
+        </div>
+    </div>
+    <%-include("../../views/partials/user/footer")%>
+
+</body>
+</html>

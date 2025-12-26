@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Bookshelves</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #000;
+            font-size: 15px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ff4757;
+        }
+
+
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #ff4757;
+        }
+
+        .breadcrumb-divider {
+            margin: 0 8px;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .welcome-text .customer-name {
+            color: #ff4757;
+            font-weight: 600;
+        }
+
+        /* Profile Layout */
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .sidebar-top{
+            flex:1
+        }
+
+        .profile-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .profile-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .edit-profile-btn {
+            padding: 10px 24px;
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+
+        .edit-profile-btn:hover {
+            background: #ff3838;
+        }
+
+
+        .profile-info-section {
+    background: #ffffff;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+
+
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.info-item {
+    background: #fafafa;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .info-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .info-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+        /* Security Section */
+        .security-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .security-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .security-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .security-btn {
+            padding: 12px 24px;
+            background: #fff;
+            color: #ff4757;
+            border: 2px solid #ff4757;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .security-btn:hover {
+            background: #ff4757;
+            color: #fff;
+        }
+
+        .security-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-content {
+                padding: 25px 20px;
+            }
+
+            .security-actions {
+                flex-direction: column;
+            }
+
+            .security-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%-include("../../views/partials/user/header")%>
+
+
+    <div class="main-container">
+
+        <div class="breadcrumb">
+            <div>
+                <a href="/">Home</a>
+                <span class="breadcrumb-divider">/</span>
+                <span>My Account</span>
+            </div>
+            <div class="welcome-text">
+                Welcome! <span class="customer-name"><%= user.fullname %></span>
+            </div>
+        </div>
+
+
+        <div class="profile-layout">
+
+
+            <%- include('../partials/user/profileSidebar',{
+                user:user,
+                activeMenu:'profile'
+            }) %>
+
+
+
+
+            <main class="profile-content">                
+                <div class="profile-header">
+                    <h1 class="profile-title">Personal Information</h1>
+                    <a href="/edit-profile" class="edit-profile-btn">Edit Profile</a>
+                </div>
+
+                <div class="profile-info-section">
+                
+                    <div class="info-grid">
+                
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-text"><%= user.fullname || '—' %></span>
+                        </div>
+                
+                        <div class="info-item">
+                            <span class="info-label">Email Address</span>
+                            <span class="info-text"><%= user.email %></span>
+                        </div>
+                
+                        <div class="info-item">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-text"><%= user.phone || 'Not added' %></span>
+                        </div>
+                
+                        <div class="info-item">
+                            <span class="info-label">Date of Birth</span>
+                            <span class="info-text">
+                                <%= user.dob ? user.dob.toDateString() : 'Not added' %>
+                            </span>
+                        </div>
+                
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-text">
+                                <%= user.createdAt.toDateString() %>
+                            </span>
+                        </div>
+                
+                    </div>
+                </div>
+                
+
+                <div class="security-section">
+                    <h2 class="security-title">Security Settings</h2>
+                    <div class="security-actions">
+                        <button class="security-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Change Password
+                        </button>
+                        <button class="security-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            Change Email
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <%-include("../../views/partials/user/footer")%>
+
+</body>
+</html>
