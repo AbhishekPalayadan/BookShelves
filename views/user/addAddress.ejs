@@ -10,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         header {
             background-color: #fff;
             border-bottom: 1px solid #e0e0e0;
@@ -284,23 +283,6 @@
             gap: 10px;
         }
 
-        .btn-edit, .btn-delete {
-            padding: 6px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .btn-edit {
-            background-color: #4caf50;
-            color: #fff;
-        }
-
-        .btn-edit:hover {
-            background-color: #45a049;
-        }
 
         .btn-delete {
             background-color: #ff4d4d;
@@ -322,6 +304,24 @@
             text-decoration: underline;
         }
         
+        .edit-profile-btn {
+            padding: 10px 24px;
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+
+        .edit-profile-btn:hover {
+            background: #ff3838;
+        }
+
+
         .btn-add-address {
             background-color: #ff4d4d;
             color: #fff;
@@ -337,6 +337,60 @@
         .btn-add-address:hover {
             background-color: #e64545;
         }
+        .btn-cancel {
+    padding: 10px 22px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    background: #eee;
+    color: #333;
+}
+
+.btn-cancel:hover {
+    background: #ddd;
+}
+.info-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    background: #ffffff;
+    outline: none;
+}
+
+.info-input:focus {
+    border-color: #ff4757;
+    background: #fff;
+}
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+/* Error text */
+.error {
+    color: #e63946;          /* soft red */
+    font-size: 13px;
+    display: block;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+/* Input error border */
+.input-error {
+    border: 1.5px solid #e63946 !important;
+    background-color: #fff5f5;
+}
+
+/* Optional success border */
+.input-success {
+    border: 1.5px solid #2ecc71;
+    background-color: #f6fffa;
+}
+
+
 
         /* Responsive */
         @media (max-width: 968px) {
@@ -398,63 +452,114 @@
 
 
             <main class="profile-content">
-                <div class="address-content">
-                    <h2>Here you can manage your addresses</h2>
+                  <h2>Add New Address</h2>
+              
+                  <form id="addAddressForm">
+              
+                    <div class="info-item">
+                      <label class="info-label">Full Name</label>
+                      <input name="fullname" class="info-input">
+                      <small class="error" id="nameError"></small>
 
-                    <div class="address-list">
-                        <% if(address.length === 0){ %>
-                            <p>No addresses found.Add a new one.</p>
-                        <% } %>
+                      <label class="info-label">Phone</label>
+                      <input name="phone" class="info-input">
+                      <small class="error" id="phoneError"></small>
 
+                      <label class="info-label">House / Building</label>
+                      <input name="house" class="info-input">
+                      <small class="error" id="houseError"></small>
 
-                        <% address.forEach(address=>{ %>
-                            <div class="address-card">
-                                <div class="address-header">
+                      <label class="info-label">Place</label>
+                      <input name="place" class="info-input">
+                      <small class="error" id="placeError"></small>
 
-                                    <% if(address.isPrimary){ %>
-                                    <span class="primary-badge">Primary</span>
-                                    <% }else{ %>
-                                        <a href="/address/set-primary/<%= address._id %>" class="set-primary">set as primary</a>
-                                    <% } %>
-                                </div>
-                                <div class="address-details">
-                                    <strong><%= address.fullname %>,<%= address.house %></strong><br>
-                                    <%= address.place %>,<%= address.state %><br>
-                                    <%= address.pincode %><br>
-                                    Contact:<%= address.phone %>
-                                </div>
+                      <label class="info-label">State</label>
+                      <input name="state" class="info-input">
+                      <small class="error" id="stateError"></small>
 
-                                <div class="address-actions">
-                                    <a href="/address/edit/<%= address._id %>" class="btn-edit">Edit</a>
-                                    <button onclick="deleteAddress('<%= address._id %>')" class="btn-delete">Delete</button>
-                                </div>
-                            </div>
-                       <% }) %>
-        
-                    <button onclick="location.href='/address/add'" class="btn-add-address">Add New Address</button>
-                </div>
-            </div>
-            </main>
+                      <label class="info-label">Pincode</label>
+                      <input name="pincode" class="info-input">
+                      <small class="error" id="pincodeError"></small>
+                    </div>
+
+                    <div class="form-actions">
+                      <button type="button" id="cancelBtn" class="btn-cancel">Cancel</button>
+                      <button type="submit" id="saveAddressBtn" class="edit-profile-btn">Save Address</button>
+                    </div>
+                  </form>
+              </main>
+              
         </div>
     </div>
 
     <%-include("../../views/partials/user/footer")%>
+    <script>
+
+        const form=document.getElementById('addAddressForm')
+
+        form.addEventListener('submit',async(e)=>{
+            e.preventDefault();
+
+            document.querySelectorAll('.error').forEach(e=>e.innerText='');
+            document.querySelectorAll('input').forEach(i=>i.classList.remove('input-error'))
+
+            const fullname=form.fullname.value.trim();
+            const phone=form.phone.value.trim();
+            const house=form.house.value.trim();
+            const place=form.place.value.trim();
+            const state=form.state.value.trim();
+            const pincode=form.pincode.value.trim();
+
+            let isValid=true;
+
+            if(fullname.length<3){
+                document.getElementById('nameError').innerText="Name must be at least 3 letters";
+                isValid=false;
+            }
+            if(!/^\d{10}$/.test(phone)){
+                document.getElementById('phoneError').innerText="Enter valid 10 digit phone";
+                isValid=false;
+            }
+            if(house===''){
+                document.getElementById('houseError').innerText="House is required"
+            }
+            if(place===''){
+                document.getElementById('placeError').innerText="Place is required";
+                isValid=false;
+            }
+            if(state===''){
+                document.getElementById('stateError').innerText="State is required";
+                isValid=false;
+            }
+            if(!/^\d{6}$/.test(pincode)){
+                document.getElementById('pincodeError').innerText='Enter valid 6 digit pincode';
+                isValid=false;
+            }
+            if(!isValid)return;
+            
+
+
+            const res=await fetch('/address',{
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify({fullname,phone,house,place,state,pincode})
+            });
+            const data=await res.json();
+
+            if(data.success){
+                alert("Address added successfully");
+                window.location.href='/address';
+            }else{
+                alert(data.message);
+            }
+        });
+
+
+        document.getElementById('cancelBtn').addEventListener('click',()=>{
+            window.location.href='/address'
+        })
+    </script>
 </body>
-<script>
-
-function deleteAddress(id){
-    if(!confirm("Are you sure you want to delete this address?"))return;
-
-    fetch(`/address/delete/${id}`,{
-        method:"DELETE"
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.success){
-            location.reload();
-        }
-    })
-}
-
-</script>
 </html>

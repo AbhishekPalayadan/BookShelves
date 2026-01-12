@@ -10,7 +10,7 @@ const passport = require('./config/passport')
 const Database = require('./config/db')
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes")
-
+ 
 const User = require('./models/userSchema');
 console.log(User)
 
@@ -25,7 +25,7 @@ app.use(
     session({
         secret: process.env.SESSION_SECRET,
         resave: false,
-        saveUninitialized: true,
+        saveUninitialized: false,
         cookie: {
             secure: false,
             maxAge: 1000 * 60 * 60 * 24,

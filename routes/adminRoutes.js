@@ -16,7 +16,7 @@ router.get('/logout', adminController.logout)
 
 router.get('/users', adminAuth, customerController.customerInfo)
 router.get('/blockCustomer', adminAuth, customerController.customerBlocked)
-router.get('/unblockCustomer', adminAuth, customerController.customerUnblocked)
+router.get('/unblockCustomer', adminAuth, customerControaller.customerUnblocked)
 
 router.get('/category', adminAuth, categoryController.categoryInfo);
 router.get('/categoryStatus', categoryController.categoryStatus);

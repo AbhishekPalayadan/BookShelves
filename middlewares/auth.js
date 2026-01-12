@@ -2,30 +2,18 @@ const User = require('../models/userSchema')
 
 
 
-const userAuth = async (req, res, next) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect("/login");
-    }
-
-    const user = await User.findById(req.session.user);
-
-    if (!user) {
-      req.session.user = null;
-      return res.redirect("/login");
-    }
-
-    if (user.isBlocked) {
-      req.session.user = null;
-      return res.redirect("/login?blocked=true");
-    }
-
-    next();
-
-  } catch (err) {
-    console.log("Error in userAuth middleware:", err);
-    res.status(500).send("Internal Server Error");
+const userAuth = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/login');
   }
+
+  if (req.user.isBlocked) {
+    req.logout(() => {
+      return res.redirect('/login?blocked=true');
+    });
+  }
+
+  next();
 };
 
 
