@@ -3,19 +3,24 @@ const User = require('../models/userSchema')
 
 
 const userAuth = (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect('/login');
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
   }
-
-  if (req.user.isBlocked) {
-    req.logout(() => {
-      return res.redirect('/login?blocked=true');
+  
+  if (
+    req.method !== 'GET' ||
+    req.headers.accept?.includes('application/json')
+  ) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized"
     });
   }
 
-  next();
+  return res.redirect('/login');
 };
 
+module.exports = { userAuth };
 
 
 

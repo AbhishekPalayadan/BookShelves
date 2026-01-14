@@ -452,33 +452,33 @@
 
 
             <main class="profile-content">
-                  <h2>Add New Address</h2>
+                  <h2>Edit Address</h2>
               
                   <form id="addAddressForm">
               
                     <div class="info-item">
                       <label class="info-label">Full Name</label>
-                      <input name="fullname" class="info-input">
+                      <input name="fullname" class="info-input" value="<%= address.fullname %>">
                       <small class="error" id="nameError"></small>
 
                       <label class="info-label">Phone</label>
-                      <input name="phone" class="info-input">
+                      <input name="phone" class="info-input" value="<%= address.phone %>">
                       <small class="error" id="phoneError"></small>
 
                       <label class="info-label">House / Building</label>
-                      <input name="house" class="info-input">
+                      <input name="house" class="info-input" value="<%= address.house %>">
                       <small class="error" id="houseError"></small>
 
                       <label class="info-label">Place</label>
-                      <input name="place" class="info-input">
+                      <input name="place" class="info-input" value="<%= address.place %>">
                       <small class="error" id="placeError"></small>
 
                       <label class="info-label">State</label>
-                      <input name="state" class="info-input">
+                      <input name="state" class="info-input" value="<%= address.state %>">
                       <small class="error" id="stateError"></small>
 
                       <label class="info-label">Pincode</label>
-                      <input name="pincode" class="info-input">
+                      <input name="pincode" class="info-input" value="<%= address.pincode %>">
                       <small class="error" id="pincodeError"></small>
                     </div>
 
@@ -493,88 +493,104 @@
     </div>
 
     <%-include("../../views/partials/user/footer")%>
+
+
+
     <script>
-
-        const form=document.getElementById('addAddressForm')
-
-        form.addEventListener('submit',async(e)=>{
+        const form = document.getElementById('addAddressForm');
+        
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            document.querySelectorAll('.error').forEach(e=>e.innerText='');
-            document.querySelectorAll('input').forEach(i=>i.classList.remove('input-error'))
-
-            const fullname=form.fullname.value.trim();
-            const phone=form.phone.value.trim();
-            const house=form.house.value.trim();
-            const place=form.place.value.trim();
-            const state=form.state.value.trim();
-            const pincode=form.pincode.value.trim();
-
-            let isValid=true;
-
-            if(fullname.length<3){
-                document.getElementById('nameError').innerText="Name must be at least 3 letters";
-                isValid=false;
+        
+            // Clear old errors
+            document.querySelectorAll('.error').forEach(el => el.innerText = '');
+            document.querySelectorAll('.info-input').forEach(i => i.classList.remove('input-error'));
+        
+            const data = {
+                fullname: form.fullname.value.trim(),
+                phone: form.phone.value.trim(),
+                house: form.house.value.trim(),
+                place: form.place.value.trim(),
+                state: form.state.value.trim(),
+                pincode: form.pincode.value.trim()
+            };
+        
+            let isValid = true;
+        
+            if (data.fullname.length < 3) {
+                nameError.innerText = "Name must be at least 3 letters";
+                isValid = false;
             }
-            if(!/^\d{10}$/.test(phone)){
-                document.getElementById('phoneError').innerText="Enter valid 10 digit phone";
-                isValid=false;
+            if (!/^\d{10}$/.test(data.phone)) {
+                phoneError.innerText = "Enter valid 10 digit phone";
+                isValid = false;
             }
-            if(house===''){
-                document.getElementById('houseError').innerText="House is required"
+            if (data.house === '') {
+                houseError.innerText = "House is required";
+                isValid = false;
             }
-            if(place===''){
-                document.getElementById('placeError').innerText="Place is required";
-                isValid=false;
+            if (data.place === '') {
+                placeError.innerText = "Place is required";
+                isValid = false;
             }
-            if(state===''){
-                document.getElementById('stateError').innerText="State is required";
-                isValid=false;
+            if (data.state === '') {
+                stateError.innerText = "State is required";
+                isValid = false;
             }
-            if(!/^\d{6}$/.test(pincode)){
-                document.getElementById('pincodeError').innerText='Enter valid 6 digit pincode';
-                isValid=false;
+            if (!/^\d{6}$/.test(data.pincode)) {
+                pincodeError.innerText = "Enter valid 6 digit pincode";
+                isValid = false;
             }
-            if(!isValid)return;
-            
-
-
-            const res=await fetch('/address/add',{
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json'
-                },
-                body:JSON.stringify({fullname,phone,house,place,state,pincode})
-            });
-            const data=await res.json();
-
-            if(data.success){
-                if (data.success) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: data.message,
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true
-    });
-}
-
-                window.location.href='/address';
-            }else{
+        
+            if (!isValid) return;
+        
+            try {
+                const res = await fetch('/address/edit/<%= address._id %>', {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+        
+                const result = await res.json();
+        
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated',
+                        text: result.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = '/address';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message
+                    });
+                }
+        
+            } catch (error) {
+                console.log(error);
                 Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message
-        });
-
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: 'Something went wrong'
+                });
             }
         });
+        
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = '/address';
+        });
+        </script>
+        
 
 
-        document.getElementById('cancelBtn').addEventListener('click',()=>{
-            window.location.href='/address'
-        })
-    </script>
 </body>
 </html>

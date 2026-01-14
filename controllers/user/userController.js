@@ -3,6 +3,7 @@ const Category = require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
 const Address = require('../../models/addressSchema');
 const Cart = require('../../models/cartSchema');
+const bcrypt=require('bcrypt')
 
 /* ========================= HOME ========================= */
 
@@ -236,7 +237,7 @@ const loadAddAddress=async(req,res)=>{
 const addAddress=async(req,res)=>{
   try{
     const {fullname,phone,house,place,state,pincode}=req.body;
-
+    console.log(req.body)
     if(!fullname || !phone ||!house ||!place ||!state ||!pincode){
       return res.json({
         success:false,
@@ -288,6 +289,111 @@ const addAddress=async(req,res)=>{
   }
 }
 
+const deleteAddress=async(req,res)=>{
+  try {
+    const userId=req.user._id;
+    const addressId=req.params.id;
+
+    const deleted=await Address.findOneAndDelete({_id:addressId,userId})
+
+    if(!deleted){
+      return res.status(404).json({
+        success:false,
+        message:"Address not found"
+      })
+    }
+    res.json({
+      success:true,
+      message:"Address deleted successfully"
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success:false,
+      message:"Server error"
+    }) 
+  }
+}
+
+const loadEditAddress=async(req,res)=>{
+  try {
+    const address=await Address.findOne({
+      _id:req.params.id,
+      userId:req.user._id
+    })
+
+    if(!address){
+      return res.redirect('/address');
+    }
+
+    res.render('user/editAddress',{
+      user:req.user,
+      address
+    })
+  } catch (error) {
+    console.log(error)
+    res.redirect('/address')
+  }
+}
+
+const editAddress = async (req, res) => {
+  try {
+    const updated = await Address.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.json({
+        success: false,
+        message: 'Address not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Address updated successfully'
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+
+const setPrimaryAddress=async(req,res)=>{
+  try {
+    const userId=req.user._id;
+    const addressId=req.params.id;
+    console.log(userId);
+    console.log(addressId)
+
+    await Address.updateMany({userId},{$set:{isPrimary:false}})
+
+    const updated=await Address.findOneAndUpdate(
+      {_id:addressId,userId},
+      {isPrimary:true}
+    )
+
+    if(!updated){
+      return res.status(404).json({
+        success:false,
+        message:"Address not found"
+      })
+    }
+
+    res.json({success:true})
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({success:false})
+  }
+}
+
 /* ========================= CART ========================= */
 
 const loadCart = async (req, res) => {
@@ -307,6 +413,55 @@ const loadCart = async (req, res) => {
     cartTotal
   });
 };
+
+
+
+const loadChangePassword=(req,res)=>{
+  res.render('user/changePasswordProfile',{
+    user:req.user
+  });
+}
+
+const changePassword=async(req,res)=>{
+  try {
+    const {oldPassword,newPassword}=req.body;
+    if(!oldPassword || !newPassword){
+      return res.status(400).json({
+        message:"All fields are required"
+      })
+    }
+
+    const user=await User.findById(req.user._id);
+
+    if(!user){
+      return res.status(404).json({
+        message:"User not found"
+      })
+    }
+
+    const isMatch=await bcrypt.compare(oldPassword,user.password);
+
+    if(!isMatch){
+      return res.status(401).json({
+        message:"Old password is incorrect"
+      })
+    }
+
+    const hashedPassword=await bcrypt.hash(newPassword,10);
+
+    user.password=hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      message:"Password change successfully"
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message:"Something went wrong"
+    })
+  }
+}
 
 /* ========================= STATIC ========================= */
 
@@ -340,9 +495,16 @@ module.exports = {
   loadAddress,
   loadAddAddress,
   addAddress,
+  deleteAddress,
+  setPrimaryAddress,
+  loadEditAddress,
+  editAddress,
+
   loadCart,
 
   about,
   contact,
-  pageNotFound
+  pageNotFound,
+  loadChangePassword,
+  changePassword
 };

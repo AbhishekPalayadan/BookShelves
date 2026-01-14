@@ -26,11 +26,11 @@ const addressSchema=new mongoose.Schema({
         required:true,
         trim:true
     },
-    city:{
-        type:String,
-        required:true,
-        trim:true
-    },
+    // city:{
+    //     type:String,
+    //     required:true,
+    //     trim:true
+    // },
     state:{
         type:String,
         required:true,

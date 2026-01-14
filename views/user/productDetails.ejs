@@ -1,3 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+    
 <%- include("../../views/partials/user/header", { user }) %>
 
 
@@ -81,10 +91,10 @@
         <label>Quantity:</label>
     
     
-        <div class="qty-box">
+        <div class="qty-box" data-stock="<%= product.stock %>">
             <button class="qty-btn" onclick="decreaseQty()">-</button>
             <input id="qtyInput" type="number" value="1" min="1" readonly>
-            <button class="qty-btn" onclick="increaseQty()">+</button>
+            <button class="qty-btn" id="plusBtn" onclick="increaseQty()">+</button>
         </div>
     </div>
 
@@ -337,18 +347,55 @@ function showTab(tabName, clickedTab) {
     document.getElementById(tabName).classList.add('active');
 }
 
+function increaseQty() {
+    const qtyInput = document.getElementById("qtyInput");
+    const plusBtn = document.getElementById("plusBtn");
+    const qtyBox = document.querySelector(".qty-box");
 
-    function increaseQty() {
-        let qty = document.getElementById("qtyInput");
-        qty.value = parseInt(qty.value) + 1;
+    const stock = parseInt(qtyBox.dataset.stock);
+    let qty = parseInt(qtyInput.value);
+
+    if (qty < stock) {
+        qty++;
+        qtyInput.value = qty;
     }
 
-    function decreaseQty() {
-        let qty = document.getElementById("qtyInput");
-        if (qty.value > 1) {
-            qty.value = parseInt(qty.value) - 1;
-        }
+    if (qty >= stock) {
+        Toastify({
+    text: `Only ${stock} items available`,
+    duration: 2000,
+    gravity: "top",     // MUST be string
+    position: "center",    // MUST be string
+    close: false,
+    stopOnFocus: true,
+    style: {
+        background: "#ff4757"
     }
+}).showToast();
+
+
+    }
+}
+
+
+function decreaseQty() {
+    const qtyInput = document.getElementById("qtyInput");
+    const plusBtn = document.getElementById("plusBtn");
+    const qtyBox = document.querySelector(".qty-box");
+
+    const stock = parseInt(qtyBox.dataset.stock);
+    let qty = parseInt(qtyInput.value);
+
+    if (qty > 1) {
+        qty--;
+        qtyInput.value = qty;
+    }
+
+    if (qty < stock) {
+        plusBtn.style.display = "inline-block";
+    }
+}
+
 
     const wishlistBtn = document.getElementById("wishlistBtn");
 const wishlistIcon = document.getElementById("wishlistIcon");
@@ -363,3 +410,7 @@ wishlistBtn.addEventListener("click", () => {
 </script>
 
 <%- include("../../views/partials/user/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+</body>
+</html>
