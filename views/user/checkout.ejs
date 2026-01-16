@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - Bookshelves</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .main-content {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .breadcrumb {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 25px;
+    }
+
+    .breadcrumb a {
+      color: #777;
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { color: #ff4757; }
+
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 30px;
+    }
+
+    .billing-section,
+    .order-summary {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    h2, h3 { font-weight: 600; }
+
+    .address-card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .address-text {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .add-address-btn,
+    .place-order-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: #ff4757;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .add-address-btn:hover,
+    .place-order-btn:hover {
+      background: #e63946;
+    }
+
+    .payment-option {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .order-item {
+      display: flex;
+      gap: 15px;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .order-item img {
+      width: 60px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    .item-name { font-weight: 600; font-size: 14px; }
+    .item-price { color: #ff4757; font-weight: 600; }
+
+    .price-summary {
+      margin-top: 20px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .price-row.total {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ================= MODAL ================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal-box {
+      background: #fff;
+      width: 100%;
+      max-width: 450px;
+      padding: 30px;
+      border-radius: 12px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-box label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .info-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+    }
+
+    .error {
+      font-size: 12px;
+      color: #e63946;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: none;
+      background: #eee;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .edit-profile-btn {
+      padding: 10px 24px;
+      border-radius: 25px;
+      border: none;
+      background: #ff4757;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+<%- include("../../views/partials/user/header", { user }) %>
+
+<div class="main-content">
+
+  <div class="breadcrumb">
+    <a href="/">Home</a> / <a href="/cart">Cart</a> / Checkout
+  </div>
+
+  <div class="checkout-layout">
+
+    <!-- BILLING -->
+    <div class="billing-section">
+      <h2>Billing Details</h2>
+
+       <h3 style="margin-top:20px;">Delivery Address</h3>
+
+      <% if(address.length === 0){ %>
+        <p>No address found.</p>
+        <button onclick="openAddressModal()" class="add-address-btn">+ Add Address</button>
+      <% } else { %>
+        <% address.forEach((addr, index) => { %>
+          <div class="address-card">
+        
+            <input
+              type="radio"
+              name="selectedAddress"
+              value="<%= addr._id %>"
+              <%= addr.isPrimary || index === 0 ? "checked" : "" %>
+            >
+        
+            <div class="address-text">
+              <strong><%= addr.fullname %></strong><br>
+              <%= addr.house %>, <%= addr.place %><br>
+              <%= addr.state %> - <%= addr.pincode %><br>
+              Phone: <%= addr.phone %>
+            </div>
+        
+            <% if (addr.isPrimary || index === 0) { %>
+              <button
+              type="button"
+              class="edit-btn"
+              onclick="openEditAddressModal()"
+            >
+              Edit
+            </button>
+            
+            <% } %>
+        
+          </div>
+        <% }) %>
+        <% } %>
+        
+
+      <h2 style="margin-top:30px;">Payment Method</h2>
+      <label class="payment-option">
+        <input type="radio" name="payment" checked> Cash on Delivery
+      </label>
+    </div>
+
+    <!-- ORDER SUMMARY -->
+    <div class="order-summary">
+      <h3>Your Order</h3>
+
+      <% cartItems.forEach(item => { %>
+        <div class="order-item">
+          <img src="/uploads/product-images/<%= item.productId.images?.[0] || 'no-image.png' %>">
+          <div>
+            <div class="item-name"><%= item.productId.product_name %></div>
+            <div class="item-price">₹ <%= item.productId.sale_price %> × <%= item.quantity %></div>
+          </div>
+        </div>
+      <% }) %>
+
+      <div class="price-summary">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span>₹ <%= cartTotal %></span>
+        </div>
+        <div class="price-row total">
+          <span>Total</span>
+          <span>₹ <%= cartTotal %></span>
+        </div>
+      </div>
+
+      <button class="place-order-btn">Place Order</button>
+    </div>
+
+  </div>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+
+<!-- ADD ADDRESS MODAL -->
+<input type="hidden" id="editAddressId">
+<div id="addressModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Add New Address</h2>
+
+    <form id="addAddressForm">
+      <label>Full Name</label>
+      <input name="fullname" class="info-input">
+      <small class="error" id="nameError"></small>
+
+      <label>Phone</label>
+      <input name="phone" class="info-input">
+      <small class="error" id="phoneError"></small>
+
+      <label>House</label>
+      <input name="house" class="info-input">
+      <small class="error" id="houseError"></small>
+
+      <label>Place</label>
+      <input name="place" class="info-input">
+      <small class="error" id="placeError"></small>
+
+      <label>State</label>
+      <input name="state" class="info-input">
+      <small class="error" id="stateError"></small>
+
+      <label>Pincode</label>
+      <input name="pincode" class="info-input">
+      <small class="error" id="pincodeError"></small>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" onclick="closeAddressModal()">Cancel</button>
+        <button type="submit" class="edit-profile-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+
+
+async function openEditAddressModal() {
+
+// 1. Find selected radio button
+const selectedRadio = document.querySelector(
+  'input[name="selectedAddress"]:checked'
+);
+
+if (!selectedRadio) {
+  Swal.fire("Please select an address to edit");
+  return;
+}
+
+const addressId = selectedRadio.value;
+
+// 2. Fetch address data from backend
+const res = await fetch(`/address/${addressId}`);
+const result = await res.json();
+
+if (!result.success) {
+  Swal.fire("Unable to load address");
+  return;
+}
+
+const addr = result.address;
+
+// 3. Open modal
+document.getElementById("addressModal").style.display = "flex";
+
+// 4. Store address id
+document.getElementById("editAddressId").value = addressId;
+
+// 5. Prefill form
+const form = document.getElementById("addAddressForm");
+form.fullname.value = addr.fullname;
+form.phone.value = addr.phone;
+form.house.value = addr.house;
+form.place.value = addr.place;
+form.state.value = addr.state;
+form.pincode.value = addr.pincode;
+}
+
+
+
+function openAddressModal() {
+  document.getElementById("addressModal").style.display = "flex";
+}
+
+function closeAddressModal() {
+  document.getElementById("addressModal").style.display = "none";
+  document.getElementById("addAddressForm").reset();
+}
+
+document.getElementById("addAddressForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const data = {
+    fullname: form.fullname.value.trim(),
+    phone: form.phone.value.trim(),
+    house: form.house.value.trim(),
+    place: form.place.value.trim(),
+    state: form.state.value.trim(),
+    pincode: form.pincode.value.trim()
+  };
+
+  const res = await fetch("/address/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  if (result.success) {
+    Swal.fire({ icon: "success", title: "Address Added", timer: 1500, showConfirmButton: false });
+    closeAddressModal();
+    setTimeout(() => location.reload(), 800);
+  } else {
+    Swal.fire({ icon: "error", title: "Error", text: result.message });
+  }
+});
+</script>
+
+</body>
+</html>

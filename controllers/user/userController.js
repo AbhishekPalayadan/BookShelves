@@ -1,6 +1,7 @@
 const User = require('../../models/userSchema');
 const Category = require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
+const Order=require('../../models/orderSchema')
 const Address = require('../../models/addressSchema');
 const Cart = require('../../models/cartSchema');
 const bcrypt=require('bcrypt')
@@ -217,6 +218,23 @@ const loadAddress = async (req, res) => {
 };
 
 
+const getSingleAddress = async (req, res) => {
+  const address = await Address.findOne({
+    _id: req.params.id,
+    userId: req.user._id
+  });
+
+  if (!address) {
+    return res.json({ success: false });
+  }
+
+  res.json({
+    success: true,
+    address
+  });
+};
+
+
 const loadAddAddress=async(req,res)=>{
   try {
     const user=req.user;
@@ -234,60 +252,71 @@ const loadAddAddress=async(req,res)=>{
   }
 }
 
-const addAddress=async(req,res)=>{
-  try{
-    const {fullname,phone,house,place,state,pincode}=req.body;
-    console.log(req.body)
-    if(!fullname || !phone ||!house ||!place ||!state ||!pincode){
+
+const addAddress = async (req, res) => {
+  try {
+    const { fullname, phone, house, place, state, pincode } = req.body;
+
+    if (!fullname || !phone || !house || !place || !state || !pincode) {
       return res.json({
-        success:false,
-        message:"All fields are required"
+        success: false,
+        message: "All fields are required"
       });
     }
 
-    if(fullname.length <3){
+    if (fullname.length < 3) {
       return res.json({
-        success:false,
-        message:"Full name must be at least 3 characters"
-      })
+        success: false,
+        message: "Full name must be at least 3 characters"
+      });
     }
 
-    if(!/^\d{10}$/.test(phone)){
+    if (!/^\d{10}$/.test(phone)) {
       return res.json({
-        success:false,
-        message:"Invalid phone number"
-      })
+        success: false,
+        message: "Invalid phone number"
+      });
     }
-    if(!/^\d{6}$/.test(pincode)){
+
+    if (!/^\d{6}$/.test(pincode)) {
       return res.json({
-        success:false,
-        message:'Invalid pincode'
-      })
+        success: false,
+        message: "Invalid pincode"
+      });
     }
+
+    const addressCount = await Address.countDocuments({
+      userId: req.user._id
+    });
+
+
+    const isPrimary = addressCount === 0;
 
     await Address.create({
-      userId:req.user._id,
+      userId: req.user._id,
       fullname,
       phone,
       house,
       place,
       state,
       pincode,
-      isPrimary:false
-    })
+      isPrimary
+    });
 
     res.json({
-      success:true,
-      message:"Address added successfully"
-    })
-  }catch(error){
+      success: true,
+      message: "Address added successfully"
+    });
+
+  } catch (error) {
     console.log(error);
     return res.json({
-      success:false,
-      message:"Server error"
-    })
+      success: false,
+      message: "Server error"
+    });
   }
-}
+};
+
 
 const deleteAddress=async(req,res)=>{
   try {
@@ -463,6 +492,140 @@ const changePassword=async(req,res)=>{
   }
 }
 
+
+const MAX_PER_PRODUCT=10;
+
+const addToCart=async(req,res)=>{
+  try{
+    const userId=req.user._id;
+    const {productId,quantity}=req.body;
+
+    if(!quantity || quantity<1){
+      return res.status(400).json({message:"Invalid quantity"});
+    }
+
+    const product=await Product.findById(productId);
+
+    if(!product){
+      return res.status(404).json({message:"Product not found"});
+    }
+
+    if(quantity>product.stock){
+      return res.status(400).json({
+        message:"Requested quantity exceeds stock"
+      })
+    }
+
+    let cart=await Cart.findOne({
+      userId
+    }).populate("items.productId");
+    if(!cart){
+      cart=new Cart({userId,items:[]});
+    }
+
+    const itemIndex=cart.items.findIndex(
+      item=>item.productId._id.toString()===productId
+    )
+
+    if(itemIndex > -1){
+      const existingQty=cart.items[itemIndex].quantity;
+      const newQty = existingQty + quantity;
+
+      if(newQty > MAX_PER_PRODUCT){
+        return res.status(400).json({
+          message:`You can add only ${MAX_PER_PRODUCT} items of this product`
+        })
+      }
+      if(newQty>product.stock){
+        return res.status(400).json({
+          message:"Total quantity exceeds stock"
+        })
+      }
+      cart.items[itemIndex].quantity=newQty;
+
+    }else{
+      if(quantity>MAX_PER_PRODUCT){
+        return res.status(400).json({
+          message:`You can add only ${MAX_PER_PRODUCT} items of this product`
+        })
+      }
+      cart.items.push({
+        productId,
+        quantity,
+        price:product.sale_price
+      })
+    }
+
+    await cart.save();
+
+    res.status(200).json({
+      message:"Added to cart"
+    })
+  }catch(err){
+    console.log("Add to cart error:",err);
+    res.status(500).json({message:"Something went wrong"})
+  }
+}
+
+
+const removeFromCart=async(req,res)=>{
+  try {
+    const userId=req.user._id;
+    const {itemId}=req.params;
+
+    const cart=await Cart.findOne({userId});
+
+    if(!cart){
+      return res.status(404).json({
+        message:"Cart not found"
+      })
+    }
+    cart.items=cart.items.filter(
+      item=>item._id.toString() !==itemId
+    )
+
+    await cart.save();
+
+    res.status(200).json({
+      message:"Item removed from cart"
+    })
+  } catch (error) {
+    console.log("Remove from cart error:",error)
+    res.status(500).json({
+      message:"Something went wrong"
+    })
+  }
+}
+
+
+const loadCheckout=async(req,res)=>{
+  try {
+    const cart=await Cart.findOne({
+      userId:req.user._id
+    }).populate("items.productId");
+
+    if(!cart || cart.items.length === 0){
+      return res.redirect('/cart');
+    }
+
+    const cartTotal=cart.items.reduce(
+      (sum,item)=>sum + item.productId.sale_price * item.quantity,
+      0
+    )
+
+    const address=await Address.find({userId:req.user._id}).sort({isPrimary:-1})
+
+    res.render("user/checkout",{
+      user:req.user,
+      cartItems:cart.items,
+      cartTotal,
+      address
+    })
+  } catch (error) {
+    console.log("Checkout load error:",error);
+    res.redirect("/cart")
+  }
+}
 /* ========================= STATIC ========================= */
 
 const about = (req, res) => {
@@ -493,6 +656,9 @@ module.exports = {
   loadProduct,
 
   loadAddress,
+  getSingleAddress,
+
+
   loadAddAddress,
   addAddress,
   deleteAddress,
@@ -501,10 +667,15 @@ module.exports = {
   editAddress,
 
   loadCart,
+  addToCart,
+  removeFromCart,
+
+  loadCheckout,
 
   about,
   contact,
   pageNotFound,
   loadChangePassword,
-  changePassword
+  changePassword,
+
 };

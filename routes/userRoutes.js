@@ -52,6 +52,8 @@ router.get('/product-details/:id', userController.loadProduct);
 
 /* ================= ADDRESS ================= */
 router.get('/address', userAuth, userController.loadAddress);
+router.get('/address/:id', userAuth, userController.getSingleAddress);
+
 
 router.get("/address/add",userAuth,userController.loadAddAddress)
 router.post('/address/add', userAuth, userController.addAddress);
@@ -65,6 +67,12 @@ router.patch('/address/set-primary/:id',userAuth,userController.setPrimaryAddres
 
 /* ================= CART ================= */
 router.get('/cart', userAuth, userController.loadCart);
+router.post('/cart/add',userAuth,userController.addToCart)
+router.delete("/cart/remove/:itemId",userAuth,userController.removeFromCart)
+
+
+
+router.get('/checkout',userAuth,userController.loadCheckout);
 
 /* ================= STATIC ================= */
 router.get('/about', userController.about);

@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - Bookshelves</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <title>Cart - Bookshelves</title>
+
     <style>
         * {
             margin: 0;
@@ -12,346 +14,363 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             background-color: #f5f5f5;
         }
 
-        header {
-            background-color: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 0;
-        }
-
-
-
-        nav {
-            display: flex;
-            gap: 30px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #000;
-            font-size: 15px;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: #ff4757;
-        }
-
-
-        /* Main Content */
-        .main-container {
+        /* Main Wrapper */
+        .main-content {
             max-width: 1200px;
-            margin: 25px auto;
+            margin: 30px auto;
             padding: 0 20px;
         }
 
         /* Breadcrumb */
         .breadcrumb {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
             font-size: 14px;
-            color: #666;
+            color: #777;
+            margin-bottom: 25px;
         }
 
         .breadcrumb a {
-            color: #666;
             text-decoration: none;
+            color: #777;
         }
 
         .breadcrumb a:hover {
             color: #ff4757;
         }
 
-        .breadcrumb-divider {
-            margin: 0 8px;
-        }
-
-        .welcome-text {
-            font-size: 16px;
-            color: #333;
-        }
-
-        .welcome-text .customer-name {
-            color: #ff4757;
-            font-weight: 600;
-        }
-
-        /* Profile Layout */
-        .profile-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        .sidebar-top{
-            flex:1
-        }
-
-        .profile-content {
-            background: #fff;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .profile-header {
+        /* Cart Layout */
+        .cart-layout {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            gap: 30px;
+            align-items: flex-start;
         }
 
-        .profile-title {
-            font-size: 24px;
+        /* Cart Items */
+        .cart-items-section {
+            flex: 1;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-image {
+            width: 90px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .cart-item-details {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-size: 18px;
             font-weight: 600;
-            color: #333;
+            margin-bottom: 6px;
+            color: #222;
         }
 
-        .edit-profile-btn {
-            padding: 10px 24px;
+        .in-stock {
+            font-size: 14px;
+            color: #27ae60;
+            margin-bottom: 12px;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-selector label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .quantity-selector input {
+            width: 70px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .cart-item-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .remove-btn {
+            position: absolute;
+            right: 0;
+            bottom: 15px;
             background: #ff4757;
             color: #fff;
             border: none;
-            border-radius: 25px;
+            padding: 8px 22px;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
         }
 
-        .edit-profile-btn:hover {
-            background: #ff3838;
+        .remove-btn:hover {
+            background: #e63946;
         }
 
-
-        .profile-info-section {
-    background: #ffffff;
-    padding: 28px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    margin-bottom: 30px;
-}
-
-
-
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 22px;
-}
-
-.info-item {
-    background: #fafafa;
-    padding: 16px 18px;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.info-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-        .info-value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
+        /* Empty Cart */
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
         }
 
-        .info-value.empty {
-            color: #999;
-            font-style: italic;
-        }
-
-        .info-text {
-    font-size: 16px;
-    font-weight: 600;
-    color: #222;
-}
-
-        /* Security Section */
-        .security-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .security-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
+        .empty-cart-img {
+            width: 220px;
             margin-bottom: 20px;
         }
 
-        .security-actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+        .empty-cart h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
         }
 
-        .security-btn {
-            padding: 12px 24px;
-            background: #fff;
-            color: #ff4757;
-            border: 2px solid #ff4757;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .empty-cart p {
+            color: #777;
+            margin-bottom: 20px;
         }
 
-        .security-btn:hover {
+        .continue-shopping-btn {
+            display: inline-block;
             background: #ff4757;
             color: #fff;
+            padding: 12px 28px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
         }
 
-        .security-btn svg {
-            width: 16px;
-            height: 16px;
+        .continue-shopping-btn:hover {
+            background: #e63946;
+        }
+
+        /* Cart Summary */
+        .cart-summary {
+            width: 320px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .cart-summary h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 18px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .checkout-btn:hover {
+            background: #e63946;
         }
 
         /* Responsive */
-        @media (max-width: 968px) {
-            .profile-layout {
-                grid-template-columns: 1fr;
-            }
-
-            nav {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-content {
-                padding: 25px 20px;
-            }
-
-            .security-actions {
+        @media (max-width: 900px) {
+            .cart-layout {
                 flex-direction: column;
             }
 
-            .security-btn {
+            .cart-summary {
                 width: 100%;
-                justify-content: center;
+            }
+
+            .remove-btn {
+                position: static;
+                margin-top: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <%-include("../../views/partials/user/header")%>
 
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <div>
-                <a href="/">Home</a>
-                <span class="breadcrumb-divider">/</span>
-                <span>My Account</span>
-            </div>
-            <div class="welcome-text">
-                Welcome! <span class="customer-name"><%= user.fullname %></span>
-            </div>
-        </div>
-        <div class="cart-layout">
+<%- include("../../views/partials/user/header", { user }) %>
 
-            <!-- Cart Items -->
-            <div class="cart-items-section">
-    
-                <% if (cartItems.length === 0) { %>
-                    <div class="empty-cart">
-                        <img 
-                        src="/images/empty-cart.png" 
-                        alt="Empty Cart"
-                        class="empty-cart-img"
-                        >
-                        <h3>Your cart is empty</h3>
-                        <p>Looks like you haven't added anything to your cart yet.</p>
-                        <a href="/products" class="continue-shopping-btn">
-                            Continue Shopping
-                        </a>
-                    </div>
-                <% } else { %>
-    
-                    <% cartItems.forEach(item => { %>
-                        <div class="cart-item">
-                            <img src="<%= item.product.image %>" class="cart-item-image">
-    
-                            <div class="cart-item-details">
-                                <h3 class="cart-item-title">
-                                    <%= item.product.name %>
-                                </h3>
-    
-                                <p class="in-stock">In Stock</p>
-    
-                                <div class="quantity-selector">
-                                    <label>Quantity:</label>
-                                    <input type="number" value="<%= item.quantity %>" min="1">
-                                </div>
-                            </div>
-    
-                            <div class="cart-item-price">
-                                ₹ <%= item.product.price * item.quantity %>
-                            </div>
-    
-                            <button class="remove-btn">
-                                Remove
-                            </button>
-                        </div>
-                    <% }) %>
-    
-                <% } %>
-    
-            </div>
-    
-            <% if(cartItems.length>0){ %>
-                        <!-- Cart Summary -->
-            <div class="cart-summary">
-                <h3>Cart Total</h3>
-    
-                <div class="summary-row">
-                    <span>Total:</span>
-                    <span>₹ <%= cartTotal %></span>
-                </div>
-    
-                <button class="checkout-btn">
-                    Proceed to Checkout
-                </button>
-            </div>
-            <% } %>
-    
-        </div>
+<div class="main-content">
+
+    <div class="breadcrumb">
+        <a href="/">Home</a> / Cart
     </div>
-    <%-include("../../views/partials/user/footer")%>
 
+    <div class="cart-layout">
+
+        <!-- CART ITEMS -->
+        <div class="cart-items-section">
+
+            <% if (cartItems.length === 0) { %>
+
+                <div class="empty-cart">
+                    <img src="/images/empty-cart.png" class="empty-cart-img">
+                    <h3>Your cart is empty</h3>
+                    <p>Looks like you haven’t added anything yet.</p>
+                    <a href="/products" class="continue-shopping-btn">Continue Shopping</a>
+                </div>
+
+            <% } else { %>
+
+                <% cartItems.forEach(item => { %>
+                    <div class="cart-item">
+
+                        <img
+                            src="/uploads/product-images/<%= item.productId.images?.[0] || 'no-image.png' %>"
+                            class="cart-item-image"
+                        >
+
+                        <div class="cart-item-details">
+                            <h3 class="cart-item-title">
+                                <%= item.productId.product_name %>
+                            </h3>
+
+                            <p class="in-stock">In Stock</p>
+
+                            <div class="quantity-selector">
+                                <label>Quantity:</label>
+                                <input type="number" value="<%= item.quantity %>" min="1">
+                            </div>
+                        </div>
+
+                        <div class="cart-item-price">
+                            ₹ <%= item.productId.sale_price * item.quantity %>
+                        </div>
+
+                        <button type="button" class="remove-btn" onclick="removeFromCart('<%= item._id %>')">
+                            Remove
+                        </button>
+                    </div>
+                <% }) %>
+
+            <% } %>
+
+        </div>
+
+        <!-- CART SUMMARY -->
+        <% if (cartItems.length > 0) { %>
+        <div class="cart-summary">
+            <h3>Cart Summary</h3>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>₹ <%= cartTotal %></span>
+            </div>
+
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span>Free</span>
+            </div>
+
+            <div class="summary-row total">
+                <span>Total</span>
+                <span>₹ <%= cartTotal %></span>
+            </div>
+
+            <button class="checkout-btn" onclick="goToCheckout()">
+                Proceed to Checkout
+            </button>
+        </div>
+        <% } %>
+
+    </div>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+    async function removeFromCart(itemId){
+        try{
+            const res=await fetch(`/cart/remove/${itemId}`,{
+                method:"DELETE"
+            });
+            const data=await res.json();
+
+            if(!res.ok){
+                Toastify({
+                    text:data.message || "Failed to remove item",
+                    duration:2000,
+                    gravity:"top",
+                    position:"center",
+                    style:{background:'#ff4757'}
+                }).showToast();
+                return;
+            }
+            Toastify({
+      text: data.message,
+      duration: 1500,
+      gravity: "top",
+      position: "center",
+      style: { background: "#2ecc71" }
+    }).showToast();
+
+    setTimeout(() => {
+      location.reload();
+    }, 800);
+
+  } catch (err) {
+    Toastify({
+      text: "Server error",
+      duration: 2000,
+      gravity: "top",
+      position: "center",
+      style: { background: "#ff4757" }
+    }).showToast();
+  }
+}
+
+function goToCheckout(){
+    window.location.href="/checkout";
+}
+</script>
 </body>
 </html>

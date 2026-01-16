@@ -99,7 +99,7 @@
     </div>
 
     <div class="button-group">
-        <button class="add-to-cart-btn">Add to Cart</button>
+        <button onclick="addToCart('<%= product._id %>')" class="add-to-cart-btn">Add to Cart</button>
 
         <button class="wishlist-btn" id="wishlistBtn">
             <i id="wishlistIcon" class="fa-regular fa-heart"></i>
@@ -302,8 +302,9 @@
     </div>
 
 </main>
-
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script>
+    const MAX_PER_PRODUCT = 10;
     function changeImage(src) {
         document.getElementById('mainImage').src = src;
     }
@@ -347,6 +348,7 @@ function showTab(tabName, clickedTab) {
     document.getElementById(tabName).classList.add('active');
 }
 
+
 function increaseQty() {
     const qtyInput = document.getElementById("qtyInput");
     const plusBtn = document.getElementById("plusBtn");
@@ -355,35 +357,48 @@ function increaseQty() {
     const stock = parseInt(qtyBox.dataset.stock);
     let qty = parseInt(qtyInput.value);
 
-    if (qty < stock) {
-        qty++;
-        qtyInput.value = qty;
+    // Stop if max limit reached
+    if (qty >= MAX_PER_PRODUCT) {
+        plusBtn.style.display = "none";
+
+        Toastify({
+            text: `Maximum ${MAX_PER_PRODUCT} items allowed`,
+            duration: 2000,
+            gravity: "top",
+            position: "center",
+            style: { background: "#ff4757" }
+        }).showToast();
+
+        return;
     }
 
+    // Stop if stock reached
     if (qty >= stock) {
         Toastify({
-    text: `Only ${stock} items available`,
-    duration: 2000,
-    gravity: "top",     // MUST be string
-    position: "center",    // MUST be string
-    close: false,
-    stopOnFocus: true,
-    style: {
-        background: "#ff4757"
+            text: `Only ${stock} items available`,
+            duration: 2000,
+            gravity: "top",
+            position: "center",
+            style: { background: "#ff4757" }
+        }).showToast();
+        return;
     }
-}).showToast();
 
+    qty++;
+    qtyInput.value = qty;
 
+    // Hide + button when qty hits max
+    if (qty >= MAX_PER_PRODUCT) {
+        plusBtn.style.display = "none";
     }
 }
+
 
 
 function decreaseQty() {
     const qtyInput = document.getElementById("qtyInput");
     const plusBtn = document.getElementById("plusBtn");
-    const qtyBox = document.querySelector(".qty-box");
 
-    const stock = parseInt(qtyBox.dataset.stock);
     let qty = parseInt(qtyInput.value);
 
     if (qty > 1) {
@@ -391,7 +406,8 @@ function decreaseQty() {
         qtyInput.value = qty;
     }
 
-    if (qty < stock) {
+    // Show + button again when qty < max
+    if (qty < MAX_PER_PRODUCT) {
         plusBtn.style.display = "inline-block";
     }
 }
@@ -406,11 +422,83 @@ wishlistBtn.addEventListener("click", () => {
     wishlistIcon.classList.toggle("fa-regular");
 });
 
+async function addToCart(productId){
+    const qtyInput=document.getElementById("qtyInput");
+    const qtyBox=document.querySelector(".qty-box");
+
+    const quantity=parseInt(qtyInput.value);
+    const stock=parseInt(qtyBox.dataset.stock);
+
+    if(quantity < 1){
+        Toastify({
+            text:"Quantity must be at least 1",
+            duration: 2000,
+            gravity: "top",
+            position: "center",
+            style:{
+                background:"#ff4757"
+            }
+        }).showToast();
+        return;
+    }
+
+    if(quantity>stock){
+        Toastify({
+            text:`Only ${stock} items available`,
+            duration: 2000,
+            gravity: "top",
+            position: "center",
+            style:{background:"#ff4757"}
+        }).showToast();
+        return;
+    }
+
+    try{
+        const res=await fetch("/cart/add",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                productId,
+                quantity
+            })
+        })
+        const data=await res.json();
+        if (!res.ok) {
+      Toastify({
+        text: data.message || "Failed to add to cart",
+        duration: 2000,
+        gravity: "top",
+        position: "center",
+        style: { background: "#ff4757" }
+      }).showToast();
+      return;
+    }
+    Toastify({
+      text: data.message,
+      duration: 2000,
+      gravity: "top",
+      position: "center",
+      style: { background: "#2ecc71" }
+    }).showToast();
+
+    }catch(err){
+        Toastify({
+            text:"Server error",
+            duration:2000,
+            gravity: "top",
+            position: "center",
+            style:{background:"#ff4757"}
+        }).showToast();
+    }
+}
+
+
 
 </script>
 
 <%- include("../../views/partials/user/footer") %>
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 </body>
 </html>
