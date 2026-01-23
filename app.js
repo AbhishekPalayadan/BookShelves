@@ -8,8 +8,8 @@ const port = process.env.PORT;
 const passport = require('./config/passport')
 
 const Database = require('./config/db')
-const userRoutes = require("./routes/userRoutes");
-const adminRoutes = require("./routes/adminRoutes")
+const userRoutes = require("./routes/user");
+const adminRoutes = require("./routes/admin");
  
 const User = require('./models/userSchema');
 console.log(User)
@@ -43,7 +43,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', userRoutes);
-app.use('/admin', adminRoutes)
+app.use('/admin', adminRoutes);
 
 
 app.listen(port, () => {

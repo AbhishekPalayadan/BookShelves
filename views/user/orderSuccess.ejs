@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Success</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .success-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .checkmark-circle {
+            width: 100px;
+            height: 100px;
+            background-color: #4169E1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+
+        .checkmark-circle svg {
+            width: 60px;
+            height: 60px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .order-details {
+            text-align: left;
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .arrival-text {
+            color: #4CAF50;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 40px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-view {
+            background-color: #888;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #666;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-continue {
+            background-color: #FF5252;
+            color: white;
+        }
+
+        .btn-continue:hover {
+            background-color: #E53935;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .success-container {
+                padding: 40px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <!-- Success Checkmark -->
+        <div class="checkmark-circle">
+            <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+
+        <!-- Success Title -->
+        <h1 class="success-title">Payment Successful</h1>
+
+        <!-- Order Details -->
+        <div class="order-details">
+            <div class="detail-row">
+                <span class="detail-label">Order ID</span>
+                <span class="detail-value"><%= order.orderId %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value"><%= new Date(order.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Time</span>
+                <span class="detail-value"><%= new Date(order.createdAt).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true}) %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Payment Method</span>
+                <span class="detail-value"><%= order.paymentMethod ==="COD" ? "Cash On Delivery" : " UPI" %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value"><%= order.totalAmount %> Rs</span>
+            </div>
+        </div>
+
+        <!-- Arrival Date -->
+        <p class="arrival-text">Arriving By <strong> <%= expectedDelivery.toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"}) %> </strong></p>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <a href="/orders/<%= order.orderId %>" style="text-decoration: none;" class="btn btn-view">View Order</a>
+            <a href="/" style="text-decoration: none;" class="btn btn-continue">Continue Shopping</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -43,13 +43,8 @@
                     <td style="padding:15px;"><%= cat.name %></td>
                     <td style="padding:15px;"><%= cat.description %></td>
 
-                    <td style="padding:15px;">
-                        <label class="toggle-switch">
-                            <input type="checkbox"
-                                <%= cat.isListed ? 'checked' : '' %>
-                                onchange="changeCategoryStatus('<%= cat._id %>', this.checked)">
-                            <span class="slider"></span>
-                        </label>
+                    <td style="padding:15px; color: <%= cat.isListed ? 'green' : 'red' %>;">
+                        <%= cat.isListed ? 'active' : 'Not active' %>
                     </td>
 
 <td class="action-btn">
@@ -62,11 +57,17 @@
     </span>
 
     <!-- DELETE BUTTON (SOFT DELETE) -->
-    <span class="action-icon"
+    <label class="toggle-switch">
+        <input type="checkbox"
+            <%= cat.isListed ? 'checked' : '' %>
+            onchange="changeCategoryStatus('<%= cat._id %>', this.checked)">
+        <span class="slider"></span>
+    </label>
+    <!-- <span class="action-icon"
         onclick="deleteCategory('<%= cat._id %>')"
         style="cursor:pointer; font-size:18px; color:#e63946;">
         <i class="fa-solid fa-trash"></i>
-    </span>
+    </span> -->
 
 </td>
 

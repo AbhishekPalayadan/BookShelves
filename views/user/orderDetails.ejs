@@ -1,0 +1,640 @@
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - Bookshelves</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .breadcrumb {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        .breadcrumb a:hover {
+            color: #333;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .order-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .order-info strong {
+            color: #333;
+        }
+
+        .welcome {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .welcome .name {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .invoice-link {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .invoice-link:hover {
+            text-decoration: underline;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .detail-box h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .detail-box p {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .summary-row span:first-child {
+            color: #666;
+        }
+
+        .summary-row span:last-child {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .summary-row.total {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .summary-row.grand-total span:last-child {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            gap: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 120px;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .item-image img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .item-info h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .item-price {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .status {
+            font-size: 13px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            width: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .track-btn {
+            background-color: #f1c40f;
+            color: #333;
+        }
+
+        .track-btn:hover {
+            background-color: #f39c12;
+        }
+
+        .cancel-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .just-for-you {
+            padding: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .red-bar {
+            width: 8px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 2px;
+        }
+
+        .view-all-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .view-all-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            text-align: center;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .product-rating {
+            font-size: 12px;
+            color: #f39c12;
+            margin-bottom: 8px;
+        }
+
+        .product-pricing {
+            font-size: 13px;
+        }
+
+        .product-price {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .product-original-price {
+            text-decoration: line-through;
+            color: #999;
+            margin-left: 5px;
+        }
+        /* ===== TRACK ORDER MODAL ===== */
+
+.track-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.track-modal-content {
+  background: #fff;
+  width: 350px;
+  border-radius: 8px;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.track-header h3 {
+  font-size: 18px;
+  color: #333;
+}
+
+.close-btn {
+  font-size: 22px;
+  cursor: pointer;
+  color: #999;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+/* ===== TRACK STEPS ===== */
+
+.track-steps {
+  list-style: none;
+  padding-left: 0;
+}
+
+.track-steps li {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 10px 0;
+  position: relative;
+}
+
+/* Circle */
+.track-steps li::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+  margin-right: 15px;
+}
+
+/* Line */
+.track-steps li::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 28px;
+  width: 2px;
+  height: 100%;
+  background: #ccc;
+}
+
+/* Remove last line */
+.track-steps li:last-child::after {
+  display: none;
+}
+
+/* Active step */
+.track-steps li.active {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.track-steps li.active::before {
+  background: #27ae60;
+}
+
+.track-steps li.active::after {
+  background: #27ae60;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+        @media (max-width: 768px) {
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+
+            .order-item {
+                grid-template-columns: 80px 1fr;
+                gap: 15px;
+            }
+
+            .item-actions {
+                grid-column: 1 / -1;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: auto;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%-include("../../views/partials/user/header")%>
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/userProfile">Account</a> / <a href="/orders">My Orders</a> / <strong>Order Details</strong>
+            <div class="welcome" style="float: right;">Welcome! <span class="name"><%= user.fullname %></span></div>
+        </div>
+
+        <!-- Order Header -->
+        <div class="header">
+            <div class="order-info">
+                Ordered on <strong><%= new Date(order.createdAt).toDateString() %></strong> | Order# <strong><%= order.orderId %></strong>
+            </div>
+            <a href="#" class="invoice-link">Invoice</a>
+        </div>
+
+        <!-- Order Details -->
+        <div class="order-details">
+            <!-- Shipping Address -->
+            <div class="detail-box">
+                <h3>Shipping Address</h3>
+                <p><strong><%= order.address.fullname %></strong></p>
+                <p><%= order.address.house %>,</p>
+                <p><%= order.address.place %></p>
+                <p><%= order.address.state %> - <%= order.address.pincode %></p>
+                <p><%= order.address.phone %></p>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="detail-box">
+                <h3>Payment Method</h3>
+                <p><strong><%= order.paymentMethod === "COD" ? "Cash On Delivery" : "UPI" %></strong></p>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="detail-box">
+                <h3>Order Summary</h3>
+                <div class="summary-row">
+                    <span>Items Total</span>
+                    <span>₹<%= order.totalAmount %></span>
+                </div>
+                <!-- <div class="summary-row">
+                    <span>Shipping Charge</span>
+                    <span>₹90.00</span>
+                </div> -->
+                <div class="summary-row">
+                    <span>Total</span>
+                    <span>₹<%= order.totalAmount %></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Grand Total</span>
+                    <span><%= order.totalAmount %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Item -->
+        <div style="padding: 20px;">
+
+            <% order.items.forEach(item => { %>
+              <div class="order-item">
+          
+                <div class="item-image">
+                  <img 
+                    src="/uploads/product-images/<%= item.productId?.images?.[0] || 'no-image.png' %>" 
+                    alt="<%= item.productId.product_name %>"
+                  >
+                </div>
+          
+                <div class="item-info">
+                  <h4><%= item.productId.product_name %></h4>
+                  <div class="item-price">Price: ₹<%= item.price %></div>
+                  <div class="item-qty">Quantity: <%= item.quantity %></div>
+                </div>
+          
+                <div class="item-actions" id="order-status">
+                  <div class="status">
+                    Status : <%= item.status.toUpperCase() %>
+                  </div>
+
+                  <% if(!item.status ==="cancelled"){ %>
+                  <button class="action-btn track-btn" onclick="trackOrder('<%= order._id %>','<%= order.status %>')">
+                    Track Order
+                  </button>
+                  <% } %>
+          
+                  <% if(item.status==="pending"){ %>
+                  <button class="action-btn cancel-btn" onclick="cancelItem(this,'<%= order._id %>','<%= item.productId._id %>')">
+                    Cancel Item
+                  </button>
+                  <% } %>
+                </div>
+          
+              </div>
+            <% }) %>
+          
+          </div>
+          
+        </div>
+
+    </div>
+
+
+<!-- Track Order Modal -->
+<div id="trackModal" class="track-modal">
+
+    <div class="track-modal-content">
+      
+      <div class="track-header">
+        <h3>Track Your Order</h3>
+        <span class="close-btn" onclick="closeTrackModal()">×</span>
+      </div>
+  
+      <ul id="trackSteps" class="track-steps">
+        <!-- JS fills steps -->
+      </ul>
+  
+    </div>
+  
+  </div>
+  
+    <%-include("../../views/partials/user/footer")%>
+
+    <script>
+
+async function cancelItem(btn, orderId, productId) {
+
+  if (!confirm("Cancel this item?")) return;
+
+  try {
+    const res = await fetch("/orders/cancel-item", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, productId })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message);
+      return;
+    }
+
+    const card = btn.closest(".order-item");
+    const statusEl = card.querySelector(".status");
+
+    statusEl.innerText = "Status : CANCELLED";
+    statusEl.style.color = "red";
+
+    btn.remove();
+    card.querySelector(".track-btn")?.remove();
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+}
+
+
+function trackOrder(orderId, status) {
+
+  const modal = document.getElementById("trackModal");
+  const stepsEl = document.getElementById("trackSteps");
+
+  const steps = ["pending", "shipped", "delivered"];
+
+  stepsEl.innerHTML = "";
+
+  steps.forEach(step => {
+    const li = document.createElement("li");
+    li.innerText = step.toUpperCase();
+
+    if (steps.indexOf(step) <= steps.indexOf(status)) {
+      li.classList.add("active");
+    }
+
+    stepsEl.appendChild(li);
+  });
+
+  modal.style.display = "flex";
+}
+
+function closeTrackModal() {
+  document.getElementById("trackModal").style.display = "none";
+}
+
+    </script>
+</body>
+</html>

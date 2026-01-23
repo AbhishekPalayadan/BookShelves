@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        .wishlist-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+    </style>
 </head>
 <body>
     
@@ -101,12 +110,18 @@
     <div class="button-group">
         <button onclick="addToCart('<%= product._id %>')" class="add-to-cart-btn">Add to Cart</button>
 
-        <button class="wishlist-btn" id="wishlistBtn">
-            <i id="wishlistIcon" class="fa-regular fa-heart"></i>
-        </button>
+        <button class="wishlist-btn"
+        onclick="toggleWishlist(this)"
+        data-id="<%= product._id %>">
+
+    <i class="fa-heart <%= isWishlisted ? 'fa-solid' : 'fa-regular' %>"
+       style="<%= isWishlisted ? 'color:red' : '' %>">
+    </i>
+
+</button>
     </div>
 
-    <button class="buy-now-btn">Buy Now</button>
+    <!-- <button class="buy-now-btn">Buy Now</button> -->
 
 <% } else { %>
 
@@ -118,7 +133,7 @@
         </button>
     </div>
 
-    <button class="buy-now-btn btn-disabled">Buy Now</button>
+    <!-- <button class="buy-now-btn btn-disabled">Buy Now</button> -->
 
 <% } %>
 
@@ -304,6 +319,37 @@
 </main>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script>
+    let activeToast=null;
+
+function showToast(message, type = "error") {
+  if (activeToast) {
+    activeToast.hideToast();
+  }
+
+  activeToast = Toastify({
+    text: message,
+    duration: 2000,
+    gravity: "top",          // top or bottom
+    position: "center",      // REQUIRED for center
+    offset: {
+      x: 0,
+      y: 20
+    },
+    close: true,
+    stopOnFocus: true,
+    style: {
+      background: type === "success" ? "#2ecc71" : "#ff4757",
+      textAlign: "center",
+      borderRadius: "10px",
+      fontWeight: "600"
+    }
+  });
+
+  activeToast.showToast();
+}
+
+
+
     const MAX_PER_PRODUCT = 10;
     function changeImage(src) {
         document.getElementById('mainImage').src = src;
@@ -361,26 +407,13 @@ function increaseQty() {
     if (qty >= MAX_PER_PRODUCT) {
         plusBtn.style.display = "none";
 
-        Toastify({
-            text: `Maximum ${MAX_PER_PRODUCT} items allowed`,
-            duration: 2000,
-            gravity: "top",
-            position: "center",
-            style: { background: "#ff4757" }
-        }).showToast();
-
+        showToast(`Maximum ${MAX_PER_PRODUCT} items allowed`)
         return;
     }
 
     // Stop if stock reached
     if (qty >= stock) {
-        Toastify({
-            text: `Only ${stock} items available`,
-            duration: 2000,
-            gravity: "top",
-            position: "center",
-            style: { background: "#ff4757" }
-        }).showToast();
+        showToast(`Only ${stock} items available`)
         return;
     }
 
@@ -416,12 +449,6 @@ function decreaseQty() {
     const wishlistBtn = document.getElementById("wishlistBtn");
 const wishlistIcon = document.getElementById("wishlistIcon");
 
-wishlistBtn.addEventListener("click", () => {
-    wishlistBtn.classList.toggle("active");
-    wishlistIcon.classList.toggle("fa-solid");
-    wishlistIcon.classList.toggle("fa-regular");
-});
-
 async function addToCart(productId){
     const qtyInput=document.getElementById("qtyInput");
     const qtyBox=document.querySelector(".qty-box");
@@ -430,26 +457,12 @@ async function addToCart(productId){
     const stock=parseInt(qtyBox.dataset.stock);
 
     if(quantity < 1){
-        Toastify({
-            text:"Quantity must be at least 1",
-            duration: 2000,
-            gravity: "top",
-            position: "center",
-            style:{
-                background:"#ff4757"
-            }
-        }).showToast();
+        showToast("Quantity must be at least 1")
         return;
     }
 
     if(quantity>stock){
-        Toastify({
-            text:`Only ${stock} items available`,
-            duration: 2000,
-            gravity: "top",
-            position: "center",
-            style:{background:"#ff4757"}
-        }).showToast();
+        showToast(`Only ${stock} items available`)
         return;
     }
 
@@ -466,34 +479,44 @@ async function addToCart(productId){
         })
         const data=await res.json();
         if (!res.ok) {
-      Toastify({
-        text: data.message || "Failed to add to cart",
-        duration: 2000,
-        gravity: "top",
-        position: "center",
-        style: { background: "#ff4757" }
-      }).showToast();
+            showToast(data.message || "Failed to add to cart")
       return;
     }
-    Toastify({
-      text: data.message,
-      duration: 2000,
-      gravity: "top",
-      position: "center",
-      style: { background: "#2ecc71" }
-    }).showToast();
+    showToast(data.message,"success")
 
     }catch(err){
-        Toastify({
-            text:"Server error",
-            duration:2000,
-            gravity: "top",
-            position: "center",
-            style:{background:"#ff4757"}
-        }).showToast();
+        showToast("Server error")
     }
 }
 
+
+
+async function toggleWishlist(btn) {
+    const productId = btn.getAttribute("data-id");
+    const icon = btn.querySelector("i");
+
+    const res = await fetch("/wishlist/toggle", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ productId })
+    });
+
+    const data = await res.json();
+
+    if (data.status === "added") {
+        icon.classList.remove("fa-regular");
+        icon.classList.add("fa-solid");
+        icon.style.color = "red";
+        showToast("Added to wishlist","success");
+    } else if (data.status === "removed") {
+        icon.classList.remove("fa-solid");
+        icon.classList.add("fa-regular");
+        icon.style.color = "black";
+        showToast("Removed from wishlist")
+    }
+}
 
 
 </script>

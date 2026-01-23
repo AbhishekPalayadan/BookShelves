@@ -251,6 +251,19 @@ const updateProduct = async (req, res) => {
 }
 
 
+const productStatus = async (req, res) => {
+    try {
+        const id = req.query.id;
+        const isChecked = req.query.status === "true";
+
+        await Product.findByIdAndUpdate(id, { isDeleted:!isChecked });
+        
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.log(err);
+        res.redirect('/admin/pageError');
+    }
+};
 
 
 const deleteProduct = async (req, res) => {
@@ -277,5 +290,6 @@ module.exports = {
     addProducts,
     getEditProductPage,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    productStatus
 };

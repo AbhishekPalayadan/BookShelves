@@ -16,7 +16,7 @@
         }
 
         .avatar-circle {
-            width: 110px;
+    width: 110px;
     height: 110px;
     border-radius: 50%;
     background: linear-gradient(135deg, #ff4757, #ff6b81);
@@ -24,7 +24,9 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px;
-        }
+    overflow: hidden; 
+}
+
 
         .avatar-name {
     display: inline-block;
@@ -75,13 +77,14 @@
             font-weight: bold;
             text-decoration: none;
         }
-        .avatar-img{
-            width: 100%;
+        .avatar-img {
+    width: 100%;
     height: 100%;
-    border-radius: 50%;
     object-fit: cover;
-    background: #f1f1f1;
-        }
+    border-radius: 50%;
+    display: block;
+}
+
         .avatar-initial {
     font-size: 20px;
     font-weight: 700;
@@ -94,25 +97,78 @@
     color: #fff;
     text-transform: uppercase;
 }
+
+.avatar-wrapper {
+    position: relative;
+}
+
+.edit-icon {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+
+.edit-icon:hover {
+    background: #ff4757;
+    color: #fff;
+}
+.avatar-circle form {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+
 </style>
 
 <aside class="profile-sidebar">
     <div class="profile-avatar">
-        <div class="avatar-circle">
-            <% if (user.profileImage) { %>
-                <img 
-                    src="<%= user.profileImage %>" 
-                    alt="Profile Avatar"
-                    class="avatar-img"
+        <div class="avatar-circle avatar-wrapper">
+
+            <form action="/profile/photo" method="POST" enctype="multipart/form-data">
+                
+                <% if (user.profileImage) { %>
+                    <img 
+                        src="<%= user.profileImage %>" 
+                        alt="Profile Avatar"
+                        class="avatar-img"
+                    >
+                <% } else { %>
+                    <span class="avatar-initial2">
+                        <%= user.fullname.charAt(0).toUpperCase() %>
+                    </span>
+                <% } %>
+        
+                <!-- Hidden file input -->
+                <input 
+                    type="file" 
+                    name="image" 
+                    id="profileImageInput" 
+                    accept="image/*" 
+                    hidden
+                    onchange="this.form.submit()"
                 >
-            <% } else { %>
-                <span class="avatar-initial2">
-                    <%= user.fullname.charAt(0).toUpperCase() %>
-                </span>
-            <% } %>
+        
+                <!-- Edit icon -->
+                <label for="profileImageInput" class="edit-icon">
+                    ✏️
+                </label>
+        
+            </form>
+        
         </div>
-        <span class="avatar-name"><%= user.fullname %></span>
-    </div>
+        
     
 
     <ul class="profile-menu">

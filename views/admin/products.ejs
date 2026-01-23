@@ -48,6 +48,7 @@
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -72,7 +73,11 @@
 
                 <td>₹ <%= product.sale_price %></td>
 
-                <td><%= product.stock %></td>
+                <td style="color: <%= product.stock<= '10' ? 'red' : 'none' %>;"><%= product.stock %></td>
+
+                <td style=" color:<%= product.stock<=0 ? 'Red' : product.isDeleted ? 'red' : 'green' %>">
+                    <%= product.stock<=0 ? 'Out of Stock' : product.isDeleted ? 'blocked' : 'active' %>
+                </td>
 
                 <td>
                     <div class="product-page-actions">
@@ -81,9 +86,17 @@
                             onclick="window.location.href='/admin/editProducts/<%= product._id %>'">
                         </i>
 
-                        <i class="fa-solid fa-trash product-page-delete"
-                            onclick="confirmDelete('<%= product._id %>')">
+                        <i>
+                            <label class="toggle-switch">
+                                <input type="checkbox"
+                                    <%= product.isDeleted ? '' : 'checked' %>
+                                    onchange="changeProductStatus('<%= product._id %>', this.checked)">
+                                <span class="slider"></span>
+                            </label>
                         </i>
+                        <!-- <i class="fa-solid fa-trash product-page-delete"
+                            onclick="confirmDelete('<%= product._id %>')">
+                        </i> -->
 
                     </div>
                 </td>
@@ -138,6 +151,23 @@ function confirmDelete(productId) {
     }).then((result) => {
         if (result.isConfirmed) {
             window.location.href = `/admin/deleteProduct/${productId}`;
+        }
+    });
+}
+
+function changeProductStatus(id, isChecked) {
+    const action = isChecked ? "active" : "block";
+
+    Swal.fire({
+        title: `${action} this product?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${action}`,
+    }).then((res) => {
+        if (res.isConfirmed) {
+            window.location.href = `/admin/productStatus?id=${id}&status=${isChecked}`;
+        } else {
+            location.reload();
         }
     });
 }

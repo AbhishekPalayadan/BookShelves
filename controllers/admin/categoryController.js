@@ -8,16 +8,16 @@ const categoryInfo = async (req, res) => {
         const limit = 4;
         const skip = (page - 1) * limit;
 
-        const categoryData = await Category.find({ isDeleted: false })
+        const categoryData = await Category.find()
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
         const filter = {
-            isDeleted: false,
+            isListed: true,
             name: { $regex: search, $options: "i" }
         }
-        const totalCategories = await Category.countDocuments({ isDeleted: false });
+        const totalCategories = await Category.countDocuments();
         const totalPages = Math.ceil(totalCategories / limit);
         res.render('admin/category', {
             cat: categoryData,
@@ -27,7 +27,6 @@ const categoryInfo = async (req, res) => {
             totalCategories: totalCategories,
             query: req.query,
             search
-
         })
 
     } catch (error) {
@@ -95,7 +94,7 @@ const deleteCategory = async (req, res) => {
         const id = req.params.id;
 
         await Category.findByIdAndUpdate(id, {
-            isDeleted: true
+            isListed: false
         });
 
         return res.redirect("/admin/category");

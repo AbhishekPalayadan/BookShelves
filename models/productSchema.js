@@ -41,7 +41,7 @@ const productSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['available', 'out_of_stock', 'removed'],
+        enum: ['available', 'out_of_stock','removed'],
         default: 'available'
     },
     average_ratings: {

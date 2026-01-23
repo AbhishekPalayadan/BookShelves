@@ -1,4 +1,5 @@
 const User = require('../../models/userSchema')
+const Order=require('../../models/orderSchema')
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
 
@@ -102,6 +103,7 @@ const loadOrders = async (req, res) => {
     }
 
     try {
+        const orders=await Order.findOne
         res.render("admin/orders", { activeMenu: "orders" });
     } catch (error) {
         res.redirect('/admin/pageError');
@@ -134,17 +136,6 @@ const loadCoupons = async (req, res) => {
 }
 
 
-const searchUser = async (req, res) => {
-    const query = req.query.query;
-
-    const users = await User.find({
-        name: {
-            $reqex: query, $options: 'i'
-        }
-    })
-    res.json(users);
-}
-
 module.exports = {
     loadLogin,
     login,
@@ -154,5 +145,4 @@ module.exports = {
     loadOrders,
     loadSales,
     loadCoupons,
-    searchUser
 }

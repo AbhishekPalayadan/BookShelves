@@ -1,12 +1,399 @@
-<%- include("../partials/admin/header", { title: "Admin Dashboard" }) %>
+<%- include("../partials/admin/header", { 
+    title: "Orders",
+    adminName: typeof adminName !== "undefined" ? adminName : "Admin",
+    activeMenu: "orders"
+}) %>
 
-    <div class="page-content" style="padding: 25px;">
-        <h1 style="font-size: 28px; font-weight: bold;">Orders</h1>
+<style>
+    /* Dashboard Content */
+.dashboard-content {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
 
-        <p style="margin-top: 10px; color: #555;">
-            Welcome to the Order Page.
-        </p>
+/* Content Header */
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.content-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+/* Table Order Container */
+.table-order {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Styling */
+.table-order table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table-order thead {
+  background-color: #f9f9f9;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.table-order th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-order tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+.table-order tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.table-order td {
+  padding: 16px;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 80px;
+}
+
+.status-delivered {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-processing {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-shipped {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+/* Form and Select Styling */
+.table-order select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.table-order select:hover {
+  border-color: #bbb;
+}
+
+.table-order select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Button Styling */
+.table-order button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table-order button:hover {
+  background-color: #0056b3;
+}
+
+.table-order button:active {
+  background-color: #003d82;
+}
+
+/* Form Styling */
+.table-order form {
+  display: inline;
+  width: 100%;
+}
+
+.table-order form input[type="hidden"] {
+  display: none;
+}
+
+/* Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.pagination button,
+.pagination a {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover,
+.pagination a:hover {
+  background-color: #f5f5f5;
+  border-color: #999;
+}
+
+.pagination .active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Filter Controls */
+.filter-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-controls button,
+.filter-controls select {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-controls button {
+  background-color: #f5f5f5;
+}
+
+.filter-controls button:hover {
+  background-color: #e9e9e9;
+  border-color: #999;
+}
+
+.filter-controls select {
+  cursor: pointer;
+  padding: 10px 12px;
+}
+
+.filter-controls select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+.table-order th:nth-child(1),
+.table-order td:nth-child(1) {
+  width: 18%;
+}
+
+.table-order th:nth-child(2),
+.table-order td:nth-child(2) {
+  width: 20%;
+}
+
+.table-order th:nth-child(3),
+.table-order td:nth-child(3) {
+  width: 15%;
+}
+
+.table-order th:nth-child(4),
+.table-order td:nth-child(4) {
+  width: 15%;
+}
+
+.table-order th:nth-child(5),
+.table-order td:nth-child(5) {
+  width: 15%;
+}
+
+.table-order th:nth-child(6),
+.table-order td:nth-child(6) {
+  width: 12%;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-order {
+    overflow-x: auto;
+  }
+
+  .table-order table {
+    min-width: 600px;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .content-header h1 {
+    font-size: 24px;
+  }
+
+  .table-order th,
+  .table-order td {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+  }
+
+  .filter-controls button,
+  .filter-controls select {
+    width: 100%;
+  }
+}
+
+</style>
+<div class="dashboard-content" style="padding: 20px 17px;">
+
+    <div class="content-header"
+    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+
+    <h1 style="font-size:28px; font-weight:600; color:#333;">Orders</h1>
+
+
+</div>
+
+    <!-- TABLE -->
+    <div class="table-order"
+        style="background:white; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden; margin-top:20px;">
+
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach(order=>{ %>
+                    <tr>
+                        <td><%= order.orderId %></td>
+                        <td><%= order.userId.fullname %></td>
+                        <td><%= order.createdAt.toLocaleDateString('en-In') %></td>
+                        <td><span class="status-badge status-delivered"><%= order.status %></span></td>
+
+                        <% if(order.status === "cancelled"){ %>
+                          <td style="color: red;">Cancelled</td>
+                          <% }else if(order.status === "delivered"){ %>
+                            <td style="color: green;">delivered</td>
+                            <% }else{ %>
+                              <td>
+                                <input type="hidden" name="orderId" value="<%= order._id %>">
+
+                                <select onchange="updateOrderStatus('<%= order._id %>',this.value)" name="status" >
+                                  <option value="" disabled selected>ChangeStatus</option>
+                                  <% if(order.status === "pending" ){ %>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="shipped">Shipped</option>
+                                 <% } %>
+                                 <% if(order.status === "shipped"){ %>
+                                  <option value="delivered">delivered</option>
+                                 <% } %>
+                                </select>
+                            </form>
+                        </td>
+                            <% } %>
+                        
+                        <td>
+                            <button>View Order</button>
+                        </td>
+                    </tr>
+               <% }) %>
+
+            </tbody>
+        </table>
 
     </div>
 
-    <%- include("../partials/admin/footer") %>
+    <script>
+        async function updateOrderStatus(orderId,status){
+            try {
+                const response=await fetch('/admin/updateOrderStatus',{
+                    method:'PATCH',
+                    headers:{
+                        'Content-Type':'application/json'
+                    },
+                    body:JSON.stringify({
+                        orderId:orderId,
+                        status:status,
+                    })
+                })
+
+                const data=await response.json();
+
+                if(data.success){
+                    console.log('Order updated successfully')
+                    location.reload();
+                }else{
+                    alert('Failed to update order')
+                }
+            } catch (error) {
+                console.error('Error',error);
+                alert('Something went wrong')
+            }
+        }
+    </script>
+<%- include("../partials/admin/footer") %>

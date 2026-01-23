@@ -196,6 +196,60 @@
       cursor: pointer;
     }
 
+    .edit-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  height: 30px;
+  border: 1px solid #ff0000;
+  background: #fff;
+  color: #ff0000;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #f8f8f8;
+  border-color: #ccc;
+  color: #222;
+}
+
+.edit-btn:active {
+  transform: scale(0.97);
+}
+
+
+.add-address-btn-min {
+  margin-top: 12px;
+  padding: 8px 18px;
+  border: 1px dashed #ff0000;
+  background: #fff;
+  color: #ff0000;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 22px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-address-btn-min:hover {
+  background: #fafafa;
+  border-color: #999;
+  color: #222;
+}
+
+.add-address-btn-min:active {
+  transform: scale(0.97);
+}
+
+.swal2-container {
+  z-index: 20000 !important;
+}
+
+
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -245,22 +299,29 @@
               <%= addr.state %> - <%= addr.pincode %><br>
               Phone: <%= addr.phone %>
             </div>
-        
-            <% if (addr.isPrimary || index === 0) { %>
-              <button
-              type="button"
-              class="edit-btn"
-              onclick="openEditAddressModal()"
-            >
-              Edit
-            </button>
-            
-            <% } %>
+
+            <button
+  type="button"
+  class="edit-btn"
+  onclick="openEditAddressModal('<%= addr._id %>')"
+>
+  Edit
+</button>
+
         
           </div>
         <% }) %>
         <% } %>
         
+
+        <button
+  type="button"
+  class="add-address-btn-min"
+  onclick="openAddressModal()"
+>
+  + Add Address
+</button>
+
 
       <h2 style="margin-top:30px;">Payment Method</h2>
       <label class="payment-option">
@@ -293,7 +354,7 @@
         </div>
       </div>
 
-      <button class="place-order-btn">Place Order</button>
+      <button onclick="placeOrder()" class="place-order-btn">Place Order</button>
     </div>
 
   </div>
@@ -343,62 +404,58 @@
 <script>
 
 
-async function openEditAddressModal() {
+async function openEditAddressModal(addressId) {
+  // 1️⃣ Fetch address data
+  const res = await fetch(`/address/${addressId}`);
+  const result = await res.json();
 
-// 1. Find selected radio button
-const selectedRadio = document.querySelector(
-  'input[name="selectedAddress"]:checked'
-);
+  if (!result.success) {
+    Swal.fire("Unable to load address");
+    return;
+  }
 
-if (!selectedRadio) {
-  Swal.fire("Please select an address to edit");
-  return;
-}
+  const addr = result.address;
 
-const addressId = selectedRadio.value;
+  // 2️⃣ Open modal
+  document.getElementById("addressModal").style.display = "flex";
 
-// 2. Fetch address data from backend
-const res = await fetch(`/address/${addressId}`);
-const result = await res.json();
+  // 3️⃣ Store address id
+  document.getElementById("editAddressId").value = addressId;
 
-if (!result.success) {
-  Swal.fire("Unable to load address");
-  return;
-}
-
-const addr = result.address;
-
-// 3. Open modal
-document.getElementById("addressModal").style.display = "flex";
-
-// 4. Store address id
-document.getElementById("editAddressId").value = addressId;
-
-// 5. Prefill form
-const form = document.getElementById("addAddressForm");
-form.fullname.value = addr.fullname;
-form.phone.value = addr.phone;
-form.house.value = addr.house;
-form.place.value = addr.place;
-form.state.value = addr.state;
-form.pincode.value = addr.pincode;
+  // 4️⃣ Prefill form
+  const form = document.getElementById("addAddressForm");
+  form.fullname.value = addr.fullname;
+  form.phone.value = addr.phone;
+  form.house.value = addr.house;
+  form.place.value = addr.place;
+  form.state.value = addr.state;
+  form.pincode.value = addr.pincode;
 }
 
 
 
 function openAddressModal() {
+  document.getElementById("editAddressId").value = "";
   document.getElementById("addressModal").style.display = "flex";
 }
 
 function closeAddressModal() {
   document.getElementById("addressModal").style.display = "none";
+
+  // reset form
   document.getElementById("addAddressForm").reset();
+
+  // reset edit state
+  document.getElementById("editAddressId").value = "";
 }
+
 
 document.getElementById("addAddressForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const form = e.target;
+  const addressId = document.getElementById("editAddressId").value;
+
   const data = {
     fullname: form.fullname.value.trim(),
     phone: form.phone.value.trim(),
@@ -408,8 +465,14 @@ document.getElementById("addAddressForm").addEventListener("submit", async (e) =
     pincode: form.pincode.value.trim()
   };
 
-  const res = await fetch("/address/add", {
-    method: "POST",
+  const url = addressId
+    ? `/address/edit/${addressId}`   // EDIT
+    : "/address/add";                // ADD
+
+  const method = addressId ? "PATCH" : "POST";
+
+  const res = await fetch(url, {
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
@@ -417,13 +480,63 @@ document.getElementById("addAddressForm").addEventListener("submit", async (e) =
   const result = await res.json();
 
   if (result.success) {
-    Swal.fire({ icon: "success", title: "Address Added", timer: 1500, showConfirmButton: false });
+    Swal.fire({
+      icon: "success",
+      title: addressId ? "Address Updated" : "Address Added",
+      timer: 1500,
+      showConfirmButton: false
+    });
+
     closeAddressModal();
     setTimeout(() => location.reload(), 800);
   } else {
     Swal.fire({ icon: "error", title: "Error", text: result.message });
   }
 });
+
+
+document.getElementById("addressModal").addEventListener("click", (e) => {
+  if (e.target.id === "addressModal") {
+    closeAddressModal();
+  }
+});
+
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeAddressModal();
+  }
+});
+
+async function placeOrder(){
+  console.log('place order clicked')
+  const selectedAddress=document.querySelector(
+    'input[name="selectedAddress"]:checked'
+  )
+
+  if(!selectedAddress){
+    Swal.fire("Please select an address");
+    return;
+  }
+
+  const res=await fetch("/order/place",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      addressId:selectedAddress.value
+    })
+  })
+  const data=await res.json();
+
+  if(data.success){
+    window.location.href=`/order-success/${data.orderId}`;
+  }else{
+    Swal.fire("Order failed")
+  }
+}
+
 </script>
 
 </body>

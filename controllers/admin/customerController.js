@@ -64,8 +64,21 @@ const customerUnblocked = async (req, res) => {
     }
 }
 
+const searchUser = async (req, res) => {
+    const query = req.query.query;
+
+    const users = await User.find({
+        name: {
+            $reqex: query, $options: 'i'
+        }
+    })
+    res.json(users);
+}
+
+
 module.exports = {
     customerInfo,
     customerBlocked,
-    customerUnblocked
+    customerUnblocked,
+    searchUser
 }
