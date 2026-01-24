@@ -426,17 +426,21 @@
                 method: "DELETE"
             });
         
-            location.reload(); // refresh page
+            location.reload();
         }
+
 
         async function addToCart(productId) {
     await fetch("/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify({ productId,quantity:1 })
     });
-
+    
     alert("Added to cart 🛒");
+
+    await fetch(`/wishlist/remove/${productId}`,{method:"DELETE"});
+    location.reload();
 }
 
 async function moveAllToCart() {

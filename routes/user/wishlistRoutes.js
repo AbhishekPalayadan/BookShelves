@@ -5,7 +5,8 @@ const wishlistController=require('../../controllers/user/wishlistController');
 
 router.get('/wishlist',userAuth,wishlistController.loadWishlist);
 router.post('/wishlist/toggle',userAuth,wishlistController.toggleWishlist);
-router.delete('wishlist/remove/:id',userAuth,wishlistController.removeWishlist);
+router.delete('/wishlist/remove/:id',userAuth,wishlistController.removeWishlist);
+router.post('/wishlist/move-all',userAuth,wishlistController.moveAllToCart);
 
 
 module.exports=router;

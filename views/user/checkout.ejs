@@ -508,34 +508,40 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-async function placeOrder(){
-  console.log('place order clicked')
-  const selectedAddress=document.querySelector(
+async function placeOrder() {
+  const selectedAddress = document.querySelector(
     'input[name="selectedAddress"]:checked'
-  )
+  );
 
-  if(!selectedAddress){
+  if (!selectedAddress) {
     Swal.fire("Please select an address");
     return;
   }
 
-  const res=await fetch("/order/place",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
+  const res = await fetch("/order/place", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     },
-    body:JSON.stringify({
-      addressId:selectedAddress.value
+    body: JSON.stringify({
+      addressId: selectedAddress.value
     })
-  })
-  const data=await res.json();
+  });
 
-  if(data.success){
-    window.location.href=`/order-success/${data.orderId}`;
-  }else{
-    Swal.fire("Order failed")
+  const data = await res.json();
+  console.log("Order response:", data);
+
+  if (res.ok && data.success) {
+    window.location.href = `/order-success/${data.orderId}`;
+  } else {
+    Swal.fire({
+      icon: "error",
+      title: "Order failed",
+      text: data.message || "Something went wrong"
+    });
   }
 }
+
 
 </script>
 

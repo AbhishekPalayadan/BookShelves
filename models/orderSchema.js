@@ -20,13 +20,24 @@ const orderSchema = new mongoose.Schema({
       },
       quantity: Number,
       price: Number,
-      status:{
-        type:String,
-        enum:["pending","cancelled","returned"],
-        default:"pending"
-      }
+      status: {
+        type: String,
+        enum: [
+          "pending",
+          "delivered",
+          "cancelled",
+          "return_requested",
+          "returned",
+          "return_rejected"
+        ],
+        default: "pending"
+      },
+      returnRequestedAt: Date,
+      returnProcessedAt: Date,
+      returnReason: String,
+      returnedAt: Date
     }
-  ],
+  ],  
 
   address: {
     fullname: String,

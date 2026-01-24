@@ -1,3 +1,4 @@
+const mongoose=require('mongoose')
 const Order=require('../../models/orderSchema')
 const Cart=require('../../models/cartSchema')
 const Address=require('../../models/addressSchema')
@@ -7,40 +8,69 @@ const placeOrder = async (req, res) => {
     try {
       const userId = req.user._id;
       const { addressId } = req.body;
-      // 1️⃣ Get cart
-      const cart = await Cart.findOne({ userId }).populate("items.productId");
+  
+      /* 1️⃣ GET CART + POPULATE PRODUCT & CATEGORY */
+      const cart = await Cart.findOne({ userId }).populate({
+        path: "items.productId",
+        populate: {
+          path: "category_id",
+          select: "isListed"
+        }
+      });
+  
       if (!cart || cart.items.length === 0) {
         return res.status(400).json({ message: "Cart is empty" });
       }
   
-      // 2️⃣ Validate stock
+      /* 2️⃣ VALIDATE PRODUCTS & STOCK */
       for (let item of cart.items) {
-        if (item.quantity > item.productId.stock) {
+        const product = item.productId;
+  
+        // product deleted or missing
+        if (!product) {
           return res.status(400).json({
-            message: `${item.productId.product_name} is out of stock`
+            message: "One of the products is no longer available"
+          });
+        }
+  
+        // product or category blocked
+        if (
+          product.isDeleted ||
+          product.status !== "available" ||
+          !product.category_id?.isListed
+        ) {
+          return res.status(400).json({
+            message: `${product.product_name} is no longer available`
+          });
+        }
+  
+        // stock check
+        if (item.quantity > product.stock) {
+          return res.status(400).json({
+            message: `${product.product_name} is out of stock`
           });
         }
       }
-      const addressObjectId=new mongoose.Types.ObjectId(addressId)
-      // 3️⃣ Get address from Address collection ✅
+  
+      /* 3️⃣ VALIDATE ADDRESS */
       const address = await Address.findOne({
-        _id: addressObjectId,
+        _id: new mongoose.Types.ObjectId(addressId),
         userId
       });
-  
   
       if (!address) {
         return res.status(400).json({ message: "Address not found" });
       }
   
-      // 4️⃣ Create order
+      /* 4️⃣ CREATE ORDER */
       const order = new Order({
         orderId: generateOrderId(),
         userId,
         items: cart.items.map(item => ({
           productId: item.productId._id,
           quantity: item.quantity,
-          price: item.productId.sale_price
+          price: item.productId.sale_price,
+          status: "pending"
         })),
         address,
         totalAmount: cart.items.reduce(
@@ -50,35 +80,38 @@ const placeOrder = async (req, res) => {
         paymentMethod: "COD",
         status: "pending"
       });
+  
       await order.save();
   
-      // 5️⃣ Reduce stock
+      /* 5️⃣ REDUCE STOCK */
       for (let item of cart.items) {
         await Product.findByIdAndUpdate(item.productId._id, {
           $inc: { stock: -item.quantity }
         });
       }
   
-      // 6️⃣ Clear cart
+      /* 6️⃣ CLEAR CART */
       await Cart.findOneAndDelete({ userId });
   
-      res.json({
+      /* 7️⃣ RESPONSE */
+      return res.status(200).json({
         success: true,
         orderId: order.orderId
       });
-      console.log('its end')
   
     } catch (error) {
       console.log("Place order error:", error);
-      res.status(500).json({ message: "Order failed" });
+      return res.status(500).json({
+        message: "Order failed"
+      });
     }
   };
-
+  
 
 
   const orderSuccess=async(req,res)=>{
     const order=await Order.findOne({
-      orderId:req.params.orderId,
+      orderId:req.params.id,
       userId:req.user._id
     })
   
@@ -146,42 +179,96 @@ const placeOrder = async (req, res) => {
   }
 
 
+  function generateOrderId() {
+    const timestamp = Date.now().toString().slice(-6);
+    return `ORD-${timestamp}`;
+  }
+  
 
-  const cancelOrderItem=async (req,res)=>{
+  const cancelOrderItem = async (req, res) => {
     try {
-      const {orderId,productId}=req.body;
+      const { orderId, productId } = req.body;
   
-      const order=await Order.findOne({
-        _id:orderId,
-        "items.productId":productId
-      })
+      const order = await Order.findOne({
+        _id: orderId,
+        userId: req.user._id,
+        "items.productId": productId
+      });
   
-      if(!order){
-        return res.json({success:false,message:"Order not found"})
+      if (!order) {
+        return res.json({ success: false, message: "Order not found" });
       }
   
-      const item=order.items.find(
-        i=>i.productId.toString() === productId
-      )
+      const item = order.items.find(
+        i => i.productId.toString() === productId
+      );
   
-      if(!item){
-        return res.json({success:false,message:"Item not found"});
+      if (!item) {
+        return res.json({ success: false, message: "Item not found" });
       }
   
-      if(item.status=== "cancelled"){
-        return res.json({success:false,message:"Item already cancelled"});
+      if (item.status === "pending") {
+        return res.json({ success: false, message: "Item cannot be cancelled now" });
       }
   
-      item.status="cancelled";
+      // cancel item
+      item.status = "cancelled";
+      await order.save();
+  
+      // restore stock
+      await Product.findByIdAndUpdate(productId, {
+        $inc: { stock: item.quantity }
+      });
+  
+      res.json({ success: true });
+  
+    } catch (error) {
+      console.log(error);
+      res.json({ success: false, message: "Server error" });
+    }
+  };
+  
+
+// controllers/user/orderController.js
+const requestReturn = async (req, res) => {
+    try {
+      const { orderId, productId, reason } = req.body;
+  
+      if (!reason) {
+        return res.json({ success: false, message: "Reason required" });
+      }
+  
+      const order = await Order.findOne({
+        _id: orderId,
+        userId: req.user._id,
+        "items.productId": productId
+      });
+  
+      if (!order) {
+        return res.json({ success: false, message: "Order not found" });
+      }
+  
+      const item = order.items.find(
+        i => i.productId.toString() === productId
+      );
+  
+      if (item.status !== "delivered") {
+        return res.json({ success: false, message: "Return not allowed" });
+      }
+  
+      item.status = "return_requested";
+      item.returnReason = reason;
+      item.returnRequestedAt = new Date();
   
       await order.save();
   
-      res.json({success:true})
-    } catch (error) {
-      console.log(error);
-      res.json({success:false,message:"Server error"})
+      res.json({ success: true });
+    } catch (err) {
+      console.log(err);
+      res.json({ success: false, message: "Server error" });
     }
-  }
+  };
+  
 
 
 
@@ -190,5 +277,6 @@ const placeOrder = async (req, res) => {
     orderSuccess,
     loadOrders,
     loadOrderDetails,
-    cancelOrderItem
+    cancelOrderItem,
+    requestReturn
   }
