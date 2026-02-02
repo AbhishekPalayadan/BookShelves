@@ -5,7 +5,9 @@ const {adminAuth}=require('../../middlewares/auth')
 
 router.get('/users',adminAuth,customerController.customerInfo);
 
-router.get('/blockCustomer',adminAuth,customerController.customerBlocked);
+router.get('/blockCustomer', adminAuth, customerController.customerBlocked);
+
+router.get('/unblockCustomer', adminAuth, customerController.customerUnblocked);
 
 router.get('/search/user',adminAuth,customerController.searchUser)
 

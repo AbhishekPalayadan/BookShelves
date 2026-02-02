@@ -3,11 +3,13 @@ const Order=require('../../models/orderSchema')
 const Cart=require('../../models/cartSchema')
 const Address=require('../../models/addressSchema')
 const Product=require('../../models/productSchema');
+const pdf = require("html-pdf-node");
 
 const placeOrder = async (req, res) => {
     try {
       const userId = req.user._id;
       const { addressId } = req.body;
+      console.log("PLACE ORDER userId:", userId);
   
       /* 1️⃣ GET CART + POPULATE PRODUCT & CATEGORY */
       const cart = await Cart.findOne({ userId }).populate({
@@ -89,15 +91,18 @@ const placeOrder = async (req, res) => {
           $inc: { stock: -item.quantity }
         });
       }
-  
+      console.log("CART BEFORE DELETE:", cart);
+
       /* 6️⃣ CLEAR CART */
       await Cart.findOneAndDelete({ userId });
-  
-      /* 7️⃣ RESPONSE */
+      console.log("CART DELETED");
+
       return res.status(200).json({
         success: true,
         orderId: order.orderId
       });
+      
+
   
     } catch (error) {
       console.log("Place order error:", error);
@@ -111,7 +116,7 @@ const placeOrder = async (req, res) => {
 
   const orderSuccess=async(req,res)=>{
     const order=await Order.findOne({
-      orderId:req.params.id,
+      orderId: req.params.orderId,
       userId:req.user._id
     })
   
@@ -207,9 +212,13 @@ const placeOrder = async (req, res) => {
         return res.json({ success: false, message: "Item not found" });
       }
   
-      if (item.status === "pending") {
-        return res.json({ success: false, message: "Item cannot be cancelled now" });
+      if (item.status !== "pending") {
+        return res.json({
+          success: false,
+          message: "Item cannot be cancelled now"
+        });
       }
+      
   
       // cancel item
       item.status = "cancelled";
@@ -270,6 +279,73 @@ const requestReturn = async (req, res) => {
   };
   
 
+  const downloadInvoice = async (req, res) => {
+    try {
+      console.log("INVOICE ROUTE HIT:", req.params.orderId);
+      const order = await Order.findOne({
+        orderId: req.params.orderId,
+        userId: req.user._id
+      }).populate("items.productId").lean();
+  
+      if (!order) return res.redirect("/orders");
+  
+      const html = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial; padding: 30px; }
+              h2 { color: #ff4757; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 10px; }
+              th { background: #f5f5f5; }
+            </style>
+          </head>
+          <body>
+            <h2>Bookshelves Invoice</h2>
+            <p><strong>Order ID:</strong> ${order.orderId}</p>
+            <p><strong>Date:</strong> ${new Date(order.createdAt).toDateString()}</p>
+            <p><strong>Name:</strong> ${order.address.fullname}</p>
+  
+            <table>
+              <tr>
+                <th>Book</th>
+                <th>Qty</th>
+                <th>Price</th>
+              </tr>
+  
+              ${order.items.map(item => `
+                <tr>
+                  <td>${item.productId.product_name}</td>
+                  <td>${item.quantity}</td>
+                  <td>₹${item.price}</td>
+                </tr>
+              `).join("")}
+  
+            </table>
+  
+            <h3>Total: ₹${order.totalAmount}</h3>
+          </body>
+        </html>
+      `;
+  
+      // 2️⃣ Create PDF
+      const file = { content: html };
+      const pdfBuffer = await pdf.generatePdf(file, { format: "A4" });
+  
+      // 3️⃣ Download PDF
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=Invoice-${order.orderId}.pdf`
+      );
+  
+      res.send(pdfBuffer);
+  
+    } catch (error) {
+      console.log(error);
+      res.redirect("/orders");
+    }
+  };
 
 
   module.exports={
@@ -278,5 +354,6 @@ const requestReturn = async (req, res) => {
     loadOrders,
     loadOrderDetails,
     cancelOrderItem,
-    requestReturn
+    requestReturn,
+    downloadInvoice
   }

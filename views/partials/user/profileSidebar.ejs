@@ -1,4 +1,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/cropperjs/dist/cropper.css"
+/>
+<link rel="stylesheet" href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css">
+<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+
+
+
 <style>
             /* Sidebar */
             .profile-sidebar {
@@ -135,86 +145,154 @@
 <aside class="profile-sidebar">
     <div class="profile-avatar">
         <div class="avatar-circle avatar-wrapper">
-
-            <form action="/profile/photo" method="POST" enctype="multipart/form-data">
-                
-                <% if (user.profileImage) { %>
-                    <img 
-                        src="<%= user.profileImage %>" 
-                        alt="Profile Avatar"
-                        class="avatar-img"
-                    >
-                <% } else { %>
-                    <span class="avatar-initial2">
-                        <%= user.fullname.charAt(0).toUpperCase() %>
-                    </span>
-                <% } %>
-        
-                <!-- Hidden file input -->
-                <input 
-                    type="file" 
-                    name="image" 
-                    id="profileImageInput" 
-                    accept="image/*" 
-                    hidden
-                    onchange="this.form.submit()"
-                >
-        
-                <!-- Edit icon -->
-                <label for="profileImageInput" class="edit-icon">
-                    ✏️
-                </label>
-        
-            </form>
-        
-        </div>
-        
+            <% if (user.profileImage) { %>
+              <img src="<%= user.profileImage %>" class="avatar-img" id="profileAvatar">
+            <% } else { %>
+              <span class="avatar-initial2"><%= user.fullname[0] %></span>
+            <% } %>
+          
+            <!-- <input type="file" id="profileInput" accept="image/*" hidden>
+            <label for="profileInput" class="edit-icon">✏️</label> -->
+          </div>
     
 
     <ul class="profile-menu">
         <li><a href="/userProfile" class="<%= activeMenu === 'profile' ? 'active' : '' %>">My Profile</a></li>
         <li><a href="/address" class="<%= activeMenu === 'address' ? 'active' : '' %>">Address Book</a></li>
-        <li><a href="/orders" class="<%= activeMenu === 'orders' ? 'active' : '' %>">My Orders</a></li>
-        <li><a href="/wishlist" class="<%= activeMenu === 'wishlist' ? 'active' : '' %>">My Wishlist</a></li>
+        <li><a href="/orders" class="<%= activeMenu === 'orders' ? 'active' : '' %>">Orders</a></li>
+        <li><a href="/wishlist" class="<%= activeMenu === 'wishlist' ? 'active' : '' %>">Wishlist</a></li>
         <li><a href="/wallet" class="<%= activeMenu === 'wallet' ? 'active' : '' %>">Wallet</a></li>
         <li><a href="coupons" class="<%= activeMenu === 'coupons' ? 'active' : '' %>">Coupons</a></li>
+        <li><a href="#" id="logoutBtn" class="logout-btn" style="            margin-top: auto;
+            text-align: center;
+            padding: 12px;
+            border: none;
+            background: #ff4757;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;">Logout</a></li>
     </ul>
-
-    <a href="/logout" id="logoutBtn" class="logout-btn">Logout</a>
 </aside>
 
+<div id="cropModal" style="display:none; position:fixed; inset:0;
+background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:20px; border-radius:10px; width:320px;">
+    <h3>Crop Profile Image</h3>
+
+    <div style="width:260px;height:260px;margin:auto;">
+      <img id="cropImage" style="max-width:100%;">
+    </div>
+
+    <button id="saveCrop"
+      style="margin-top:15px;width:100%;padding:10px;background:#ff4757;
+      color:#fff;border:none;border-radius:6px;">
+      Save
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded',()=>{
-        const logoutBtn=document.getElementById('logoutBtn');
-        if(!logoutBtn)return;
+document.getElementById("logoutBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
 
-        logoutBtn.addEventListener('click',async (e)=>{
-            e.preventDefault();
+  const result = await Swal.fire({
+    title: "Logout?",
+    text: "You will be logged out from your account",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#aaa",
+    confirmButtonText: "Yes, logout",
+    cancelButtonText: "Cancel"
+  });
 
-            const result=await Swal.fire({
-                title:"Are you sure?",
-                text:"You will be logged out from your account.",
-                icon:"warning",
-                showCancelButton:true,
-                confirmButtonColor:'#e53935',
-                cancelButtonColor:'#6c757d',
-                confirmButtonText:'Yes,logout',
-                cancelButtonText:'Cancel',
-                reverseButtons:true
-            })
-                if(result.isConfirmed){
-                    try {
-                        const res=await fetch('/logout',{method:"POST"});
-                        
-                        if(res.ok){
-                            window.location.href='/login'
-                        }else{
-                            Swal.fire('Error','Logout Failed.Try again','error')
-                        }
-                    } catch (error) {
-                        Swal.fire('Error','Network error.Try again','error')
-                    }
-                }
-            })
-        })
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await fetch("/logout", {
+      method: "POST"
+    });
+
+    if (res.redirected) {
+      Swal.fire({
+        icon: "success",
+        title: "Logged out",
+        text: "You have been logged out successfully",
+        timer: 1200,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = res.url;
+      });
+    }
+  } catch (err) {
+    Swal.fire("Error", "Logout failed", "error");
+  }
+});
 </script>
+
+
+
+ <!-- <script> 
+  
+
+    // let cropper;
+    // const input = document.getElementById("profileInput");
+    // const modal = document.getElementById("cropModal");
+    // const cropImage = document.getElementById("cropImage");
+    // const saveBtn = document.getElementById("saveCrop");
+    
+    // input.addEventListener("change", e => {
+    //   const file = e.target.files[0];
+    //   if (!file) return;
+    
+    //   const reader = new FileReader();
+    //   reader.onload = () => {
+    //     cropImage.src = reader.result;
+    //     modal.style.display = "flex";
+    
+    //     if (cropper) cropper.destroy();
+    
+    //     cropper = new Cropper(cropImage, {
+    //       aspectRatio: 1,
+    //       viewMode: 1,
+    //       autoCropArea: 1,
+    //       movable: true,
+    //       zoomable: true,
+    //     });
+    //   };
+    //   reader.readAsDataURL(file);
+    // });
+    
+    // saveBtn.addEventListener("click", () => {
+    //   if (!cropper) return;
+    
+    //   cropper.getCroppedCanvas({
+    //     width: 300,
+    //     height: 300,
+    //     imageSmoothingQuality: "high"
+    //   }).toBlob(async blob => {
+    
+    //     const formData = new FormData();
+    //     formData.append("image", blob);
+    
+    //     const res = await fetch("/profile/photo", {
+    //       method: "POST",
+    //       body: formData
+    //     });
+    
+    //     if (res.ok) {
+    //       location.reload();
+    //     } else {
+    //       alert("Upload failed");
+    //     }
+    //   });
+    
+    //   cropper.destroy();
+    //   modal.style.display = "none";
+    // }); 
+   </script> -->
+    

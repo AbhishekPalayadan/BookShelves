@@ -21,6 +21,16 @@ const loadOrders = async (req, res) => {
 };
 
 
+const STATUS_FLOW = {
+  pending: ["shipped", "cancelled"],
+  shipped: ["out_for_delivery"],
+  out_for_delivery: ["delivered"],
+  delivered: [],
+  cancelled: [],
+  returned: [],
+  return_rejected: []
+};
+
 
 const updateOrderItemStatus = async (req, res) => {
   try {
@@ -39,8 +49,18 @@ const updateOrderItemStatus = async (req, res) => {
       return res.json({ success: false, message: "Item not found" });
     }
 
+    // Prevent admin from changing return workflow manually
+    if (item.status === "return_requested") {
+      return res.json({
+        success: false,
+        message: "Use return approval actions"
+      });
+    }
+
     const allowedStatuses = [
       "pending",
+      "shipped",
+      "out_for_delivery",
       "delivered",
       "cancelled",
       "returned",
@@ -51,22 +71,35 @@ const updateOrderItemStatus = async (req, res) => {
       return res.json({ success: false, message: "Invalid status" });
     }
 
-    if (item.status === "return_requested") {
+    // 🔐 FLOW VALIDATION
+    const nextAllowed = STATUS_FLOW[item.status] || [];
+    if (!nextAllowed.includes(status)) {
       return res.json({
         success: false,
-        message: "Use return approval actions"
+        message: `Cannot change status from ${item.status} to ${status}`
       });
     }
 
+    // ✅ Update status
     item.status = status;
+
+    // 📦 If cancelled → restock product
+    if (status === "cancelled") {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity }
+      });
+    }
+
     await order.save();
 
-    res.json({ success: true });
+    res.json({ success: true, message: "Status updated successfully" });
+
   } catch (err) {
     console.log(err);
     res.json({ success: false, message: "Update failed" });
   }
 };
+
 
 
 
@@ -89,7 +122,6 @@ const viewOrderDetails = async (req, res) => {
     res.redirect("/admin/orders");
   }
 };
-
 
 
 

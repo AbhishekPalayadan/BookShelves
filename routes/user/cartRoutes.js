@@ -7,6 +7,7 @@ const cartController=require('../../controllers/user/cartController')
 router.get('/cart',userAuth,cartController.loadCart);
 router.post('/cart/add',userAuth,cartController.addToCart);
 router.delete('/cart/remove/:itemId',userAuth,cartController.removeFromCart)
+router.patch("/cart/update", userAuth, cartController.updateQuantity);
 
 router.get('/checkout',userAuth,cartController.loadCheckout);
 

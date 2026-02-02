@@ -32,16 +32,32 @@ const editProfile = async (req, res) => {
 };
 
 
-const updatePhoto=async(req,res)=>{
-    try {
-      await User.findByIdAndUpdate(req.user._id,{
-        profileImage:"/uploads/tmp/"+req.file.filename
+const updatePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No image received"
       });
-      res.redirect("/userProfile")
-    } catch (error) {
-      console.log(error)
     }
+
+    const imagePath = `/uploads/profile-images/${req.file.filename}`;
+
+    await User.findByIdAndUpdate(req.user._id, {
+      profileImage: imagePath
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log("Profile upload error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Upload failed"
+    });
   }
+};
+
 
 
   const loadChangePassword=(req,res)=>{

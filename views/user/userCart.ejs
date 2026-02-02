@@ -233,6 +233,27 @@
                 margin-top: 15px;
             }
         }
+
+        .qty-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.qty-btn:hover {
+  background: #f2f2f2;
+}
+
     </style>
 </head>
 <body>
@@ -278,8 +299,24 @@
 
                             <div class="quantity-selector">
                                 <label>Quantity:</label>
-                                <input type="number" value="<%= item.quantity %>" min="1">
-                            </div>
+                              
+                                <div class="qty-box"
+                                     data-stock="<%= item.productId.stock %>"
+                                     data-product="<%= item.productId._id %>">
+                              
+                                  <button class="qty-btn"
+                                          onclick="changeCartQty(this, -1)">−</button>
+                              
+                                  <input type="number"
+                                         value="<%= item.quantity %>"
+                                         min="1"
+                                         readonly>
+                              
+                                  <button class="qty-btn"
+                                          onclick="changeCartQty(this, 1)">+</button>
+                                </div>
+                              </div>
+                              
                         </div>
 
                         <div class="cart-item-price">
@@ -371,6 +408,79 @@
 function goToCheckout(){
     window.location.href="/checkout";
 }
+
+
+let activeToast = null;
+
+function showToast(message, type = "error") {
+  if (activeToast) activeToast.hideToast();
+
+  activeToast = Toastify({
+    text: message,
+    duration: 2000,
+    gravity: "top",
+    position: "center",
+    style: {
+      background: type === "success" ? "#2ecc71" : "#ff4757",
+      borderRadius: "10px",
+      fontWeight: "600"
+    }
+  });
+
+  activeToast.showToast();
+}
+
+
+const MAX_PER_PRODUCT = 10;
+
+async function changeCartQty(btn, change) {
+  const qtyBox = btn.closest(".qty-box");
+  const input = qtyBox.querySelector("input");
+
+  const productId = qtyBox.dataset.product;
+  const stock = parseInt(qtyBox.dataset.stock);
+  let qty = parseInt(input.value);
+
+  // ➖ decrease
+  if (change === -1 && qty === 1) return;
+
+  // ➕ max limit
+  if (change === 1 && qty >= MAX_PER_PRODUCT) {
+    showToast(`Maximum ${MAX_PER_PRODUCT} items allowed`);
+    return;
+  }
+
+  // ➕ stock limit
+  if (change === 1 && qty >= stock) {
+    showToast(`Only ${stock} items available`);
+    return;
+  }
+
+  try {
+    const res = await fetch("/cart/update", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId,
+        change
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.message || "Unable to update quantity");
+      return;
+    }
+
+    // reload to update price & totals
+    location.reload();
+
+  } catch (err) {
+    showToast("Server error");
+  }
+}
+
 </script>
 </body>
 </html>

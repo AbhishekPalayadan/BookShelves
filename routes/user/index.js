@@ -10,5 +10,7 @@ router.use('/', require('./cartRoutes'));
 router.use('/', require('./wishlistRoutes'));
 router.use('/', require('./orderRoutes'));
 router.use('/', require('./staticRoutes'));
+router.use('/',require('./walletRoutes'));
+router.use('/',require('./couponsRoutes'));
 
 module.exports = router;

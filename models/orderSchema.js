@@ -24,6 +24,8 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: [
           "pending",
+          "shipped",
+          "out_for_delivery",
           "delivered",
           "cancelled",
           "return_requested",

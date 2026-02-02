@@ -12,4 +12,11 @@ router.patch('/orders/cancel-item',userAuth,orderController.cancelOrderItem);
 
 router.patch("/orders/return-item",userAuth,orderController.requestReturn);
 
+router.get(
+    "/orders/:orderId/invoice",
+    userAuth,
+    orderController.downloadInvoice
+  );
+  
+
 module.exports=router;

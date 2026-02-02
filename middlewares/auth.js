@@ -1,24 +1,28 @@
-const User = require('../models/userSchema')
+const User = require('../models/userSchema');
 
+const userAuth = async (req, res, next) => {
+  try {
+    if (!req.session || !req.session.passport || !req.session.passport.user) {
+      return res.redirect('/login');
+    }
 
+    const user = await User.findById(req.session.passport.user);
 
-const userAuth = (req, res, next) => {
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    return next();
+    if (!user || user.isBlocked) {
+      req.session.destroy(() => {
+        return res.redirect('/login?error=blocked');
+      });
+      return;
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.log('userAuth error:', error);
+    return res.redirect('/login');
   }
-  
-  if (
-    req.method !== 'GET' ||
-    req.headers.accept?.includes('application/json')
-  ) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized"
-    });
-  }
-
-  return res.redirect('/login');
 };
+
 
 module.exports = { userAuth };
 
@@ -43,7 +47,7 @@ const adminAuth = async (req, res, next) => {
     }
     next();
   } catch (error) {
-    console.log('Error in adminAuth:', err);
+    console.log('Error in adminAuth:', error);
     return res.status(500).send("Internal server error")
   }
 }

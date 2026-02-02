@@ -35,6 +35,11 @@ passport.use(
           }
         }
 
+        // 🚫 BLOCK CHECK (THIS WAS MISSING)
+        if (user.isBlocked) {
+          return done(null, false, { message: 'blocked' });
+        }
+
         return done(null, user);
       } catch (error) {
         return done(error, null);
@@ -44,29 +49,29 @@ passport.use(
 );
 
 
-
-
 //local strategy
-
 passport.use(
   new LocalStrategy(
-    { usernameField: 'email' }, 
+    { usernameField: 'email' },
     async (email, password, done) => {
       try {
         const user = await User.findOne({ email, isAdmin: false });
 
         if (!user) {
-          return done(null, false);
+          return done(null, false, { message: 'invalid' });
         }
 
         if (user.isBlocked) {
-          return done(null, false);
+          return done(null, false, { message: 'blocked' });
+        }
+
+        if (user.googleId && !user.password) {
+          return done(null, false, { message: 'google' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-
         if (!isMatch) {
-          return done(null, false);
+          return done(null, false, { message: 'invalid' });
         }
 
         return done(null, user);
@@ -76,7 +81,6 @@ passport.use(
     }
   )
 );
-
 
 
 // session handling

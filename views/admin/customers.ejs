@@ -134,5 +134,18 @@
             input.value = "";         
             input.form.submit();       
         }
+
+
+        function blockUser(userId, page) {
+    if (confirm("Are you sure you want to block this user?")) {
+      window.location.href = `/admin/blockCustomer?id=${userId}&page=${page}`;
+    }
+  }
+
+  function unblockUser(userId, page) {
+    if (confirm("Are you sure you want to unblock this user?")) {
+      window.location.href = `/admin/unblockCustomer?id=${userId}&page=${page}`;
+    }
+  }
         </script>
     <%- include("../partials/admin/footer") %>

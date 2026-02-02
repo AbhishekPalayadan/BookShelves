@@ -5,9 +5,7 @@
   <title>My Orders | Bookshelves</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 🔒 STYLE UNCHANGED -->
   <style>
-    /* ===== YOUR ORIGINAL STYLE – NOT MODIFIED ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter','Segoe UI',sans-serif; background:#f5f6f8; color:#1f2937; }
 
@@ -206,11 +204,22 @@
 </div>
 
 <%- include("../../views/partials/user/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 async function cancelItem(orderId, productId, btn){
 
-if(!confirm("Cancel this item?")) return;
+const confirmResult = await Swal.fire({
+  title: "Cancel this item?",
+  text: "This action cannot be undone",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#e74c3c",
+  cancelButtonColor: "#6b7280",
+  confirmButtonText: "Yes, cancel it"
+});
+
+if (!confirmResult.isConfirmed) return;
 
 try {
   const res = await fetch('/orders/cancel-item', {
@@ -222,11 +231,23 @@ try {
   const data = await res.json();
 
   if(!data.success){
-    alert(data.message || 'Cancel failed');
+    Swal.fire({
+      icon: "error",
+      title: "Cancel Failed",
+      text: data.message || "Unable to cancel item"
+    });
     return;
   }
 
-  // update UI
+  Swal.fire({
+    icon: "success",
+    title: "Cancelled",
+    text: "Your item has been cancelled",
+    timer: 1500,
+    showConfirmButton: false
+  });
+
+  // Update UI
   const itemCard = btn.closest('.order-item');
   const statusEl = itemCard.querySelector('.status');
 
@@ -237,43 +258,57 @@ try {
 
 } catch (error) {
   console.log(error);
-  alert('Something went wrong');
+  Swal.fire("Error", "Something went wrong", "error");
 }
 }
 
 
-  async function requestReturn(orderId, productId){
-    const reason = prompt("Please enter return reason (required)");
-  
-    if(!reason || reason.trim().length < 3){
-      alert("Return reason is required");
-      return;
-    }
-  
-    try {
-      const res = await fetch("/orders/return-item", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          productId,
-          reason
-        })
-      });
-  
-      const data = await res.json();
-  
-      if(data.success){
-        location.reload();
-      } else {
-        alert(data.message || "Return failed");
-      }
-  
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
+
+async function requestReturn(orderId, productId){
+
+const { value: reason } = await Swal.fire({
+  title: "Return Item",
+  input: "textarea",
+  inputLabel: "Reason for return",
+  inputPlaceholder: "Enter your reason...",
+  showCancelButton: true,
+  inputValidator: (value) => {
+    if (!value || value.trim().length < 3) {
+      return "Return reason is required";
     }
   }
+});
+
+if (!reason) return;
+
+try {
+  const res = await fetch("/orders/return-item", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, productId, reason })
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    Swal.fire({
+      icon: "success",
+      title: "Return Requested",
+      text: "Your return request has been submitted",
+      timer: 1500,
+      showConfirmButton: false
+    });
+
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    Swal.fire("Error", data.message || "Return failed", "error");
+  }
+
+} catch (err) {
+  Swal.fire("Error", "Something went wrong", "error");
+}
+}
+
   </script>
   
 </body>

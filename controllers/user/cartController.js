@@ -159,10 +159,34 @@ const loadCheckout = async (req, res) => {
 }
 
 
+const updateQuantity = async (req, res) => {
+    const { productId, change } = req.body;
+    const userId = req.user._id;
+  
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
+  
+    const item = cart.items.find(
+      i => i.productId.toString() === productId
+    );
+  
+    if (!item) return res.status(404).json({ message: "Item not found" });
+  
+    item.quantity += change;
+  
+    if (item.quantity < 1) {
+      return res.status(400).json({ message: "Minimum quantity is 1" });
+    }
+  
+    await cart.save();
+    res.json({ success: true });
+  };
+  
 
 module.exports = {
     loadCart,
     addToCart,
     removeFromCart,
-    loadCheckout
+    loadCheckout,
+    updateQuantity
 }

@@ -446,6 +446,84 @@
                 align-items: flex-start;
             }
         }
+
+        /* ===== PROFESSIONAL TRACK STEPS ===== */
+
+.track-steps-pro {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.track-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  position: relative;
+}
+
+.track-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 36px;
+  width: 2px;
+  height: calc(100% - 36px);
+  background: #ddd;
+}
+
+.track-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.track-content h4 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.track-content p {
+  font-size: 12px;
+  color: #666;
+}
+
+/* COMPLETED STEP */
+.track-step.active .track-icon {
+  background: #27ae60;
+  color: #fff;
+}
+
+.track-step.active::after {
+  background: #27ae60;
+}
+
+/* UPCOMING STEP */
+.track-step.pending .track-icon {
+  background: #e0e0e0;
+  color: #888;
+}
+
+.track-footer {
+  margin-top: 15px;
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+}
+
+.status-pending { color:#f39c12; }
+.status-shipped { color:#3498db; }
+.status-out_for_delivery { color:#9b59b6; }
+.status-delivered { color:#27ae60; }
+.status-cancelled { color:#e74c3c; }
+
+
     </style>
 </head>
 
@@ -474,7 +552,7 @@
         | Order# <strong><%= order.orderId %></strong>
       </div>
   
-      <a href="/orders/<%= order._id %>/invoice" class="invoice-link">
+      <a href="/orders/<%= order.orderId %>/invoice" class="invoice-link">
         Invoice
       </a>
     </div>
@@ -524,12 +602,13 @@
 
           <div class="item-actions">
 
-            <div class="status">
-              Status : <%= item.status.replace("_"," ").toUpperCase() %>
+            <div class="status status-<%= item.status %>">
+              Status : <%= item.status.replaceAll("_"," ").toUpperCase() %>
             </div>
+            
           
             <!-- TRACK STATUS (logic only) -->
-            <% if(["pending","delivered"].includes(item.status)){ %>
+            <% if(item.status !== "cancelled"){ %>
               <button class="action-btn track-btn"
                 onclick="trackOrder('<%= item.status %>')">
                 Track Order
@@ -577,75 +656,200 @@
   </div>
   
   <!-- TRACK MODAL -->
-  <div id="trackModal" class="track-modal">
-    <div class="track-modal-content">
-      <div class="track-header">
-        <h3>Track Your Order</h3>
-        <span class="close-btn" onclick="closeTrackModal()">×</span>
-      </div>
-      <ul id="trackSteps" class="track-steps"></ul>
+<!-- TRACK MODAL -->
+<div id="trackModal" class="track-modal">
+  <div class="track-modal-content">
+
+    <div class="track-header">
+      <h3>📦 Track Your Order</h3>
+      <span class="close-btn" onclick="closeTrackModal()">×</span>
     </div>
+
+    <ul id="trackSteps" class="track-steps-pro"></ul>
+
+    <div class="track-footer">
+      <small>For delivery issues, contact support.</small>
+    </div>
+
   </div>
+</div>
+
   
   <%- include("../../views/partials/user/footer") %>
-  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-  async function cancelItem(btn, orderId, productId) {
-    if (!confirm("Cancel this item?")) return;
-  
-    const res = await fetch("/orders/cancel-item", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId, productId })
+async function cancelItem(btn, orderId, productId) {
+
+const result = await Swal.fire({
+  title: "Cancel this item?",
+  text: "This action cannot be undone",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#e74c3c",
+  cancelButtonColor: "#aaa",
+  confirmButtonText: "Yes, cancel it",
+  cancelButtonText: "No"
+});
+
+// User clicked "No"
+if (!result.isConfirmed) return;
+
+try {
+  const res = await fetch("/orders/cancel-item", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, productId })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    await Swal.fire({
+      icon: "success",
+      title: "Cancelled",
+      text: "Item has been cancelled successfully",
+      timer: 1500,
+      showConfirmButton: false
     });
-  
-    const data = await res.json();
-    if (data.success) location.reload();
-    else alert(data.message);
+    location.reload();
+  } else {
+    Swal.fire("Error", data.message, "error");
   }
+
+} catch (err) {
+  Swal.fire("Error", "Server error", "error");
+}
+}
+
   
-  async function returnItem(orderId, productId) {
-    const reason = prompt("Reason for return (required)");
-    if (!reason) return;
-  
-    const res = await fetch("/orders/return-item", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId, productId, reason })
+async function returnItem(orderId, productId) {
+
+const { value: reason } = await Swal.fire({
+  title: "Return Item",
+  input: "textarea",
+  inputLabel: "Reason for return",
+  inputPlaceholder: "Enter your reason...",
+  inputAttributes: {
+    required: true
+  },
+  showCancelButton: true,
+  confirmButtonText: "Submit Request",
+  confirmButtonColor: "#e74c3c",
+  cancelButtonColor: "#aaa",
+  inputValidator: (value) => {
+    if (!value) {
+      return "Reason is required!";
+    }
+  }
+});
+
+if (!reason) return;
+
+try {
+  const res = await fetch("/orders/return-item", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, productId, reason })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    await Swal.fire({
+      icon: "success",
+      title: "Return Requested",
+      text: "Your return request has been submitted",
+      timer: 1500,
+      showConfirmButton: false
     });
-  
-    const data = await res.json();
-    if (data.success) location.reload();
-    else alert(data.message);
+    location.reload();
+  } else {
+    Swal.fire("Error", data.message, "error");
   }
-  
-  function trackOrder(status) {
+
+} catch (err) {
+  Swal.fire("Error", "Server error", "error");
+}
+}
+
+function trackOrder(currentStatus) {
   const modal = document.getElementById("trackModal");
   const stepsEl = document.getElementById("trackSteps");
 
-  let steps = [];
-
-  if (status === "pending") {
-    steps = ["pending"];
-  }
-
-  if (status === "delivered") {
-    steps = ["pending", "delivered"];
-  }
+  const steps = [
+    {
+      key: "pending",
+      title: "Order Placed",
+      desc: "We have received your order",
+      icon: "🛒"
+    },
+    {
+      key: "shipped",
+      title: "Shipped",
+      desc: "Order handed over to courier",
+      icon: "📦"
+    },
+    {
+      key: "out_for_delivery",
+      title: "Out for Delivery",
+      desc: "Courier is on the way",
+      icon: "🚚"
+    },
+    {
+      key: "delivered",
+      title: "Delivered",
+      desc: "Item delivered successfully",
+      icon: "✅"
+    }
+  ];
 
   stepsEl.innerHTML = "";
 
+  // ❌ CANCELLED CASE
+  if (currentStatus === "cancelled") {
+    stepsEl.innerHTML = `
+      <li class="track-step active">
+        <div class="track-icon">❌</div>
+        <div class="track-content">
+          <h4>Order Cancelled</h4>
+          <p>This order was cancelled</p>
+        </div>
+      </li>
+    `;
+    modal.style.display = "flex";
+    return;
+  }
+
+  let reached = true;
+
   steps.forEach(step => {
     const li = document.createElement("li");
-    li.innerText = step.toUpperCase();
-    li.classList.add("active");
+    li.className = "track-step";
+
+    if (reached) {
+      li.classList.add("active");
+    } else {
+      li.classList.add("pending");
+    }
+
+    li.innerHTML = `
+      <div class="track-icon">${step.icon}</div>
+      <div class="track-content">
+        <h4>${step.title}</h4>
+        <p>${step.desc}</p>
+      </div>
+    `;
+
     stepsEl.appendChild(li);
+
+    if (step.key === currentStatus) {
+      reached = false;
+    }
   });
 
   modal.style.display = "flex";
 }
 
-  
   function closeTrackModal() {
     document.getElementById("trackModal").style.display = "none";
   }

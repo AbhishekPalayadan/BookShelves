@@ -335,21 +335,36 @@
                 text-align: center;
             }
         }
+
+        .main-container{max-width:1200px;margin:26px auto;padding:0 20px}
+
+        .breadcrumb{display:flex;justify-content:space-between;margin-bottom:28px;font-size:14px;color:#6b7280}
+    .breadcrumb a{color:#6b7280;text-decoration:none}
+    .breadcrumb a:hover{color:#ff4757}
+    .customer-name{color:#ff4757;font-weight:600}
+    .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:flex-start}
+    .content-card{background:#fff;border-radius:14px;padding:30px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
     </style>
 </head>
 <body>
-    <%- include("../../views/partials/user/header", { user }) %>
 
-<div class="main-content">
+    <%- include("../../views/partials/user/header") %>
 
-    <div class="breadcrumb">
-        <a href="/">Home</a> / Wishlist
-    </div>
-
-    <div class="wishlist-container">
+    <div class="main-container">
+    
+      <div class="breadcrumb">
+        <div><a href="/">Home</a> / My Wishlist</div>
+        <div>Welcome, <span class="customer-name"><%= user.fullname %></span></div>
+      </div>
+    
+      <div class="profile-layout">
+    
+        <%- include("../partials/user/profileSidebar",{ user, activeMenu:"wishlist" }) %>
+    
+        <div class="content-card">
         <!-- Wishlist Header -->
         <div class="wishlist-header">
-            <h1>Wishlist (4)</h1>
+            <h1>Wishlist</h1>
             <button class="move-all-btn" onclick="moveAllToCart()">
     Move All To Bag
 </button>
@@ -416,9 +431,12 @@
             </div>
             
             
+        </div>
     </div>
-    <%- include("../../views/partials/user/footer") %>
-
+  </div>
+  
+  <%- include("../../views/partials/user/footer") %>
+  
 
     <script>
         async function removeFromWishlist(productId) {

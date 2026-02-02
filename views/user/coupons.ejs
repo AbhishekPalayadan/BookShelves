@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders | Bookshelves</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter','Segoe UI',sans-serif; background:#f5f6f8; color:#1f2937; }
+
+    .main-container{max-width:1200px;margin:26px auto;padding:0 20px}
+    .breadcrumb{display:flex;justify-content:space-between;margin-bottom:28px;font-size:14px;color:#6b7280}
+    .breadcrumb a{color:#6b7280;text-decoration:none}
+    .breadcrumb a:hover{color:#ff4757}
+    .customer-name{color:#ff4757;font-weight:600}
+    .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:flex-start}
+    .content-card{background:#fff;border-radius:14px;padding:30px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
+    .page-title{font-size:22px;font-weight:600;margin-bottom:26px}
+
+
+  </style>
+</head>
+
+<body>
+
+<%- include("../../views/partials/user/header") %>
+
+<div class="main-container">
+
+  <div class="breadcrumb">
+    <div><a href="/">Home</a> / My Coupons</div>
+    <div>Welcome, <span class="customer-name"><%= user.fullname %></span></div>
+  </div>
+
+  <div class="profile-layout">
+
+    <%- include("../partials/user/profileSidebar",{ user, activeMenu:"coupons" }) %>
+
+    <div class="content-card">
+      <h1 class="page-title">My Coupons</h1>
+    </div>
+  </div>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+</body>
+</html>
