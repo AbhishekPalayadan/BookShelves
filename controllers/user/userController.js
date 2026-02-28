@@ -7,7 +7,6 @@ const Address = require('../../models/addressSchema');
 const Cart = require('../../models/cartSchema');
 const bcrypt=require('bcrypt');
 
-/* ========================= HOME ========================= */
 
 const loadHomePage = async (req, res) => {
   try {
@@ -55,7 +54,7 @@ const loadHomePage = async (req, res) => {
   }
 };
 
-/* ========================= AUTH PAGES ========================= */
+
 
 const loadSignup = (req, res) => {
   if (req.isAuthenticated()) return res.redirect('/');
@@ -73,21 +72,21 @@ const loadLogin = (req, res) => {
 
 const logout = (req, res) => {
   try {
-    // Passport logout (safe)
+
     if (req.isAuthenticated()) {
       req.logout(function (err) {
         if (err) {
           console.log("Passport logout error:", err);
         }
 
-        // Always destroy session
+
         req.session.destroy(() => {
           res.clearCookie('connect.sid');
           return res.redirect('/login');
         });
       });
     } else {
-      // If user already logged out
+
       req.session.destroy(() => {
         res.clearCookie('connect.sid');
         return res.redirect('/login');
@@ -101,7 +100,6 @@ const logout = (req, res) => {
 
 
 
-/* ========================= PROFILE ========================= */
 
 const loadProfile = (req, res) => {
   res.render('user/userProfile', { user: req.user });
@@ -140,7 +138,7 @@ const updatePhoto=async(req,res)=>{
   }
 }
 
-/* ========================= PRODUCTS ========================= */
+
 
 const loadAllProducts = async (req, res) => {
   try {
@@ -191,7 +189,7 @@ const loadAllProducts = async (req, res) => {
 
 const loadProduct = async (req, res) => {
   try {
-    // 1️⃣ Get product
+
     const product = await Product.findById(req.params.id)
       .populate("category_id")
       .lean();
@@ -200,7 +198,6 @@ const loadProduct = async (req, res) => {
       return res.render("user/page-404", { user: null });
     }
 
-    // 2️⃣ Get trending products
     const trending = await Product.aggregate([
       {
         $match: {
@@ -213,18 +210,16 @@ const loadProduct = async (req, res) => {
       { $sample: { size: 4 } }
     ]);
 
-    // 3️⃣ Wishlist check
     let isWishlisted = false;
     if (req.user) {
       const userData = await User.findById(req.user._id);
       isWishlisted = userData.wishlist.includes(product._id);
     }
 
-    // 4️⃣ Render page
     res.render("user/productDetails", {
       user: req.user || null,
       product,
-      trending,        // ✅ IMPORTANT
+      trending,
       isWishlisted
     });
 
@@ -235,7 +230,6 @@ const loadProduct = async (req, res) => {
 };
 
 
-/* ========================= ADDRESS ========================= */
 
 const loadAddress = async (req, res) => {
   const address = await Address.find({ userId: req.user._id })
@@ -454,7 +448,6 @@ const setPrimaryAddress=async(req,res)=>{
   }
 }
 
-/* ========================= CART ========================= */
 
 const loadCart = async (req, res) => {
   const cart = await Cart.findOne({ userId: req.user._id })

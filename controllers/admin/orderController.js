@@ -80,10 +80,8 @@ const updateOrderItemStatus = async (req, res) => {
       });
     }
 
-    // ✅ Update status
     item.status = status;
 
-    // 📦 If cancelled → restock product
     if (status === "cancelled") {
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }

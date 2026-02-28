@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Failed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .failed-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .cross-circle {
+            width: 100px;
+            height: 100px;
+            background-color: #FF5252;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+
+        .cross-circle svg {
+            width: 60px;
+            height: 60px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .failed-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .failed-subtext {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .order-details {
+            text-align: left;
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 40px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-retry {
+            background-color: #FF5252;
+            color: white;
+        }
+
+        .btn-retry:hover {
+            background-color: #E53935;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+        }
+
+        .btn-orders {
+            background-color: #888;
+            color: white;
+        }
+
+        .btn-orders:hover {
+            background-color: #666;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 600px) {
+            .failed-container {
+                padding: 40px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="failed-container">
+
+        <!-- Failure Icon -->
+        <div class="cross-circle">
+            <svg viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+            </svg>
+        </div>
+
+        <!-- Title -->
+        <h1 class="failed-title">Payment Failed</h1>
+        <p class="failed-subtext">
+            Unfortunately, your payment could not be completed.
+        </p>
+
+        <!-- Order Details -->
+        <div class="order-details">
+            <div class="detail-row">
+                <span class="detail-label">Order ID</span>
+                <span class="detail-value"><%= order.orderId %></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">
+                    <%= new Date(order.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value"><%= order.totalAmount %> Rs</span>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+            <button onclick="retryPayment()" class="btn btn-retry">
+                Retry Payment
+              </button>
+            <a href="/orders" class="btn btn-orders">View Orders</a>
+        </div>
+
+    </div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+async function retryPayment() {
+
+  const orderId = "<%= order.orderId %>";
+
+  // 1️⃣ Create Razorpay order again
+  const razorRes = await fetch("/create-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId })
+  });
+
+  const razorData = await razorRes.json();
+
+  if (!razorData.success) {
+    alert("Unable to retry payment");
+    return;
+  }
+
+  const options = {
+    key: razorData.key,
+    amount: razorData.razorpayOrder.amount,
+    currency: "INR",
+    order_id: razorData.razorpayOrder.id,
+
+    handler: async function (response) {
+
+      const verifyRes = await fetch("/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...response,
+          orderId
+        })
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (verifyData.success) {
+        window.location.href = `/order-success/${orderId}`;
+      } else {
+        alert("Payment verification failed");
+      }
+    },
+
+    modal: {
+      ondismiss: function () {
+        window.location.href = `/order-failed/${orderId}`;
+      }
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+</body>
+</html>

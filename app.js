@@ -12,7 +12,6 @@ const userRoutes = require("./routes/user");
 const adminRoutes = require("./routes/admin");
  
 const User = require('./models/userSchema');
-console.log(User)
 
 Database();
 

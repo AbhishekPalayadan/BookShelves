@@ -35,7 +35,6 @@ passport.use(
           }
         }
 
-        // 🚫 BLOCK CHECK (THIS WAS MISSING)
         if (user.isBlocked) {
           return done(null, false, { message: 'blocked' });
         }

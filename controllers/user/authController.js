@@ -63,8 +63,7 @@ const logout = (req, res) => {
   const signup = async (req, res) => {
     try {
       const { fullname, email, password } = req.body;
-  
-      // 1️⃣ Check if user already exists
+
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.render('user/signup', {
@@ -72,18 +71,14 @@ const logout = (req, res) => {
           user: null
         });
       }
-  
-      // 2️⃣ Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-  
-      // 3️⃣ Save user
+
       await User.create({
         fullname,
         email,
         password: hashedPassword
       });
   
-      // 4️⃣ Redirect to login with success message
       req.session.signupSuccessMessage = 'Signup successful. Please login.';
       return res.redirect('/login');
   
