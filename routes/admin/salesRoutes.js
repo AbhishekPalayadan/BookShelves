@@ -1,8 +1,8 @@
 const express=require('express')
 const router=express.Router();
-const adminController=require('../../controllers/admin/adminController')
+const salesController=require('../../controllers/admin/salesController')
 const {adminAuth}=require('../../middlewares/auth')
 
-router.get('/sales',adminAuth,adminController.loadSales);
+router.get('/sales',adminAuth,salesController.loadSales);
 
 module.exports=router;

@@ -55,6 +55,16 @@ const productSchema = new mongoose.Schema({
     isDeleted:{
         type:Boolean,
         default:false
+    },
+    offerPercentage:{
+        type:Number,
+        default:0
+    },
+    offerStartDate:{
+        type:Date
+    },
+    offerEndDate:{
+        type:Date
     }
 }, { timestamps: true })
 

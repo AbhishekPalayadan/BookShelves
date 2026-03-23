@@ -1,5 +1,6 @@
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
+const Wallet=require('../../models/walletSchema');
 
 
 const loadOrders = async (req, res) => {
@@ -150,11 +151,29 @@ const processReturn = async (req, res) => {
     if (action === "approve") {
       item.status = "returned";
       item.returnProcessedAt = new Date();
-
+    
+      // 🔹 Restore stock
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }
       });
-
+    
+      // 🔹 Calculate refund amount
+      const refundAmount = item.quantity * item.price;
+    
+      // 🔹 Add money to user's wallet
+      await Wallet.findOneAndUpdate(
+        { userId: order.userId },
+        {
+          $inc: { balance: refundAmount },
+          $push: {
+            transactions: {
+              amount: refundAmount,
+              type: "credit",
+              description: "Return approved refund"
+            }
+          }
+        }
+      );
     } else if (action === "reject") {
       item.status = "return_rejected";
       item.returnProcessedAt = new Date();

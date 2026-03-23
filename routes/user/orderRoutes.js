@@ -11,6 +11,7 @@ router.get('/order-failed/:orderId', userAuth, orderController.orderFailed);
 router.get('/orders',userAuth,orderController.loadOrders);
 router.get('/orders/:orderId',userAuth,orderController.loadOrderDetails);
 router.patch('/orders/cancel-item',userAuth,orderController.cancelOrderItem);
+router.patch("/orders/cancel-order",userAuth,orderController.cancelPendingItems)
 
 router.patch("/orders/return-item",userAuth,orderController.requestReturn);
 

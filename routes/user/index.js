@@ -11,7 +11,7 @@ router.use('/', require('./wishlistRoutes'));
 router.use('/', require('./orderRoutes'));
 router.use('/', require('./staticRoutes'));
 router.use('/',require('./walletRoutes'));
-router.use('/',require('./couponsRoutes'));
+router.use('/',require('./couponRoutes'));
 router.use('/',require('./paymentRoutes'));
 
 module.exports = router;

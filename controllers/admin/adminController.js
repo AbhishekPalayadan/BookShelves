@@ -9,6 +9,7 @@ const pageError = async (req, res) => {
 }
 
 const loadLogin = (req, res) => {
+    console.log(req.session)
     if (req.session.admin) {
         return res.redirect("/admin");
     }
@@ -68,6 +69,7 @@ const login = async (req, res) => {
 };
 
 const loadDashboard = async (req, res) => {
+    console.log(req.session)
     if (!req.session.admin) {
         return res.redirect('/admin/login');
     }
@@ -82,13 +84,9 @@ const loadDashboard = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        req.session.destroy(err => {
-            if (err) {
-                console.log("Error destroying session", err)
-                return res.redirect('/admin/pageError')
-            }
-            res.redirect('/admin/login')
-        })
+        delete req.session.admin;
+
+        res.redirect('/admin/login');
     } catch (error) {
         console.log("Unexpected error during logout", error)
         res.redirect('/admin/pageError')
@@ -110,30 +108,9 @@ const loadOrders = async (req, res) => {
     }
 }
 
-const loadSales = async (req, res) => {
-    if (!req.session.admin) {
-        return res.redirect('/admin/login');
-    }
-
-    try {
-        res.render("admin/sales", { activeMenu: "sales" });
-    } catch (error) {
-        res.redirect('/admin/pageError');
-    }
-}
 
 
-const loadCoupons = async (req, res) => {
-    if (!req.session.admin) {
-        return res.redirect('/admin/login');
-    }
 
-    try {
-        res.render("admin/coupons", { activeMenu: "coupons" });
-    } catch (error) {
-        res.redirect('/admin/pageError');
-    }
-}
 
 
 module.exports = {
@@ -143,6 +120,4 @@ module.exports = {
     pageError,
     logout,
     loadOrders,
-    loadSales,
-    loadCoupons,
 }

@@ -9,5 +9,6 @@ router.use('/', require('./productRoutes'));
 router.use('/', require('./orderRoutes'));
 router.use('/', require('./salesRoutes'));
 router.use('/',require('./couponRoutes'));
+router.use('/',require('./offerRoutes'))
 
 module.exports = router;

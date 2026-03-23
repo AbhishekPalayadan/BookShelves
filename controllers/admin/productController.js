@@ -175,13 +175,15 @@ const getEditProductPage = async (req, res) => {
         const id = req.params.id;
         const product = await Product.findById(id).lean();
         if (!product) return res.redirect('/admin/pageError');
+        const page=req.query.page || 1;
 
         const category = await Category.find(({ isListed: true }))
         res.render('admin/products-edit', {
             product,
             cat: category,
             adminName: typeof req.user != 'undefined' ? req.user.name : 'Admin',
-            activeMenu: 'products'
+            activeMenu: 'products',
+            currentPage:page
         })
     } catch (error) {
         console.error("Error loading edit page:", error);
@@ -194,6 +196,7 @@ const updateProduct = async (req, res) => {
     try {
         const id = req.params.id;
         const body = req.body;
+        const page=req.query.page || 1;
 
         const product = await Product.findById(id);
         if (!product) return res.status(404).send('Product not found')
@@ -241,7 +244,7 @@ const updateProduct = async (req, res) => {
 
         await product.save();
 
-        return res.redirect('/admin/products');
+        res.redirect(`/admin/products?page=${page}`);
 
 
     } catch (error) {

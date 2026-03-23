@@ -3,6 +3,7 @@ const Product=require('../../models/productSchema')
 
 const loadHomePage = async (req, res) => {
     try {
+      console.log(req.session);
       const user = req.user || null;
   
       const categories = await Category.find({ isListed: true}).lean();

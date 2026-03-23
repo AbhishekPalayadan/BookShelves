@@ -1,7 +1,124 @@
-const loadWallet = (req, res) => {
-    res.render("user/wallet",{user:req.user});
-  };
+const Wallet = require('../../models/walletSchema');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
-  module.exports={
-    loadWallet
+
+
+
+const loadWallet = async (req, res) => {
+  try {
+
+    let wallet = await Wallet.findOne({ userId: req.user._id });
+
+
+    if (!wallet) {
+      wallet = new Wallet({
+        userId: req.user._id,
+        balance: 0,
+        transactions: []
+      });
+
+      await wallet.save();
+    }
+
+    res.render("user/wallet", {
+      user: req.user,
+      wallet
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.redirect("/");
   }
+};
+
+
+
+
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+const createWalletOrder = async (req, res) => {
+  try {
+
+    const { amount } = req.body;
+
+    const options = {
+      amount: Math.round(amount * 100), 
+      currency: "INR",
+      receipt: "wallet_" + Date.now()
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      success: true,
+      order,
+      key: process.env.RAZORPAY_KEY_ID
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false });
+  }
+};
+
+
+
+
+
+const verifyWalletPayment = async (req, res) => {
+  try {
+
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      amount
+    } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.json({ success: false });
+    }
+
+
+    await Wallet.findOneAndUpdate(
+      { userId: req.user._id },
+      {
+        $inc: { balance: amount },
+        $push: {
+          transactions: {
+            amount,
+            type: "credit",
+            description: "Money added via Razorpay",
+            date: new Date()
+          }
+        }
+      }
+    );
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false });
+  }
+};
+
+
+
+module.exports = {
+  loadWallet,
+  createWalletOrder,
+  verifyWalletPayment
+};

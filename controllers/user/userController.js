@@ -704,13 +704,13 @@ const placeOrder = async (req, res) => {
   try {
     const userId = req.user._id;
     const { addressId } = req.body;
-    // 1️⃣ Get cart
+
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
-    // 2️⃣ Validate stock
+
     for (let item of cart.items) {
       if (item.quantity > item.productId.stock) {
         return res.status(400).json({
@@ -719,7 +719,7 @@ const placeOrder = async (req, res) => {
       }
     }
     const addressObjectId=new mongoose.Types.ObjectId(addressId)
-    // 3️⃣ Get address from Address collection ✅
+
     const address = await Address.findOne({
       _id: addressObjectId,
       userId
@@ -730,7 +730,7 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ message: "Address not found" });
     }
 
-    // 4️⃣ Create order
+
     const order = new Order({
       orderId: generateOrderId(),
       userId,
@@ -749,14 +749,14 @@ const placeOrder = async (req, res) => {
     });
     await order.save();
 
-    // 5️⃣ Reduce stock
+
     for (let item of cart.items) {
       await Product.findByIdAndUpdate(item.productId._id, {
         $inc: { stock: -item.quantity }
       });
     }
 
-    // 6️⃣ Clear cart
+
     await Cart.findOneAndDelete({ userId });
 
     res.json({
@@ -875,7 +875,7 @@ const loadOrders=async(req,res)=>{
     res.redirect('/')
   }
 }
-/* ========================= STATIC ========================= */
+
 
 const about = (req, res) => {
   res.render('user/about', { user: req.user || null });
@@ -889,7 +889,7 @@ const pageNotFound = (req, res) => {
   res.render("user/page-404", { user: req.user || null });
 };
 
-/* ========================= EXPORT ========================= */
+
 
 module.exports = {
   loadHomePage,

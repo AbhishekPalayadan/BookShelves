@@ -1,275 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Order Details</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Order Details</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<style>
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f5f5;
-      color: #333;
-    }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 8px;
-    }
+body{
+font-family:Segoe UI, sans-serif;
+background:#f4f4f4;
+color:#333;
+}
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 15px;
-      margin-bottom: 25px;
-    }
+.container{
+max-width:1200px;
+margin:30px auto;
+background:#fff;
+padding:25px;
+border-radius:8px;
+}
 
-    .header h1 {
-      font-size: 26px;
-      font-weight: 600;
-    }
+/* header */
 
-    .back-btn {
-      padding: 8px 14px;
-      border: 1px solid #ddd;
-      background: #f5f5f5;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 14px;
-    }
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+border-bottom:1px solid #ddd;
+padding-bottom:15px;
+}
 
-    .back-btn:hover {
-      background: #e0e0e0;
-    }
+.back-btn{
+background:#eee;
+border:none;
+padding:8px 14px;
+border-radius:4px;
+cursor:pointer;
+}
 
-    .section {
-      margin-bottom: 30px;
-    }
+/* timeline */
 
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 15px;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 8px;
-    }
+.timeline{
+display:flex;
+justify-content:space-between;
+margin:25px 0;
+}
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-    }
+.step{
+flex:1;
+text-align:center;
+padding:10px;
+border-bottom:3px solid #ddd;
+font-size:14px;
+}
 
-    .info-box {
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 4px;
-    }
+.step.completed{
+border-color:#28a745;
+color:#28a745;
+font-weight:600;
+}
 
-    .label {
-      font-size: 12px;
-      color: #777;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-    }
+/* section */
 
-    .value {
-      font-size: 15px;
-      font-weight: 500;
-    }
+.section{
+margin-bottom:30px;
+}
 
-    .status-badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
+.section-title{
+font-size:18px;
+font-weight:600;
+margin-bottom:15px;
+border-bottom:1px solid #eee;
+padding-bottom:8px;
+}
 
-    .pending { background: #fff3cd; color: #856404; }
-    .shipped { background: #cfe2ff; color: #084298; }
-    .delivered { background: #d4edda; color: #155724; }
-    .cancelled { background: #f8d7da; color: #721c24; }
+.info-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+.info-box{
+background:#fafafa;
+padding:15px;
+border-radius:5px;
+}
 
-    th, td {
-      padding: 14px;
-      border-bottom: 1px solid #ddd;
-      font-size: 14px;
-      text-align: left;
-    }
+.label{
+font-size:12px;
+color:#777;
+margin-bottom:6px;
+}
 
-    th {
-      background: #f0f0f0;
-      text-transform: uppercase;
-      font-size: 13px;
-    }
+.value{
+font-size:15px;
+font-weight:500;
+}
 
-    .item-status {
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
-    }
+/* table */
 
-    .item-pending { background: #fff3cd; color: #856404; }
-    .item-cancelled { background: #f8d7da; color: #721c24; }
-    .item-returned { background: #e0e0e0; color: #555; }
-    .item-delivered { background: #d4edda; color: #155724; }
+table{
+width:100%;
+border-collapse:collapse;
+}
 
-    .summary {
-      max-width: 400px;
-      margin-left: auto;
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 4px;
-    }
+th,td{
+padding:12px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
 
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
+th{
+background:#f7f7f7;
+text-transform:uppercase;
+font-size:12px;
+}
 
-    .summary-total {
-      border-top: 2px solid #ddd;
-      padding-top: 10px;
-      font-weight: 600;
-      font-size: 16px;
-    }
-  </style>
+.product-img{
+width:60px;
+height:80px;
+object-fit:cover;
+border-radius:4px;
+}
+
+/* status */
+
+.status{
+padding:5px 10px;
+border-radius:4px;
+font-size:12px;
+font-weight:600;
+}
+
+.pending{background:#fff3cd;color:#856404}
+.delivered{background:#d4edda;color:#155724}
+.cancelled{background:#f8d7da;color:#721c24}
+.returned{background:#e2e3e5;color:#383d41}
+
+/* summary */
+
+.summary{
+margin-top:25px;
+max-width:400px;
+margin-left:auto;
+background:#fafafa;
+padding:20px;
+border-radius:6px;
+}
+
+.summary-row{
+display:flex;
+justify-content:space-between;
+margin-bottom:10px;
+}
+
+.summary-total{
+border-top:2px solid #ddd;
+padding-top:10px;
+font-weight:600;
+font-size:16px;
+}
+
+/* buttons */
+
+.invoice-btn{
+margin-top:20px;
+display:inline-block;
+background:#000;
+color:#fff;
+padding:10px 16px;
+text-decoration:none;
+border-radius:5px;
+font-size:14px;
+}
+
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      <h1>Order Details</h1>
-      <small>Order ID: <strong><%= order.orderId %></strong></small>
-    </div>
-    <button class="back-btn" onclick="history.back()">← Back</button>
-  </div>
+<!-- HEADER -->
 
-  <!-- ORDER INFO -->
-  <div class="section">
-    <div class="section-title">Order Information</div>
-    <div class="info-grid">
+<div class="header">
+<div>
+<h2>Order Details</h2>
+<small>Order ID: <strong><%= order.orderId %></strong></small>
+</div>
 
-      <div class="info-box">
-        <div class="label">Order Date</div>
-        <div class="value">
-          <%= new Date(order.createdAt).toLocaleDateString("en-IN") %>
-        </div>
-      </div>
+<button class="back-btn" onclick="history.back()">← Back</button>
+</div>
 
-      <div class="info-box">
-        <div class="label">Payment Method</div>
-        <div class="value"><%= order.paymentMethod %></div>
-      </div>
 
-      <!-- <div class="info-box">
-        <div class="label">Order Status</div>
-        <div class="value">
-          <span class="status-badge <%= order.status %>">
-            <%= order.status %>
-          </span>
-        </div>
-      </div> -->
+<!-- ORDER TIMELINE -->
 
-    </div>
-  </div>
+<!-- <div class="timeline">
 
-  <!-- CUSTOMER & ADDRESS -->
-  <div class="section">
-    <div class="section-title">Customer & Shipping</div>
-    <div class="info-grid">
+<div class="step completed">
+Order Placed
+</div>
 
-      <div class="info-box">
-        <div class="label">Customer</div>
-        <div class="value"><%= order.userId.fullname %></div>
-        <div><%= order.userId.email %></div>
-        <div><%= order.userId.phone %></div>
-      </div>
+<div class="step <%= order.status === 'shipped' || order.status === 'delivered' ? 'completed' : '' %>">
+Shipped
+</div>
 
-      <div class="info-box">
-        <div class="label">Shipping Address</div>
-        <div><%= order.address.house %></div>
-        <div><%= order.address.place %>, <%= order.address.state %></div>
-        <div>Pincode: <%= order.address.pincode %></div>
-        <div>Phone: <%= order.address.phone %></div>
-      </div>
+<div class="step <%= order.status === 'out_for_delivery' || order.status === 'delivered' ? 'completed' : '' %>">
+Out for Delivery
+</div>
 
-    </div>
-  </div>
+<div class="step <%= order.status === 'delivered' ? 'completed' : '' %>">
+Delivered
+</div>
 
-  <!-- ORDER ITEMS -->
-  <div class="section">
-    <div class="section-title">Order Items</div>
+</div> -->
 
-    <table>
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>Subtotal</th>
-          <th>Status</th>
-        </tr>
-      </thead>
 
-      <tbody>
-        <% order.items.forEach(item => { %>
-          <tr>
-            <td><%= item.productId.product_name %></td>
-            <td><%= item.quantity %></td>
-            <td>₹<%= item.price %></td>
-            <td>₹<%= item.price * item.quantity %></td>
-            <td>
-              <% if(item.status === "cancelled"){ %>
-                <span class="item-status item-cancelled">Cancelled</span>
-              <% } else if(item.status === "returned"){ %>
-                <span class="item-status item-returned">Returned</span>
-              <% } else if(order.status === "delivered"){ %>
-                <span class="item-status item-delivered">Delivered</span>
-              <% } else { %>
-                <span class="item-status item-pending">Pending</span>
-              <% } %>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+<!-- ORDER INFO -->
 
-  <!-- SUMMARY -->
-  <div class="summary">
-    <div class="summary-row">
-      <span>Subtotal</span>
-      <span>₹<%= order.totalAmount %></span>
-    </div>
-    <div class="summary-row summary-total">
-      <span>Total</span>
-      <span>₹<%= order.totalAmount %></span>
-    </div>
-  </div>
+<div class="section">
+
+<div class="section-title">Order Information</div>
+
+<div class="info-grid">
+
+<div class="info-box">
+<div class="label">Order Date</div>
+<div class="value">
+<%= new Date(order.createdAt).toLocaleDateString("en-IN") %>
+</div>
+</div>
+
+<div class="info-box">
+<div class="label">Payment Method</div>
+<div class="value"><%= order.paymentMethod %></div>
+</div>
+
+<div class="info-box">
+<div class="label">Expected Delivery</div>
+<div class="value">
+<%= new Date(order.createdAt.getTime() + 3*24*60*60*1000).toDateString() %>
+</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- CUSTOMER INFO -->
+
+<div class="section">
+
+<div class="section-title">Customer & Shipping</div>
+
+<div class="info-grid">
+
+<div class="info-box">
+<div class="label">Customer</div>
+<div><%= order.userId.fullname %></div>
+<div><%= order.userId.email %></div>
+</div>
+
+<div class="info-box">
+<div class="label">Shipping Address</div>
+<div><%= order.address.house %></div>
+<div><%= order.address.place %></div>
+<div><%= order.address.state %></div>
+<div>Pincode: <%= order.address.pincode %></div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ORDER ITEMS -->
+
+<div class="section">
+
+<div class="section-title">Order Items</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Image</th>
+<th>Product</th>
+<th>Qty</th>
+<th>Price</th>
+<th>Subtotal</th>
+<th>Status</th>
+</tr>
+</thead>
+
+<tbody>
+
+<% order.items.forEach(item => { %>
+
+<tr>
+
+<td>
+<img src="/uploads/product-images/<%= item.productId.images[0] %>" class="product-img">
+</td>
+
+<td><%= item.productId.product_name %></td>
+
+<td><%= item.quantity %></td>
+
+<td>₹<%= item.price %></td>
+
+<td>₹<%= item.price * item.quantity %></td>
+
+<td>
+
+<% if(item.status === "cancelled"){ %>
+
+<span class="status cancelled">Cancelled</span>
+
+<% } else if(item.status === "returned"){ %>
+
+<span class="status returned">Returned</span>
+
+<% } else if(item.status === "delivered"){ %>
+
+<span class="status delivered">Delivered</span>
+
+<% } else { %>
+
+<span class="status pending">Pending</span>
+
+<% } %>
+
+</td>
+
+</tr>
+
+<% }) %>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- ORDER SUMMARY -->
+
+<div class="summary">
+
+<div class="summary-row">
+<span>Items Total</span>
+<span>₹<%= order.totalAmount + (order.discountAmount || 0) %></span>
+</div>
+
+<% if(order.discountAmount > 0){ %>
+
+<div class="summary-row">
+<span>Coupon Discount (<%= order.couponCode %>)</span>
+<span>- ₹<%= order.discountAmount %></span>
+</div>
+
+<% } %>
+
+<div class="summary-row summary-total">
+<span>Total Paid</span>
+<span>₹<%= order.totalAmount %></span>
+</div>
+
+<!-- <a href="/orders/invoice/<%= order.orderId %>" class="invoice-btn">
+Download Invoice
+</a> -->
+
+</div>
 
 </div>
 

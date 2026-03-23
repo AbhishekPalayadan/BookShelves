@@ -1,6 +1,7 @@
 const Product=require('../../models/productSchema');
 const Category=require('../../models/categorySchema')
 const User=require('../../models/userSchema');
+const {getBestOffer}=require('../../utils/offerHelper')
 
 const loadAllProducts = async (req, res) => {
   try {
@@ -46,10 +47,33 @@ const loadAllProducts = async (req, res) => {
     if (req.query.sort === "popularity") sortQuery.popularity = -1;
 
     const products = await Product.find(filter)
+    .populate({
+      path: "category_id",
+      match: { isListed: true }
+    })
       .sort(sortQuery)
       .skip(skip)
       .limit(limit)
       .lean();
+
+      const validProducts = products.filter(p => p.category_id);
+      products.forEach(product => {
+        const bestOffer = getBestOffer(product);
+
+
+        product.appliedOffer = bestOffer.offer;
+        product.offerType = bestOffer.type;
+        
+        if (bestOffer.offer > 0) {
+          product.discountedPrice = Math.round(
+            product.sale_price -
+            (product.sale_price * bestOffer.offer) / 100
+          );
+        } else {
+          product.discountedPrice = product.sale_price;
+        }
+  
+      });
 
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
@@ -58,7 +82,7 @@ const loadAllProducts = async (req, res) => {
 
     res.render("user/products", {
       user: req.user || null,
-      products,
+      products:validProducts,
       categories,
       currentPage: page,
       totalPages,
@@ -83,12 +107,30 @@ const loadAllProducts = async (req, res) => {
   const loadProduct = async (req, res) => {
     try {
       const product = await Product.findById(req.params.id)
-        .populate("category_id")
+      .populate({
+        path: "category_id",
+        match: { isListed: true }
+      })
         .lean();
   
-      if (!product) {
-        return res.render("user/page-404", { user: null });
-      }
+        if (!product || !product.category_id) {
+          return res.render("user/page-404", { user: null });
+        }
+  
+        const bestOffer = getBestOffer(product);
+
+product.appliedOffer = bestOffer.offer;
+product.offerType = bestOffer.type;
+
+if (bestOffer.offer > 0) {
+  product.discountedPrice = Math.round(
+    product.sale_price -
+    (product.sale_price * bestOffer.offer) / 100
+  );
+} else {
+  product.discountedPrice = product.sale_price;
+}
+  
   
       const trending = await Product.aggregate([
         {

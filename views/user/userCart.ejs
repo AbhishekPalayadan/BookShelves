@@ -295,14 +295,31 @@
                                 <%= item.productId.product_name %>
                             </h3>
 
-                            <p class="in-stock">In Stock</p>
+                            <% if(item.unavailable){ %>
+
+                                <p style="color:red;font-size:14px;">
+                                  Product unavailable
+                                </p>
+                              
+                              <% } else if(item.stockIssue){ %>
+                              
+                                <p style="color:red; font-size:14px;">
+                                  Only <%= item.availableStock %> items available
+                                </p>
+                              
+                              <% } else { %>
+                              
+                                <p class="in-stock">In Stock</p>
+                              
+                              <% } %>
 
                             <div class="quantity-selector">
                                 <label>Quantity:</label>
                               
                                 <div class="qty-box"
-                                     data-stock="<%= item.productId.stock %>"
-                                     data-product="<%= item.productId._id %>">
+     data-stock="<%= item.productId.stock %>"
+     data-product="<%= item.productId._id %>"
+     <%= (item.unavailable || item.stockIssue) ? 'style="opacity:0.5;pointer-events:none;"' : '' %>>
                               
                                   <button class="qty-btn"
                                           onclick="changeCartQty(this, -1)">−</button>
@@ -320,7 +337,7 @@
                         </div>
 
                         <div class="cart-item-price">
-                            ₹ <%= item.productId.sale_price * item.quantity %>
+                            ₹ <%= (item.productId.discountedPrice || 0) * (item.quantity || 0) %>
                         </div>
 
                         <button type="button" class="remove-btn" onclick="removeFromCart('<%= item._id %>')">
@@ -352,10 +369,11 @@
                 <span>Total</span>
                 <span>₹ <%= cartTotal %></span>
             </div>
-
-            <button class="checkout-btn" onclick="goToCheckout()">
-                Proceed to Checkout
-            </button>
+            <button class="checkout-btn"
+        onclick="goToCheckout(this)"
+        data-unavailable="<%= cartItems.some(item => item.unavailable || item.stockIssue) %>">
+    Proceed to Checkout
+</button>
         </div>
         <% } %>
 
@@ -364,6 +382,9 @@
 
 <%- include("../../views/partials/user/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+    const hasUnavailable = <%- JSON.stringify(cartItems.some(item => item.unavailable)) %>;
+</script>
 <script>
     async function removeFromCart(itemId){
         try{
@@ -405,8 +426,23 @@
   }
 }
 
-function goToCheckout(){
-    window.location.href="/checkout";
+
+function goToCheckout(btn){
+
+const hasUnavailable = btn.dataset.unavailable === "true";
+
+if(hasUnavailable){
+    Toastify({
+        text:"This product is not available",
+        duration:2000,
+        gravity:"top",
+        position:"center",
+        style:{background:"#ff4757"}
+    }).showToast();
+    return;
+}
+
+window.location.href="/checkout";
 }
 
 
@@ -442,7 +478,10 @@ async function changeCartQty(btn, change) {
   let qty = parseInt(input.value);
 
   // ➖ decrease
-  if (change === -1 && qty === 1) return;
+  // ➖ decrease
+if (change === -1) {
+  if (qty <= 1) return;
+}
 
   // ➕ max limit
   if (change === 1 && qty >= MAX_PER_PRODUCT) {
@@ -450,11 +489,13 @@ async function changeCartQty(btn, change) {
     return;
   }
 
-  // ➕ stock limit
-  if (change === 1 && qty >= stock) {
+  // ➕ increase only
+if (change === 1) {
+  if (qty >= stock) {
     showToast(`Only ${stock} items available`);
     return;
   }
+}
 
   try {
     const res = await fetch("/cart/update", {

@@ -2,13 +2,11 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-/* ========= DIRECTORIES ========= */
 
-// Product images
 const TMP_UPLOAD_DIR = path.join(__dirname, "..", "public", "uploads", "tmp");
 const FINAL_DIR = path.join(__dirname, "..", "public", "uploads", "product-images");
 
-// Profile images
+
 const PROFILE_DIR = path.join(
   __dirname,
   "..",
@@ -17,14 +15,14 @@ const PROFILE_DIR = path.join(
   "profile-images"
 );
 
-// Create folders if not exist
+
 [TMP_UPLOAD_DIR, FINAL_DIR, PROFILE_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
 
-/* ========= PRODUCT IMAGE MULTER ========= */
+
 
 const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -37,7 +35,6 @@ const productStorage = multer.diskStorage({
   }
 });
 
-/* ========= PROFILE IMAGE MULTER ========= */
 
 const profileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -50,7 +47,6 @@ const profileStorage = multer.diskStorage({
   }
 });
 
-/* ========= FILE FILTER ========= */
 
 const fileFilter = (req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/jpg"];
@@ -61,7 +57,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-/* ========= EXPORTS ========= */
 
 const uploads = multer({
   storage: productStorage,
@@ -75,8 +70,8 @@ const profileUpload = multer({
 });
 
 module.exports = {
-  uploads,          // product images
-  profileUpload,   // profile image
+  uploads,         
+  profileUpload,   
   TMP_UPLOAD_DIR,
   FINAL_DIR,
   PROFILE_DIR

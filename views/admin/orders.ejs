@@ -138,58 +138,68 @@ select {
               </td>
 
               <!-- ACTIONS -->
-              <td>
-                <% if(item.status === "return_requested"){ %>
-                  
-                  <button
-                    style="background:#ffc107;color:#000;"
-                    onclick="openReturnModal(
-                      '<%= order._id %>',
-                      '<%= item.productId._id %>',
-                      `<%= item.returnReason %>`
-                    )"
-                  >
-                    Return Request
-                  </button>
-              
-                <% } else if(item.status === "pending"){ %>
-              
-                  <select onchange="updateItemStatus(
-                    '<%= order._id %>',
-                    '<%= item.productId._id %>',
-                    this.value
-                  )">
-                    <option selected disabled>Change</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-              
-                <% } else if(item.status === "shipped"){ %>
-              
-                  <select onchange="updateItemStatus(
-                    '<%= order._id %>',
-                    '<%= item.productId._id %>',
-                    this.value
-                  )">
-                    <option selected disabled>Change</option>
-                    <option value="out_for_delivery">Out for delivery</option>
-                  </select>
-              
-                <% } else if(item.status === "out_for_delivery"){ %>
-              
-                  <select onchange="updateItemStatus(
-                    '<%= order._id %>',
-                    '<%= item.productId._id %>',
-                    this.value
-                  )">
-                    <option selected disabled>Change</option>
-                    <option value="delivered">Delivered</option>
-                  </select>
-              
-                <% } else { %>
-                  —
-                <% } %>
-              </td>
+
+              <!-- ACTIONS -->
+<td>
+
+  <% if(order.status !== "confirmed"){ %>
+
+    <span style="color:#dc3545;font-weight:600;">
+      Payment Not Completed
+    </span>
+
+  <% } else if(item.status === "return_requested"){ %>
+    
+    <button
+      style="background:#ffc107;color:#000;"
+      onclick="openReturnModal(
+        '<%= order._id %>',
+        '<%= item.productId._id %>',
+        `<%= item.returnReason %>`
+      )"
+    >
+      Return Request
+    </button>
+
+  <% } else if(item.status === "pending"){ %>
+
+    <select onchange="updateItemStatus(
+      '<%= order._id %>',
+      '<%= item.productId._id %>',
+      this.value
+    )">
+      <option selected disabled>Change</option>
+      <option value="shipped">Shipped</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+
+  <% } else if(item.status === "shipped"){ %>
+
+    <select onchange="updateItemStatus(
+      '<%= order._id %>',
+      '<%= item.productId._id %>',
+      this.value
+    )">
+      <option selected disabled>Change</option>
+      <option value="out_for_delivery">Out for delivery</option>
+    </select>
+
+  <% } else if(item.status === "out_for_delivery"){ %>
+
+    <select onchange="updateItemStatus(
+      '<%= order._id %>',
+      '<%= item.productId._id %>',
+      this.value
+    )">
+      <option selected disabled>Change</option>
+      <option value="delivered">Delivered</option>
+    </select>
+
+  <% } else { %>
+    —
+  <% } %>
+
+</td>
               
               
               <td>

@@ -23,6 +23,16 @@ const categorySchema = new mongoose.Schema({
         type:Boolean,
         default:true
     },
+    offerPercentage:{
+        type:Number,
+        default:0
+    },
+    offerStartDate:{
+        type:Date
+    },
+    offerEndDate:{
+        type:Date
+    }
 }, { timestamps: true })
 
 const Category = mongoose.model("Category", categorySchema)

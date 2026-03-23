@@ -19,7 +19,7 @@ const razorpayOrder=async(req,res)=>{
         }
 
         const options={
-            amount:order.totalAmount*100,
+          amount: Math.round(order.totalAmount * 100),
             currency:"INR",
             receipt:order.orderId
         }
@@ -55,25 +55,22 @@ const verifyPayment = async (req, res) => {
 
     if (expectedSignature === razorpay_signature) {
 
-      const order = await Order.findOne({ orderId });
+      const order = await Order.findOne({ orderId,userId:req.user._id });
 
       if (!order) {
         return res.json({ success: false });
       }
 
-      // 1️⃣ Update order status
-      order.status = "paid";
+      order.status = "confirmed";
       order.paymentMethod = "Razorpay";
       await order.save();
 
-      // 2️⃣ Reduce stock
       for (let item of order.items) {
         await Product.findByIdAndUpdate(item.productId, {
           $inc: { stock: -item.quantity }
         });
       }
 
-      // 3️⃣ Clear cart
       await Cart.findOneAndDelete({ userId: order.userId });
 
       return res.json({ success: true });

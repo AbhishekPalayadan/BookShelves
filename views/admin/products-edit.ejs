@@ -85,7 +85,7 @@
 
       <div class="form-field">
         <label>Stock Quantity</label>
-        <input id="f_stockQuantity" type="number" name="stockQuantity" value="<%= product.stock %>" />
+        <input id="f_stockQuantity" type="number" name="stockQuantity" value="<%= product.stock %>" min="0"/>
       </div>
 
       <div class="form-field">
@@ -132,6 +132,8 @@
 </div>
 
 <script>
+
+const currentPage = "<%= currentPage %>";
 
 const existingImages = <%- JSON.stringify(product.images || []) %>;
 let keptExisting = existingImages.slice();
@@ -420,10 +422,10 @@ document.getElementById('saveBtn').addEventListener('click', (ev) => {
   });
 
 
-  fetch('/admin/editProducts/<%= product._id %>', {
-    method: 'POST',
-    body: fd
-  }).then(async res => {
+  fetch('/admin/editProducts/<%= product._id %>?page=' + currentPage, {
+  method: 'POST',
+  body: fd
+}).then(async res => {
     if (res.redirected) return window.location.href = res.url;
     if (!res.ok) {
       const txt = await res.text();
@@ -442,6 +444,15 @@ document.getElementById('saveBtn').addEventListener('click', (ev) => {
 document.addEventListener('DOMContentLoaded', () => {
 
   renderThumbnails();
+});
+
+
+const stockInput = document.getElementById('f_stockQuantity');
+
+stockInput.addEventListener("input", () => {
+  if (stockInput.value < 0) {
+    stockInput.value = 0;
+  }
 });
 </script>
 

@@ -1,24 +1,88 @@
 const Cart = require('../../models/cartSchema')
 const Product = require('../../models/productSchema')
-const Address=require('../../models/addressSchema')
+const Address=require('../../models/addressSchema');
+const Coupon=require('../../models/couponSchema')
+const Order=require('../../models/orderSchema')
+const { getBestOffer } = require("../../utils/offerHelper");
 
 
 const loadCart = async (req, res) => {
+    
     const cart = await Cart.findOne({ userId: req.user._id })
-        .populate("items.productId");
+        .populate({
+            path: "items.productId",
+            populate: { path: "category_id" }
+        })
+        .lean();
 
-    const cartItems = cart ? cart.items : [];
-    const cartTotal = cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
+    if (!cart) {
+        return res.render('user/userCart', {
+            cart: null,
+            user: req.user,
+            cartItems: [],
+            cartTotal: 0
+        });
+    }
 
-    res.render('user/userCart', {
-        cart,
-        user: req.user,
-        cartItems,
-        cartTotal
-    });
+    let cartTotal=0;
+    let hasUnavailable=false;
+    let outOfStock=false;
+
+    for(const item of cart.items){
+        const product=item.productId;
+
+        if (
+            !product ||
+            product.isBlocked ||
+            product.isDeleted ||
+            product.stock === 0 ||
+            !product.category_id ||
+            product.category_id.isListed === false
+          ) {
+            item.unavailable = true;
+            hasUnavailable = true;
+            continue;
+          }
+
+          if (product.stock < item.quantity) {
+            outOfStock = true;
+            item.stockIssue = true;
+            item.availableStock = product.stock;
+        }
+
+const bestOffer = getBestOffer(product);
+
+product.appliedOffer = bestOffer.offer;
+product.offerType = bestOffer.type;
+
+if (bestOffer.offer > 0) {
+  product.discountedPrice = Math.round(
+    product.sale_price -
+    (product.sale_price * bestOffer.offer) / 100
+  );
+} else {
+  product.discountedPrice = product.sale_price;
+}
+        
+        cartTotal += product.discountedPrice * item.quantity;
+    }
+    let message = null;
+
+if (hasUnavailable) {
+    message = "One or more products in your cart are unavailable";
+}
+
+if (outOfStock) {
+    message = "Some products are out of stock";
+}
+
+return res.render("user/userCart", {
+    cart,
+    user: req.user,
+    cartItems: cart.items,
+    cartTotal,
+    message
+});
 };
 
 
@@ -33,10 +97,16 @@ const addToCart = async (req, res) => {
             return res.status(400).json({ message: "Invalid quantity" });
         }
 
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId).populate("category_id");
 
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
+        }
+
+        if(product.isBlocked || product.isDeleted){
+            return res.status(400).json({
+                message:"This product is currently unavailable"
+            })
         }
 
         if (quantity > product.stock) {
@@ -131,32 +201,114 @@ const removeFromCart = async (req, res) => {
 
 const loadCheckout = async (req, res) => {
     try {
+
         const cart = await Cart.findOne({
             userId: req.user._id
-        }).populate("items.productId");
+        }).populate({
+            path: "items.productId",
+            populate: { path: "category_id" }
+        });
 
         if (!cart || cart.items.length === 0) {
             return res.redirect('/cart');
         }
 
-        const cartTotal = cart.items.reduce(
-            (sum, item) => sum + item.productId.sale_price * item.quantity,
-            0
-        )
+        for(const item of cart.items){
+            const product=await Product.findById(item.productId._id)
 
-        const address = await Address.find({ userId: req.user._id }).sort({ isPrimary: -1 })
+            if (
+                !product ||
+                product.isBlocked ||
+                product.isDeleted ||
+                !product.category_id ||
+                product.category_id.isListed === false
+              ) {
+                return res.redirect("/cart");
+              }
+
+            if(product.stock<item.quantity){
+                return res.redirect("/cart")
+            }
+        }
+
+        let cartTotal = 0;
+        let offerDiscountTotal = 0;
+
+        cart.items.forEach(item => {
+
+            const product = item.productId;
+
+            const bestOffer = getBestOffer(product);
+
+product.appliedOffer = bestOffer.offer;
+product.offerType = bestOffer.type;
+
+let discountedPrice = product.sale_price;
+
+if (bestOffer.offer > 0) {
+    const discountAmount = Math.round(
+        (product.sale_price * bestOffer.offer) / 100
+      );
+
+  discountedPrice = Math.round(
+    product.sale_price - discountAmount
+  );
+
+  offerDiscountTotal += discountAmount * item.quantity;
+}
+
+product.discountedPrice = discountedPrice;
+
+cartTotal += discountedPrice * item.quantity;
+
+        });
+
+        const address = await Address.find({
+            userId: req.user._id
+        }).sort({ isPrimary: -1 });
+
+        const allCoupons=await Coupon.find({
+            expiryDate:{$gt:new Date()}
+        });
+        
+        const coupons=[];
+
+        for(const coupon of allCoupons){
+
+            if(coupon.usedCount >= coupon.usageLimit){
+                continue;
+            }
+
+            if(cartTotal < coupon.minPurchase){
+                continue;
+            }
+
+            const userUsage=await Order.countDocuments({
+                userId:req.user._id,
+                couponCode:coupon.code
+            })
+
+            if(userUsage >= coupon.perUserLimit){
+                continue;
+            }
+
+            coupons.push(coupon);
+        }
 
         res.render("user/checkout", {
             user: req.user,
             cartItems: cart.items,
             cartTotal,
-            address
-        })
+            offerDiscountTotal,
+            address,
+            coupons
+        });
+
     } catch (error) {
         console.log("Checkout load error:", error);
-        res.redirect("/cart")
+        res.redirect("/cart");
     }
-}
+};
 
 
 const updateQuantity = async (req, res) => {
@@ -171,6 +323,26 @@ const updateQuantity = async (req, res) => {
     );
   
     if (!item) return res.status(404).json({ message: "Item not found" });
+
+    const product=await Product.findById(productId);
+
+    if(product.isBlocked){
+        return res.status(400).json({
+            message:"Product is unavailable"
+        })
+    }
+
+    if (change === 1 && item.quantity >= product.stock) {
+        return res.status(400).json({
+            message: `Only ${product.stock} items available`
+        });
+    }
+
+    if (item.quantity + change < 1) {
+        return res.status(400).json({
+            message: "Minimum quantity is 1"
+        });
+    }
   
     item.quantity += change;
   

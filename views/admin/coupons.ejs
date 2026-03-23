@@ -1,12 +1,342 @@
-<%- include("../partials/admin/header", { title: "Admin Dashboard" }) %>
+<%- include("../partials/admin/header", { 
+    title: "Coupons",
+    adminName: typeof adminName !== "undefined" ? adminName : "Admin",
+    activeMenu: "coupons"
+  }) %>
+  
+  <style>
+  .dashboard-content {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .content-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .add-btn {
+    padding: 8px 14px;
+    background: #28a745;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  .table-order {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  }
+  
+  .table-order table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-order th,
+  .table-order td {
+    padding: 16px;
+    font-size: 14px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .status-active {
+    background:#d4edda;
+    color:#155724;
+  }
+  
+  .status-disabled {
+    background:#f8d7da;
+    color:#721c24;
+  }
+  
+  .action-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    margin-right: 6px;
+  }
+  
+  .edit-btn { background:#007bff; color:#fff; }
+  .toggle-btn { background:#ffc107; color:#000; }
+  .delete-btn { background:#dc3545; color:#fff; }
 
-    <div class="page-content" style="padding: 25px;">
-        <h1 style="font-size: 28px; font-weight: bold;">Coupons</h1>
+  .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
 
-        <p style="margin-top: 10px; color: #555;">
-            Welcome to the Coupons Page.
-        </p>
+.modal-box {
+  background: #fff;
+  width: 100%;
+  max-width: 450px;
+  padding: 30px;
+  border-radius: 12px;
+}
 
+.info-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 8px 16px;
+  border: none;
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.edit-profile-btn {
+  padding: 8px 16px;
+  border: none;
+  background: #28a745;
+  color: white;
+  border-radius: 4px;
+}
+  
+  </style>
+  
+  <div class="dashboard-content">
+  
+    <div class="content-header">
+      <h1>Coupon Management</h1>
+      <button class="add-btn" onclick="openCouponModal()">
+        + Add Coupon
+      </button>
     </div>
+  
+    <div class="table-order">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Discount</th>
+            <th>Max Discount (₹)</th>
+            <th>Min Cart (₹)</th>
+            <th>Usage Limit</th>
+            <th>Expiry</th>
+            <th>Status</th>
+          </tr>
+        </thead>
 
-    <%- include("../partials/admin/footer") %>
+        <tbody>
+
+          <% if(!coupons || coupons.length === 0){ %>
+            <tr>
+              <td colspan="7">No coupons found</td>
+            </tr>
+          <% } %>
+        
+          <% coupons.forEach(coupon => { %>
+            <tr>
+        
+              <td><%= coupon.code %></td>
+        
+              <td><%= coupon.discountValue %><%= coupon.discountType==="percentage"? " %" : " ₹" %> </td>
+        
+              <td>₹ <%= coupon.maxDiscount %></td>
+        
+              <td>₹ <%= coupon.minPurchase %></td>
+        
+              <td><%= coupon.usageLimit %></td>
+        
+              <td>
+                <%= new Date(coupon.expiryDate).toDateString() %>
+              </td>
+        
+              <td>
+                <% const isExpired = new Date() > new Date(coupon.expiryDate); %>
+                <span class="status-badge <%= isExpired ? 'status-disabled' : 'status-active' %>">
+                  <%= isExpired ? "Expired" : "Active" %>
+                </span>
+              </td>
+        
+            </tr>
+          <% }) %>
+        
+        </tbody>
+
+
+      </table>
+    </div>
+  </div>
+  
+  <div id="couponModal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Add Coupon</h2>
+  
+      <form id="couponForm">
+
+        <label>Coupon Code </label>
+<input name="code" class="info-input" required>
+<label>Discount Type</label>
+<select name="discountType" class="info-input" required>
+  <option value="flat">Flat</option>
+  <option value="percentage">percentage</option>
+</select>
+
+<label>Discount Value</label>
+<input type="number" name="discountValue" class="info-input" required>
+
+<label id="maxDiscountLabel">Maximum Discount (₹)</label>
+<input type="number" name="maxDiscount" id="maxDiscountField" class="info-input">
+
+<label>Minimum Cart Amount (₹) </label>
+<input type="number" name="minPurchase" class="info-input" required>
+
+<label>Usage Limit </label>
+<input type="number" name="usageLimit" class="info-input" required>
+
+<label>Validity Date </label>
+<input type="date" name="expiryDate" class="info-input" required>
+
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeCouponModal()">Cancel</button>
+          <button type="submit" class="edit-profile-btn">Save</button>
+        </div>
+  
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+
+document.getElementById("couponForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+
+  const data = {
+    code: form.code.value.trim().toUpperCase(),
+    discountType:form.discountType.value,
+    discountValue: form.discountValue.value,
+    maxDiscount: form.maxDiscount.value,
+    minPurchase: form.minPurchase.value,
+    usageLimit: form.usageLimit.value,
+    expiryDate: form.expiryDate.value
+  };
+
+  const res = await fetch("/admin/coupons/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  if(result.success){
+    location.reload();
+  } else {
+    alert(result.message || "Error adding coupon");
+  }
+});
+
+const today = new Date().toISOString().split("T")[0];
+document.querySelector("input[name='expiryDate']").setAttribute("min", today);
+  
+  async function toggleCoupon(id){
+    const res = await fetch(`/admin/coupons/toggle/${id}`, {
+      method: "PATCH"
+    });
+    const data = await res.json();
+    if(data.success){
+      location.reload();
+    }
+  }
+  
+  async function deleteCoupon(id){
+    const confirm = await Swal.fire({
+      title: "Delete Coupon?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545"
+    });
+  
+    if(!confirm.isConfirmed) return;
+  
+    const res = await fetch(`/admin/coupons/delete/${id}`, {
+      method: "DELETE"
+    });
+  
+    const data = await res.json();
+    if(data.success){
+      location.reload();
+    }
+  }
+
+function openCouponModal() {
+  document.getElementById("couponModal").style.display = "flex";
+}
+
+function closeCouponModal() {
+  document.getElementById("couponModal").style.display = "none";
+  document.getElementById("couponForm").reset();
+}  
+
+const discountType = document.querySelector('select[name="discountType"]');
+const maxField = document.getElementById("maxDiscountField");
+const maxLabel = document.getElementById("maxDiscountLabel");
+
+function toggleMaxDiscount() {
+  if (discountType.value === "flat") {
+    maxField.style.display = "none";
+    maxLabel.style.display = "none";
+    maxField.required = false;
+    maxField.value = "";
+  } else {
+    maxField.style.display = "block";
+    maxLabel.style.display = "block";
+    maxField.required = true;
+  }
+}
+
+// run on change
+discountType.addEventListener("change", toggleMaxDiscount);
+
+// run on page load
+window.addEventListener("load", toggleMaxDiscount);
+
+
+  </script>
+  
+  <%- include("../partials/admin/footer") %>

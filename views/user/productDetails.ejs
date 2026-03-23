@@ -12,6 +12,9 @@
     cursor: pointer;
     font-size: 20px;
 }
+.text-red {
+  color: red;
+}
 
     </style>
 </head>
@@ -64,10 +67,47 @@
             </div>
 
             <div class="price-box">
-                <span class="new-price">₹<%= product.sale_price %></span>
-                <% if (product.sale_price < product.regular_price) { %>
-                    <span class="old-price">₹<%= product.regular_price %></span>
+
+                <% if(product.appliedOffer > 0){ %>
+            
+                    <span style="background:#ff4757; color:white; padding:4px 10px; border-radius:5px; font-size:13px;">
+                        <%= product.appliedOffer %>% OFF
+                    </span>
+
+                    <% if (product.offerType === "product") { %>
+                        <p style="color:green; font-size:13px; margin-top:5px;">
+                            Product Offer Applied
+                        </p>
+                    <% } else if (product.offerType === "category") { %>
+                        <p style="color:blue; font-size:13px; margin-top:5px;">
+                            Category Offer Applied
+                        </p>
+                    <% } %>
+            
+                    <div style="margin-top:10px;">
+                        <span class="new-price" style="color:#2ecc71; font-size:24px; font-weight:bold;">
+                            ₹<%= product.discountedPrice.toFixed(2) %>
+                        </span>
+            
+                        <span class="old-price" style="text-decoration:line-through; margin-left:10px; color:gray;">
+                            ₹<%= product.sale_price %>
+                        </span>
+                    </div>
+            
+                    <p style="color:#555; margin-top:5px;">
+                        You save ₹<%= (product.sale_price - product.discountedPrice).toFixed(2) %>
+                    </p>
+            
+                <% } else { %>
+            
+                    <span class="new-price">₹<%= product.sale_price %></span>
+            
+                    <% if (product.sale_price < product.regular_price) { %>
+                        <span class="old-price">₹<%= product.regular_price %></span>
+                    <% } %>
+            
                 <% } %>
+            
             </div>
 
             <p class="product-description">
@@ -76,26 +116,31 @@
 
 
 
+            <% if (product.isDeleted) { %>
 
-<% if (product.stock > 10) { %>
+                <p class="stock-status out">🚫 Product Blocked</p>
+                <div class="unavailable-box">
+                    This product is currently unavailable.
+                </div>
+            
+            <% } else if (product.stock > 10) { %>
+            
+                <p class="stock-status in">✔ In Stock</p>
+            
+            <% } else if (product.stock > 0) { %>
+            
+                <p class="stock-status low">⏳ Only <%= product.stock %> left in stock</p>
+            
+            <% } else { %>
+            
+                <p class="stock-status out">❌ Out of Stock</p>
+                <div class="unavailable-box">
+                    This product is currently unavailable.
+                </div>
+            
+            <% } %>
 
-    <p class="stock-status in">✔ In Stock</p>
-
-<% } else if (product.stock > 0) { %>
-
-    <p class="stock-status low">⏳ Only <%= product.stock %> left in stock</p>
-
-<% } else { %>
-
-    <p class="stock-status out">❌ Out of Stock</p>
-
-    <div class="unavailable-box">
-        This product is currently unavailable.
-    </div>
-
-<% } %>
-
-<% if (product.stock > 0) { %>
+<% if (product.stock > 0 && !product.isDeleted) { %>
     <div class="quantity-section">
         <label>Quantity:</label>
     
@@ -114,9 +159,7 @@
         onclick="toggleWishlist(this)"
         data-id="<%= product._id %>">
 
-    <i class="fa-heart <%= isWishlisted ? 'fa-solid' : 'fa-regular' %>"
-       style="<%= isWishlisted ? 'color:red' : '' %>">
-    </i>
+        <i class="fa-heart <%= isWishlisted ? 'fa-solid text-red' : 'fa-regular' %>"></i>
 
 </button>
     </div>

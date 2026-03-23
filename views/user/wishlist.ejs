@@ -23,6 +23,27 @@
             padding: 40px 20px;
             background-color: #fff;
         }
+        .toast {
+  position: fixed;
+  top: 20px;              /* move to top */
+  left: 50%;              /* center horizontally */
+  transform: translateX(-50%) translateY(-20px);
+
+  background: #1f2937;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;          /* make sure it's above everything */
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 
         /* Wishlist Header */
         .wishlist-header {
@@ -349,6 +370,7 @@
 <body>
 
     <%- include("../../views/partials/user/header") %>
+    <div id="toast" class="toast">🛒 Item added to cart</div>
 
     <div class="main-container">
     
@@ -440,13 +462,16 @@
 
     <script>
         async function removeFromWishlist(productId) {
-            await fetch(`/wishlist/remove/${productId}`, {
-                method: "DELETE"
-            });
-        
-            location.reload();
-        }
+    await fetch(`/wishlist/remove/${productId}`, {
+        method: "DELETE"
+    });
 
+    showToast("❌ Item removed");
+
+    setTimeout(() => {
+        location.reload();
+    }, 1500);
+}
 
         async function addToCart(productId) {
     await fetch("/cart/add", {
@@ -455,17 +480,35 @@
         body: JSON.stringify({ productId,quantity:1 })
     });
     
-    alert("Added to cart 🛒");
+    showToast("🛒 Item added to cart");
 
     await fetch(`/wishlist/remove/${productId}`,{method:"DELETE"});
-    location.reload();
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
 }
 
 async function moveAllToCart() {
     await fetch("/wishlist/move-all", { method: "POST" });
-    location.reload();
+
+    showToast("📦 All items moved to cart");
+
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
 }
 
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
         </script>
         
 </body>

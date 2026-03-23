@@ -83,7 +83,7 @@
                     <div class="product-page-actions">
 
                         <i class="fa-solid fa-pen-to-square product-page-edit"
-                            onclick="window.location.href='/admin/editProducts/<%= product._id %>'">
+                            onclick="window.location.href='/admin/editProducts/<%= product._id %>?page=<%= currentPage %>'">
                         </i>
 
                         <i>
@@ -94,6 +94,26 @@
                                 <span class="slider"></span>
                             </label>
                         </i>
+                        <!-- OFFER BUTTON -->
+<% if(product.offerPercentage && product.offerPercentage > 0){ %>
+
+    <!-- REMOVE OFFER BUTTON -->
+    <i class="fa-solid fa-xmark"
+       style="cursor:pointer; color:red;"
+       onclick="removeProductOffer('<%= product._id %>')"
+       title="Remove Offer">
+    </i>
+  
+  <% } else { %>
+  
+    <!-- ADD OFFER BUTTON -->
+    <i class="fa-solid fa-tag"
+       style="cursor:pointer; color:#ff9800;"
+       onclick="openProductOfferModal('<%= product._id %>')"
+       title="Add Offer">
+    </i>
+  
+  <% } %>
                         <!-- <i class="fa-solid fa-trash product-page-delete"
                             onclick="confirmDelete('<%= product._id %>')">
                         </i> -->
@@ -136,7 +156,41 @@
 
 
     </div>
-
+    <div id="offerModal" class="modal">
+        <div class="inner-modal">
+          <span onclick="closeOfferModal()" class="close">&times;</span>
+      
+          <h2>Set Offer</h2>
+      
+          <input type="hidden" id="offerId">
+          <input type="hidden" id="offerType">
+      
+          <div style="margin-bottom:15px;">
+            <label>Discount %</label>
+            <input type="number" id="discountInput" min="1" max="90"
+                   style="width:100%; padding:10px;">
+          </div>
+      
+          <div style="margin-bottom:15px;">
+            <label>Start Date</label>
+            <input type="date" id="startDate"
+                   style="width:100%; padding:10px;">
+          </div>
+      
+          <div style="margin-bottom:15px;">
+            <label>End Date</label>
+            <input type="date" id="endDate"
+                   style="width:100%; padding:10px;">
+          </div>
+      
+          <button onclick="saveOffer()"
+              style="background:#ff4757; color:white; padding:10px 18px;
+                     border:none; border-radius:6px;">
+            Save Offer
+          </button>
+      
+        </div>
+      </div>
 
 <script>
 function confirmDelete(productId) {
@@ -171,6 +225,80 @@ function changeProductStatus(id, isChecked) {
         }
     });
 }
+function openProductOfferModal(id){
+  document.getElementById("offerId").value = id;
+  document.getElementById("offerType").value = "product";
+  document.getElementById("offerModal").style.display = "block";
+}
+
+function openCategoryOfferModal(id){
+  document.getElementById("offerId").value = id;
+  document.getElementById("offerType").value = "category";
+  document.getElementById("offerModal").style.display = "block";
+}
+
+function closeOfferModal(){
+  document.getElementById("offerModal").style.display = "none";
+}
+
+async function saveOffer(){
+  const id = document.getElementById("offerId").value;
+  const type = document.getElementById("offerType").value;
+  const discount = document.getElementById("discountInput").value;
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+
+  if(!discount || !startDate || !endDate){
+    Swal.fire("All fields required");
+    return;
+  }
+
+  const url = type === "product"
+      ? `/admin/setProductOffer/${id}`
+      : `/admin/setCategoryOffer/${id}`;
+
+  const res = await fetch(url,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ discount, startDate, endDate })
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    Swal.fire("Offer Added");
+    location.reload();
+  }else{
+    Swal.fire("Error");
+  }
+}
+
+async function removeProductOffer(id){
+  Swal.fire({
+    title:"Remove offer?",
+    icon:"warning",
+    showCancelButton:true
+  }).then(async(result)=>{
+    if(result.isConfirmed){
+      await fetch(`/admin/removeProductOffer/${id}`);
+      location.reload();
+    }
+  });
+}
+
+async function removeCategoryOffer(id){
+  Swal.fire({
+    title:"Remove offer?",
+    icon:"warning",
+    showCancelButton:true
+  }).then(async(result)=>{
+    if(result.isConfirmed){
+      await fetch(`/admin/removeCategoryOffer/${id}`);
+      location.reload();
+    }
+  });
+}
+
 </script>
 
     <%- include("../partials/admin/footer") %>

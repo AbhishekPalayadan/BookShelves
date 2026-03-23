@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
 
-        body {
+        body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
         }
@@ -334,6 +334,38 @@
                 
                     </div>
                 </div>
+                <div class="profile-info-section">
+
+                    <h2 style="margin-bottom:20px;">Referral Program</h2>
+                
+                    <div class="info-grid">
+                
+                        <div class="info-item">
+                            <span class="info-label">Your Referral Code</span>
+                            <span class="info-text"><%= user.referralCode %></span>
+                        </div>
+                
+                        <div class="info-item">
+                            <span class="info-label">Referral Link</span>
+                
+                            <input 
+                                type="text"
+                                id="referralLink"
+                                value="http://localhost:3000/signup?ref=<%= user.referralCode %>"
+                                readonly
+                                style="padding:10px;border:1px solid #ddd;border-radius:6px;width:100%;"
+                            >
+                
+                            <button onclick="copyReferral()" 
+                                style="margin-top:10px;padding:6px 12px;background:#ff4757;color:#fff;border:none;border-radius:5px;cursor:pointer;">
+                                Copy Link
+                            </button>
+                
+                        </div>
+                
+                    </div>
+                
+                </div>
                 
 
                 <div class="security-section">
@@ -361,6 +393,22 @@
         </div>
     </div>
     <%-include("../../views/partials/user/footer")%>
+    <script>
+
+        function copyReferral(){
+        
+            const link = document.getElementById("referralLink");
+        
+            link.select();
+            link.setSelectionRange(0, 99999);
+        
+            navigator.clipboard.writeText(link.value);
+        
+            alert("Referral link copied!");
+        
+        }
+        
+        </script>
 
 </body>
 </html>

@@ -331,6 +331,10 @@
       <label class="payment-option">
         <input type="radio" name="payment" value="RAZORPAY" > Online Payment (UPI)
       </label>
+      <label>
+        <input type="radio" name="payment" value="Wallet">
+        Wallet
+      </label>
     </div>
 
     <!-- ORDER SUMMARY -->
@@ -342,20 +346,143 @@
           <img src="/uploads/product-images/<%= item.productId.images?.[0] || 'no-image.png' %>">
           <div>
             <div class="item-name"><%= item.productId.product_name %></div>
-            <div class="item-price">₹ <%= item.productId.sale_price %> × <%= item.quantity %></div>
+            
+            <div class="item-price">
+
+              <% if(item.productId.appliedOffer > 0){ %>
+            
+                <span style="text-decoration: line-through; color:#999;">
+                  ₹ <%= item.productId.sale_price %>
+                </span>
+            
+                <span style="color:#ff4757; font-weight:600;">
+                  ₹ <%= item.productId.discountedPrice %>
+                </span>
+            
+                <small style="color:green;">
+                  (<%= item.productId.appliedOffer %>% OFF)
+                </small>
+            
+              <% } else { %>
+            
+                ₹ <%= item.productId.sale_price %>
+            
+              <% } %>
+            
+              × <%= item.quantity %>
+            
+            </div>
+
           </div>
         </div>
       <% }) %>
 
       <div class="price-summary">
+        <% if(offerDiscountTotal > 0){ %>
+          <div class="price-row">
+            <span>Offer Discount</span>
+            <span style="color:green;">- ₹ <%= offerDiscountTotal %></span>
+          </div>
+          <% } %>
+
         <div class="price-row">
           <span>Subtotal</span>
-          <span>₹ <%= cartTotal %></span>
+          <span id="subtotal">₹ <%= cartTotal %></span>
         </div>
+      
+
+
+        <!-- AVAILABLE COUPONS -->
+<div style="margin:15px 0;">
+  <h4 style="margin-bottom:8px;">Available Coupons</h4>
+
+  <% if(coupons && coupons.length > 0){ %>
+
+    <% coupons.forEach(coupon => { %>
+
+      <div style="
+        border:1px dashed #ddd;
+        padding:10px;
+        margin-bottom:8px;
+        border-radius:6px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+
+        <div>
+          <strong><%= coupon.code %></strong>
+
+          <div style="font-size:12px;color:#777;">
+            <%= coupon.discountValue %>
+            <%= coupon.discountType === "percentage" ? "% OFF" : "₹ OFF" %>
+            • Min ₹ <%= coupon.minPurchase %>
+          </div>
+        </div>
+
+        <button
+          style="
+            background:#ff4757;
+            border:none;
+            color:#fff;
+            padding:6px 10px;
+            border-radius:4px;
+            cursor:pointer;
+          "
+          onclick="applyCouponCode('<%= coupon.code %>')"
+        >
+          Apply
+        </button>
+
+      </div>
+
+    <% }) %>
+
+  <% } else { %>
+
+    <p style="font-size:13px;color:#777;">No coupons available</p>
+
+  <% } %>
+</div>
+
+
+
+
+        <!-- Coupon Input -->
+        <div style="margin:15px 0; display:flex; gap:8px;">
+          <input 
+            type="text" 
+            id="couponInput" 
+            placeholder="Enter coupon code"
+            style="flex:1; padding:8px; border:1px solid #ddd; border-radius:4px;"
+          >
+          <button 
+            id="applyCouponBtn"
+            style="padding:8px 12px; background:#ff4757; color:#fff; border:none; border-radius:4px; cursor:pointer;"
+            onclick="applyCoupon()"
+          >
+            Apply
+          </button>
+          <button 
+            id="removeCouponBtn"
+            style="padding:8px 12px; background:#999; color:#fff; border:none; border-radius:4px; cursor:pointer; display:none;"
+            onclick="removeCoupon()"
+          >
+            Remove
+          </button>
+        </div>
+      
+        <!-- Discount Row -->
+        <div class="price-row" id="discountRow" style="display:none;">
+          <span>Coupon Discount</span>
+          <span id="discountAmount" style="color:#ff4757;"></span>
+        </div>
+      
         <div class="price-row total">
           <span>Total</span>
-          <span>₹ <%= cartTotal %></span>
+          <span id="grandTotal">₹ <%= cartTotal %></span>
         </div>
+      
       </div>
 
       <button onclick="placeOrder()" class="place-order-btn">Place Order</button>
@@ -512,6 +639,10 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+let appliedCoupon=null;
+  let discountAmount=0;
+  let finalAmount=<%= cartTotal %>;
+
 async function placeOrder() {
   const selectedAddress = document.querySelector(
     'input[name="selectedAddress"]:checked'
@@ -531,23 +662,50 @@ async function placeOrder() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      addressId: selectedAddress.value,
-      paymentMethod
-    })
+  addressId: selectedAddress.value,
+  paymentMethod,
+  couponCode: appliedCoupon,
+  discountAmount,
+  finalAmount
+})
   });
 
   const orderData = await orderRes.json();
 
-  if (!orderData.success) {
-    Swal.fire("Order failed");
+  if(!orderRes.ok){
+    Swal.fire({
+      icon:"error",
+      title:"Order Failed",
+      text:orderData.message || "Something went wrong"
+    });
     return;
   }
 
-  // 2️⃣ If COD → Direct Success
-  if (paymentMethod === "COD") {
-    window.location.href = `/order-success/${orderData.orderId}`;
+  if (!orderData.success) {
+    Swal.fire({
+      icon:"error",
+      title:"Order Failed",
+      text:orderData.message || "Something went wrong"
+    });
     return;
   }
+
+// 2️⃣ If COD
+if (paymentMethod === "COD") {
+  window.location.href = `/order-success/${orderData.orderId}`;
+  return;
+}
+
+// 3️⃣ If WALLET
+if (paymentMethod === "Wallet") {
+  window.location.href = `/order-success/${orderData.orderId}`;
+  return;
+}
+
+// 4️⃣ If RAZORPAY
+if (paymentMethod !== "RAZORPAY") {
+  return;
+}
 
   // 3️⃣ If Razorpay → Create Razorpay Order
   const razorRes = await fetch("/create-order", {
@@ -605,7 +763,74 @@ if (verifyData.success) {
   rzp.open();
 }
 
+async function applyCoupon() {
 
+if (appliedCoupon) {
+  Swal.fire("Coupon already applied");
+  return;
+}
+
+const code = document.getElementById("couponInput").value.trim();
+
+if (!code) {
+  Swal.fire("Enter coupon code");
+  return;
+}
+
+const res = await fetch("/coupon/apply", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    code,
+    cartTotal: <%= cartTotal %>
+  })
+});
+
+const data = await res.json();
+
+if (!data.success) {
+  Swal.fire(data.message);
+  return;
+}
+
+appliedCoupon = code;
+discountAmount = data.discount;
+finalAmount = data.grandTotal;
+
+document.getElementById("discountRow").style.display = "flex";
+document.getElementById("discountAmount").innerText = "- ₹ " + discountAmount;
+document.getElementById("grandTotal").innerText = "₹ " + finalAmount;
+
+document.getElementById("applyCouponBtn").style.display = "none";
+document.getElementById("removeCouponBtn").style.display = "block";
+
+Swal.fire("Coupon Applied!");
+}
+
+function applyCouponCode(code){
+
+document.getElementById("couponInput").value = code;
+
+applyCoupon();
+
+}
+
+function removeCoupon() {
+
+appliedCoupon = null;
+discountAmount = 0;
+finalAmount = <%= cartTotal %>;
+
+document.getElementById("discountRow").style.display = "none";
+document.getElementById("grandTotal").innerText = "₹ " + finalAmount;
+
+document.getElementById("applyCouponBtn").style.display = "block";
+document.getElementById("removeCouponBtn").style.display = "none";
+
+document.getElementById("couponInput").value = "";
+
+Swal.fire("Coupon Removed");
+}
 </script>
 
 </body>

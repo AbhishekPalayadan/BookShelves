@@ -25,11 +25,12 @@
       background:#f9fafb;
       padding:10px;
       display:grid;
-      grid-template-columns:repeat(4,1fr);
+      grid-template-columns:repeat(5,1fr); /* updated to 5 columns */
       gap:20px;
       border-bottom:1px solid #e5e7eb;
       font-size:13px;
-      justify-items:center
+      justify-items:center;
+      align-items:center;
     }
 
     .header-label{color:#6b7280;font-size:12px;margin-bottom:4px}
@@ -74,9 +75,6 @@
     .btn-return{color:#1d4ed8;border:1px solid #bfdbfe}
     .btn-return:hover{background:#dbeafe}
 
-    .btn-invoice{padding: 3px; margin-top: 10px;margin-left: 10px;width: 200px; color:#374151;border:1px solid #d1d5db magi}
-    .btn-invoice:hover{background:#f9fafb}
-
     @media(max-width:900px){
       .profile-layout{grid-template-columns:1fr}
       .order-header{grid-template-columns:1fr 1fr}
@@ -108,38 +106,70 @@
         <p>No orders found.</p>
       <% } %>
 
-      <% orders.forEach(order => { %>
-        <div class="order-card" data-order-id="<%= order._id %>">
+      <% orders.forEach(order => { 
+
+        const hasActiveItem = order.items.some(
+          item => item.status !== "cancelled"
+        );
+        
+        if(!hasActiveItem) return;
+        
+        %>
+        <div class="order-card">
 
           <!-- ORDER HEADER -->
           <div class="order-header">
+
             <div>
               <div class="header-label">Order Placed</div>
               <div class="header-value"><%= new Date(order.createdAt).toDateString() %></div>
             </div>
+
             <div>
               <div class="header-label">Total</div>
-              <div class="header-value">₹ <%= order.totalAmount %></div>
+              <%
+let activeTotal = 0;
+
+order.items.forEach(item=>{
+  if(item.status !== "cancelled"){
+    activeTotal += item.price * item.quantity;
+  }
+});
+%>
+
+<div class="header-value">₹ <%= activeTotal %></div>
             </div>
+
             <div>
               <div class="header-label">Ship To</div>
               <div class="header-value"><%= order.address.fullname %></div>
             </div>
+
             <div>
               <div class="header-label">Order</div>
               <a href="/orders/<%= order.orderId %>" class="header-link">View Details</a>
             </div>
+
+            <!-- Cancel Pending Items Button -->
+            <div>
+              <% const hasPending = order.items.some(item => item.status === "pending"); %>
+              <% if (hasPending) { %>
+                <button 
+                  class="btn btn-cancel"
+                  onclick="cancelPendingItems('<%= order._id %>')">
+                  Cancel Pending Items
+                </button>
+              <% } %>
+            </div>
+
           </div>
 
-          <!-- <div>
-            <button class="btn-invoice">Invoice</button>
-        </div> -->
           <!-- ORDER ITEMS -->
-          <% order.items.forEach(item => { %>
-           
+          <% order.items.forEach(item => { 
+            if(item.status === "cancelled") return;
+         %>
             <div class="order-item">
 
-                
               <div class="product-image-sec">
                 <img src="/uploads/product-images/<%= item.productId?.images?.[0] || 'no-image.png' %>">
               </div>
@@ -150,14 +180,12 @@
                 <div class="product-meta">₹ <%= item.price %></div>
               </div>
 
-
               <div class="order-actions">
                 <span class="status <%= item.status %>">
                   <%= item.status.replace("_"," ").toUpperCase() %>
                 </span>
-              
+
                 <div class="actions">
-              
                   <% if(item.status === "pending"){ %>
                     <button
                       class="btn btn-cancel"
@@ -165,7 +193,7 @@
                       Cancel Item
                     </button>
                   <% } %>
-              
+
                   <% if(item.status === "delivered"){ %>
                     <button
                       class="btn btn-return"
@@ -173,25 +201,8 @@
                       Return
                     </button>
                   <% } %>
-              
                 </div>
-              
-                <% if(item.status === "return_requested"){ %>
-                  <small style="font-size:12px;color:#6b7280">
-                    Return requested
-                  </small>
-                <% } %>
-              
-                <% if(item.status === "return_rejected"){ %>
-                  <small style="font-size:12px;color:#991b1b">
-                    Return rejected
-                  </small>
-                <% } %>
-              
               </div>
-              
-
-
 
             </div>
           <% }) %>
@@ -207,6 +218,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+
+// Cancel Single Item
 async function cancelItem(orderId, productId, btn){
 
 const confirmResult = await Swal.fire({
@@ -231,46 +244,26 @@ try {
   const data = await res.json();
 
   if(!data.success){
-    Swal.fire({
-      icon: "error",
-      title: "Cancel Failed",
-      text: data.message || "Unable to cancel item"
-    });
+    Swal.fire("Error", data.message || "Unable to cancel item", "error");
     return;
   }
 
-  Swal.fire({
-    icon: "success",
-    title: "Cancelled",
-    text: "Your item has been cancelled",
-    timer: 1500,
-    showConfirmButton: false
-  });
-
-  // Update UI
-  const itemCard = btn.closest('.order-item');
-  const statusEl = itemCard.querySelector('.status');
-
-  statusEl.innerText = 'CANCELLED';
-  statusEl.className = 'status cancelled';
-
-  btn.remove();
+  Swal.fire("Cancelled", "Item cancelled", "success");
+  setTimeout(() => location.reload(), 1200);
 
 } catch (error) {
-  console.log(error);
   Swal.fire("Error", "Something went wrong", "error");
 }
 }
 
 
-
+// Return Item
 async function requestReturn(orderId, productId){
 
 const { value: reason } = await Swal.fire({
   title: "Return Item",
   input: "textarea",
   inputLabel: "Reason for return",
-  inputPlaceholder: "Enter your reason...",
   showCancelButton: true,
   inputValidator: (value) => {
     if (!value || value.trim().length < 3) {
@@ -291,14 +284,7 @@ try {
   const data = await res.json();
 
   if(data.success){
-    Swal.fire({
-      icon: "success",
-      title: "Return Requested",
-      text: "Your return request has been submitted",
-      timer: 1500,
-      showConfirmButton: false
-    });
-
+    Swal.fire("Return Requested", "", "success");
     setTimeout(() => location.reload(), 1200);
   } else {
     Swal.fire("Error", data.message || "Return failed", "error");
@@ -309,7 +295,45 @@ try {
 }
 }
 
-  </script>
-  
+
+// Cancel Pending Items (Full Order Level)
+async function cancelPendingItems(orderId){
+
+const confirmResult = await Swal.fire({
+  title: "Cancel Pending Items?",
+  text: "Only pending items will be cancelled",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#e74c3c",
+  cancelButtonColor: "#6b7280",
+  confirmButtonText: "Yes, cancel them"
+});
+
+if (!confirmResult.isConfirmed) return;
+
+try {
+
+  const res = await fetch("/orders/cancel-order", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId })
+  });
+
+  const data = await res.json();
+
+  if(!data.success){
+    Swal.fire("Error", data.message || "Unable to cancel items", "error");
+    return;
+  }
+
+  Swal.fire("Cancelled", "Pending items cancelled", "success");
+  setTimeout(() => location.reload(), 1200);
+
+} catch (error) {
+  Swal.fire("Error", "Something went wrong", "error");
+}
+}
+
+</script>
 </body>
 </html>

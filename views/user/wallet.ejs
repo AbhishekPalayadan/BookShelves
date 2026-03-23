@@ -2,23 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Orders | Bookshelves</title>
+  <title>My Wallet | Bookshelves</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter','Segoe UI',sans-serif; background:#f5f6f8; color:#1f2937; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter','Segoe UI',sans-serif; background:#f5f6f8; }
 
     .main-container{max-width:1200px;margin:26px auto;padding:0 20px}
     .breadcrumb{display:flex;justify-content:space-between;margin-bottom:28px;font-size:14px;color:#6b7280}
     .breadcrumb a{color:#6b7280;text-decoration:none}
-    .breadcrumb a:hover{color:#ff4757}
     .customer-name{color:#ff4757;font-weight:600}
-    .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:flex-start}
-    .content-card{background:#fff;border-radius:14px;padding:30px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
-    .page-title{font-size:22px;font-weight:600;margin-bottom:26px}
 
+    .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px}
 
+    .content-card{
+      background:#fff;
+      border-radius:14px;
+      padding:30px;
+      box-shadow:0 8px 28px rgba(0,0,0,.08)
+    }
+
+    .wallet-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:25px;
+    }
+
+    .wallet-balance{
+      font-size:26px;
+      font-weight:700;
+      color:#16a34a;
+    }
+
+    .add-money-btn{
+      padding:10px 20px;
+      background:#ff4757;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .add-money-btn:hover{
+      background:#e63946;
+    }
+
+    .transaction-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+    }
+
+    .transaction-table th,
+    .transaction-table td{
+      padding:12px;
+      border-bottom:1px solid #eee;
+      font-size:14px;
+      text-align:left;
+    }
+
+    .credit{ color:#16a34a; font-weight:600; }
+    .debit{ color:#e63946; font-weight:600; }
+
+    .no-transactions{
+      text-align:center;
+      padding:40px;
+      color:#888;
+    }
   </style>
 </head>
 
@@ -29,7 +85,7 @@
 <div class="main-container">
 
   <div class="breadcrumb">
-    <div><a href="/">Home</a> / My Orders</div>
+    <div><a href="/">Home</a> / My Wallet</div>
     <div>Welcome, <span class="customer-name"><%= user.fullname %></span></div>
   </div>
 
@@ -38,11 +94,127 @@
     <%- include("../partials/user/profileSidebar",{ user, activeMenu:"wallet" }) %>
 
     <div class="content-card">
-      <h1 class="page-title">My Wallet</h1>
+
+      <!-- HEADER -->
+      <div class="wallet-header">
+        <div>
+          <h2>My Wallet</h2>
+          <div class="wallet-balance">₹ <%= wallet.balance.toFixed(2) %></div>
+        </div>
+
+        <button class="add-money-btn" onclick="openAddMoney()">
+          + Add Money
+        </button>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <% if(wallet.transactions.length === 0){ %>
+        <div class="no-transactions">No transactions yet</div>
+      <% } else { %>
+
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% wallet.transactions.slice().reverse().forEach(tx => { %>
+            <tr>
+              <td><%= new Date(tx.date).toLocaleDateString() %></td>
+              <td><%= tx.description %></td>
+              <td>₹ <%= tx.amount %></td>
+              <td class="<%= tx.type === 'credit' ? 'credit' : 'debit' %>">
+                <%= tx.type.toUpperCase() %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <% } %>
+
     </div>
   </div>
 </div>
 
 <%- include("../../views/partials/user/footer") %>
+
+<script>
+
+function openAddMoney() {
+
+  Swal.fire({
+    title: "Add Money",
+    input: "number",
+    inputLabel: "Enter Amount",
+    inputPlaceholder: "Enter amount",
+    showCancelButton: true,
+    confirmButtonText: "Proceed",
+    inputValidator: (value) => {
+      if (!value || value <= 0) {
+        return "Enter valid amount";
+      }
+    }
+  }).then(async (result) => {
+
+    if (!result.isConfirmed) return;
+
+    const amount = result.value;
+
+    // 1️⃣ Create Razorpay Order
+    const res = await fetch("/wallet/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      Swal.fire("Something went wrong");
+      return;
+    }
+
+    const options = {
+      key: data.key,
+      amount: data.order.amount,
+      currency: "INR",
+      order_id: data.order.id,
+
+      handler: async function (response) {
+
+        const verifyRes = await fetch("/wallet/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...response,
+            amount
+          })
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+          Swal.fire("Money added successfully").then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire("Payment failed");
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  });
+}
+
+</script>
+
 </body>
 </html>

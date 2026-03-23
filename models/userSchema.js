@@ -53,7 +53,14 @@ const userSchema = new mongoose.Schema({
             type:mongoose.Schema.Types.ObjectId,
             ref:"Product"
         }
-    ]
+    ],
+    referralCode:{
+        type:String,
+        unique:true
+    },
+    referredBy:{
+        type:String
+    }
 }, { timestamps: true });
 
 
