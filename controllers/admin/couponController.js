@@ -61,7 +61,59 @@ const addCoupon = async (req, res) => {
   }
 };
 
+
+const blockCoupon=async(req,res)=>{
+  try{
+    const id=req.params.id;
+
+    await Coupon.findByIdAndUpdate(id,{isActive:false});
+
+    res.redirect("/admin/coupons");
+  }catch(err){
+    console.log(err)
+  }
+}
+
+
+const unblockCoupon=async (req,res)=>{
+  try{
+    const id=req.params.id;
+
+    await Coupon.findByIdAndUpdate(id,{isActive:true});
+
+    res.redirect("/admin/coupons")
+  }catch(err){
+    console.log(err);
+  }
+}
+
+
+const toggleCoupon = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return res.json({ success: false, message: "Coupon not found" });
+    }
+
+    coupon.isActive = !coupon.isActive;
+
+    await coupon.save();
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.log(err);
+    res.json({ success: false });
+  }
+};
+
 module.exports={
     loadCoupons,
-    addCoupon
+    addCoupon,
+    blockCoupon,
+    unblockCoupon,
+    toggleCoupon
 }

@@ -184,110 +184,116 @@ Apply
 
 </div>
 
-
-
 <div class="summary-grid">
 
-<div class="summary-card">
-<div>
-<h4>Total Products Sold</h4>
-<h2><%= overallSalesCount %></h2>
+    <div class="summary-card">
+      <div>
+        <h4>Total Products Sold</h4>
+        <h2><%= overallSalesCount %></h2>
+      </div>
+    </div>
+  
+    <div class="summary-card">
+      <div>
+        <h4>Total Revenue</h4>
+        <h2 style="color:green;">₹ <%= overallOrderAmount %></h2>
+      </div>
+    </div>
+  
+    <div class="summary-card">
+      <div>
+        <h4>Total Discount</h4>
+        <h2 style="color:#ff4757;">₹ <%= overallDiscount %></h2>
+      </div>
+    </div>
+  
+  </div>
+  
+  <div style="margin-bottom:15px; display:flex; gap:10px; text-decoration: none;">
+    <a href="/admin/sales/pdf?<%= queryString %>" style="text-decoration: none;" class="apply-btn">
+      Download PDF
+    </a>
+  
+    <a href="/admin/sales/excel?<%= queryString %>" style="text-decoration: none;" class="apply-btn">
+      Download Excel
+    </a>
+  </div>
+
+  <div class="table-card">
+  
+  <table class="sales-table">
+  
+  <thead>
+  <tr>
+    <th>Order ID</th>
+    <th>Date</th>
+    <th>Product</th>
+    <th>Qty</th>
+    <th>Price</th>
+    <th>Discount</th>
+    <th>Total</th>
+    <th>Payment</th>
+  </tr>
+  </thead>
+  
+  <tbody>
+  
+  <% if(orders.length > 0){ %>
+  
+    <% orders.forEach(item => { %>
+  
+      <tr>
+  
+        <td><%= item.orderId %></td>
+  
+        <td>
+          <%= new Date(item.createdAt).toLocaleDateString("en-IN") %>
+        </td>
+  
+        <td><%= item.productName %></td>
+  
+        <td><%= item.quantity %></td>
+  
+        <td>₹ <%= item.price %></td>
+  
+        <td style="color:#ff4757;">
+          ₹ <%= item.discount || 0 %>
+        </td>
+  
+        <td style="color:green;">
+          ₹ <%= item.total %>
+        </td>
+  
+        <td><%= item.paymentMethod %></td>
+  
+      </tr>
+  
+    <% }) %>
+  
+  <% } else { %>
+  
+  <tr>
+    <td colspan="8">No sales found</td>
+  </tr>
+  
+  <% } %>
+  
+  </tbody>
+  
+  </table>
+  
+  </div>
+
+
+
 </div>
-</div>
 
-<div class="summary-card">
-<div>
-<h4>Total Revenue</h4>
-<h2 style="color:green;">₹ <%= overallOrderAmount %></h2>
-</div>
-</div>
-
-<div class="summary-card">
-<div>
-<h4>Total Discount</h4>
-<h2 style="color:#ff4757;">₹ <%= overallDiscount %></h2>
-</div>
-</div>
-
-</div>
-
-
-<div class="table-card">
-
-<table class="sales-table">
-
-<thead>
-
-<tr>
-
-<th>Order ID</th>
-<th>Date</th>
-<th>Product</th>
-<th>Quantity</th>
-<th>Price</th>
-<th>Discount</th>
-<th>Final</th>
-<th>Payment</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<% if(orders.length > 0){ %>
-
-<% orders.forEach(item => { %>
-
-<tr>
-
-<td><%= item.orderId %></td>
-
-<td>
-<%= new Date(item.createdAt).toLocaleDateString("en-IN") %>
-</td>
-
-<td><%= item.productName %></td>
-
-<td><%= item.quantity %></td>
-
-<td>₹ <%= item.price %></td>
-
-<td style="color:#ff4757;">
-₹ <%= item.discount || 0 %>
-</td>
-
-<td style="color:green;">
-₹ <%= item.total %>
-</td>
-
-<td><%= item.paymentMethod %></td>
-
-
-</tr>
-
-<% }) %>
-
-<% } else { %>
-
-<tr>
-<td colspan="9">No sales found</td>
-</tr>
-
-<% } %>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 
 document.getElementById("filterSelect").addEventListener("change",function(){
+
+
 
 const showCustom = this.value === "custom"
 
@@ -298,6 +304,16 @@ document.getElementById("toDate").style.display =
 showCustom ? "block" : "none"
 
 })
+
+
+let from=document.getElementById("fromDate");
+let to=document.getElementById("toDate");
+
+console.log(from.value,to.value)
+
+if(from.value>to.value){
+  swal.fire("The from date always less than to")
+}
 
 </script>
 

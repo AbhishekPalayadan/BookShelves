@@ -171,6 +171,34 @@
       cursor: pointer;
       margin-top: 8px;
     }
+
+    .toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+
+  background: #111;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+
+  opacity: 0;
+  transition: all 0.25s ease;
+  z-index: 9999;
+}
+
+/* Show */
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Variants */
+.toast.success { background: #4caf50; }
+.toast.error { background: #e53935; }
+.toast.warning { background: #f59e0b; }
   </style>
 
   <div class="add-product-wrapper">
@@ -296,6 +324,7 @@
       </div>
     </div>
   </div>
+  <div id="customToast" class="toast"></div>
 
   <script>
 let cropper=null;
@@ -349,7 +378,7 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
         showError("sale_price", "Sale price cannot be greater than regular price");
 
     if (filesDT.files.length === 0) {
-        alert("At least one image is required");
+        showToast("At least one image is required","warning");
         isValid = false;
     }
 
@@ -379,15 +408,15 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
             return;
         }
         if (!res.ok) {
-            alert("Upload failed");
+            showToast("Upload failed","error");
             return;
         }
 
-        alert("Product added successfully!");
+        showToast("Product added successfully!","success");
         window.location.href = "/admin/products";
 
     }).catch(err => {
-        alert("Network error");
+        showToast("Network error","error");
         console.error(err);
     });
 });
@@ -417,7 +446,7 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
       const selected = Array.from(e.target.files || []);
       const available = 4 - originalFiles.length;
       if (selected.length > available) {
-        alert('Max 4 images allowed. You can add ' + available + ' more.');
+        showToast('Max 4 images allowed. You can add ' + available + ' more.',"warning");
         selected.splice(available);
       }
 
@@ -524,7 +553,7 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
 
     function openCropper(index) {
       const orig = originalFiles[index];
-      if (!orig) return alert('Original image not found for cropping');
+      if (!orig) return showToast('Original image not found for cropping',"error");
 
       cropImage.src = objectUrlForFile(orig);
       cropModal.style.display = 'flex';
@@ -555,7 +584,7 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
       if (Number.isNaN(index)) return;
 
       cropper.getCroppedCanvas().toBlob((blob) => {
-        if (!blob) return alert('Crop failed');
+        if (!blob) return showToast('Crop failed',"error");
 
         const orig = originalFiles[index];
         const ext = (orig && orig.name && orig.name.split('.').pop()) || 'png';
@@ -625,6 +654,17 @@ document.querySelector('.submit-btn').addEventListener('click', function (e) {
         renderThumbnails();
       }
     });
+
+    function showToast(message, type = "success") {
+  const toast = document.getElementById("customToast");
+
+  toast.textContent = message;
+  toast.className = "toast show " + type;
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
   </script>
 
   <%- include("../partials/admin/footer") %>

@@ -112,8 +112,6 @@
     .item-price { color: #ff4757; font-weight: 600; }
 
     .price-summary {
-      margin-top: 20px;
-      border-top: 1px solid #eee;
       padding-top: 15px;
     }
 
@@ -125,7 +123,7 @@
     }
 
     .price-row.total {
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 700;
     }
 
@@ -249,8 +247,157 @@
   z-index: 20000 !important;
 }
 
+.coupon-container {
+  margin: 15px 0;
+}
+
+.coupon-list {
+  max-height: 220px;   /* 👈 controls height */
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* nice scrollbar (optional but pro) */
+.coupon-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.coupon-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.address-list {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* scrollbar styling */
+.address-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.address-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+/* ===== CLEAN MINIMAL PRICE ===== */
+
+.price-box {
+  text-align: left;
+  margin-top: 4px;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Final price */
+.final {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* Offer */
+.offer {
+  font-size: 12px;
+  color: #27ae60;
+  font-weight: 500;
+}
+
+/* Old price */
+.old {
+  font-size: 12px;
+  color: #999;
+  text-decoration: line-through;
+  margin-top: 2px;
+}
+
+/* Qty + total */
+.meta {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
 
 
+/* ===== ORDER ITEM LAYOUT ===== */
+
+.order-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 0;
+}
+
+/* Image */
+.item-img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Right side */
+.item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Title */
+.item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* ===== PRICE BLOCK ===== */
+
+.price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Price row */
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Final price */
+.price {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Offer */
+.offer {
+  font-size: 11px;
+  color: #27ae60;
+  font-weight: 500;
+}
+
+/* Old price */
+.old-price {
+  font-size: 11px;
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Meta */
+.meta {
+  font-size: 11px;
+  color: #666;
+}
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -284,7 +431,9 @@
         <p>No address found.</p>
         <button onclick="openAddressModal()" class="add-address-btn">+ Add Address</button>
       <% } else { %>
-        <% address.forEach((addr, index) => { %>
+        <div class="address-list">
+
+          <% address.forEach((addr, index) => { %>
           <div class="address-card">
         
             <input
@@ -312,6 +461,7 @@
         
           </div>
         <% }) %>
+      </div>
         <% } %>
         
 
@@ -343,62 +493,64 @@
 
       <% cartItems.forEach(item => { %>
         <div class="order-item">
-          <img src="/uploads/product-images/<%= item.productId.images?.[0] || 'no-image.png' %>">
-          <div>
-            <div class="item-name"><%= item.productId.product_name %></div>
-            
-            <div class="item-price">
 
-              <% if(item.productId.appliedOffer > 0){ %>
-            
-                <span style="text-decoration: line-through; color:#999;">
-                  ₹ <%= item.productId.sale_price %>
-                </span>
-            
-                <span style="color:#ff4757; font-weight:600;">
-                  ₹ <%= item.productId.discountedPrice %>
-                </span>
-            
-                <small style="color:green;">
-                  (<%= item.productId.appliedOffer %>% OFF)
-                </small>
-            
-              <% } else { %>
-            
-                ₹ <%= item.productId.sale_price %>
-            
-              <% } %>
-            
-              × <%= item.quantity %>
-            
+          <img src="/uploads/product-images/<%= item.productId.images?.[0] %>" class="item-img">
+        
+          <div class="item-details">
+        
+            <div class="item-title">
+              <%= item.productId.product_name %>
             </div>
+        
+            <%
+            const original = Math.round(item.productId.sale_price || 0);
+            const price = Math.round(item.productId.discountedPrice || original);
+            const offer = item.productId.appliedOffer || 0;
+            const qty = item.quantity || 0;
+            const total = price * qty;
+            %>
+        
+            <div class="price-block">
+        
+              <div class="price-row">
 
+                <% if(original > price){ %>
+                  <div class="old-price" style="margin-right: 0px;">₹<%= original %></div>
+                <% } %>
+                
+        
+                <% if(offer > 0){ %>
+                  <span class="offer"><%= offer %>% OFF</span>
+                <% } %>
+
+
+                <span class="price">₹<%= price %></span>
+        
+              </div>
+        
+
+              <div class="meta">
+                Qty <%= qty %> • ₹<%= total %>
+              </div>
+        
+            </div>
+        
           </div>
+        
         </div>
       <% }) %>
 
       <div class="price-summary">
-        <% if(offerDiscountTotal > 0){ %>
-          <div class="price-row">
-            <span>Offer Discount</span>
-            <span style="color:green;">- ₹ <%= offerDiscountTotal %></span>
-          </div>
-          <% } %>
-
-        <div class="price-row">
-          <span>Subtotal</span>
-          <span id="subtotal">₹ <%= cartTotal %></span>
-        </div>
-      
-
 
         <!-- AVAILABLE COUPONS -->
-<div style="margin:15px 0;">
+        <div class="coupon-container">
   <h4 style="margin-bottom:8px;">Available Coupons</h4>
 
   <% if(coupons && coupons.length > 0){ %>
 
-    <% coupons.forEach(coupon => { %>
+    <div class="coupon-list">
+
+      <% coupons.forEach(coupon => { %>
 
       <div style="
         border:1px dashed #ddd;
@@ -444,12 +596,13 @@
 
   <% } %>
 </div>
+</div>
 
 
 
 
         <!-- Coupon Input -->
-        <div style="margin:15px 0; display:flex; gap:8px;">
+        <div style="margin:15px 0; display:flex; gap:8px;margin-bottom: 50px;">
           <input 
             type="text" 
             id="couponInput" 
@@ -473,6 +626,16 @@
         </div>
       
         <!-- Discount Row -->
+                <% if(offerDiscountTotal > 0){ %>
+          <div class="price-row">
+            <span>Offer Discount</span>
+            <span style="color:green;">- ₹ <%= offerDiscountTotal %></span>
+          </div>
+          <% } %>
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="subtotal">₹ <%= cartTotal %></span>
+        </div>
         <div class="price-row" id="discountRow" style="display:none;">
           <span>Coupon Discount</span>
           <span id="discountAmount" style="color:#ff4757;"></span>

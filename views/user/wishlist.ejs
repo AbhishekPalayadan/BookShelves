@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Wishlist - Bookshelves</title>
     <style>
         * {
@@ -76,22 +77,22 @@
             color: #fff;
         }
 
-        /* Wishlist Items */
         .wishlist-items {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            margin-bottom: 50px;
-        }
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
         .wishlist-item {
-            display: flex;
-            gap: 30px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
-        }
+    display: flex;
+    gap: 30px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+
+    width: 100%; 
+}
 
         .item-image {
             flex-shrink: 0;
@@ -365,6 +366,63 @@
     .customer-name{color:#ff4757;font-weight:600}
     .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:flex-start}
     .content-card{background:#fff;border-radius:14px;padding:30px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
+    .item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.item-actions button {
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s;
+}
+
+/* Remove button */
+.remove-btn {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.remove-btn:hover {
+    background-color: #ff0000;
+}
+
+.add-to-cart-btn {
+    flex: 1;
+    background: #4caf50;
+    color: #fff;
+    border: 1px solid #43a047;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    transition: all 0.2s ease;
+}
+
+/* Hover (slightly darker + lift effect) */
+.add-to-cart-btn:hover {
+    background: #43a047;
+    border-color: #388e3c;
+    transform: translateY(-1px);
+}
+
+/* Click effect */
+.add-to-cart-btn:active {
+    transform: scale(0.97);
+}
     </style>
 </head>
 <body>
@@ -432,18 +490,18 @@
                         </span>
                     </div>
             
-                    <div class="item-actions">
-                        <button class="remove-btn"
-                            onclick="removeFromWishlist('<%= product._id %>')">
-                            🗑 Remove
-                        </button>
-            
-                        <button class="add-to-cart-btn"
-                            onclick="addToCart('<%= product._id %>')">
-                            🛒 Add to Cart
-                        </button>
+                        <div class="item-actions">
+                            <button class="remove-btn"
+                                onclick="removeFromWishlist('<%= product._id %>')">
+                                <i class="fa-solid fa-trash"></i> Remove
+                            </button>
+                        
+                            <button class="add-to-cart-btn"
+                                onclick="addToCart('<%= product._id %>')">
+                                <i class="fa-solid fa-cart-shopping"></i> Add to Cart
+                            </button>
+                        </div>
                     </div>
-                </div>
             
             </div>
             
@@ -451,8 +509,6 @@
             <% }) %>
             
             </div>
-            
-            
         </div>
     </div>
   </div>

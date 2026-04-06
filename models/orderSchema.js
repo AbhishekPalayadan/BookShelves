@@ -18,8 +18,17 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
       },
+      productName:String,
+      productImage:String,
       quantity: Number,
+      originalPrice:Number,
       price: Number,
+      appliedOffer:Number,
+      offerType:String,
+      offerDiscount:Number,
+      itemTotal:Number,
+      taxPercentage:Number,
+      taxAmount:Number,
       status: {
         type: String,
         enum: [
@@ -52,6 +61,20 @@ const orderSchema = new mongoose.Schema({
 
   totalAmount: Number,
 
+  pricing:{
+    subtotal:Number,
+    couponDiscount:Number,
+    offerDiscount:Number,
+    shippingCharge:Number,
+    finalAmount:Number
+  },
+
+  coupon:{
+    code:String,
+    discountType:String,
+    discountValue:Number
+  },
+
   paymentMethod: {
     type: String,
     default: "COD"
@@ -75,12 +98,6 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-
-  couponCode:String,
-  discountAmount:{
-    type:Number,
-    default:0
-  }
 });
 
 module.exports = mongoose.model("Order", orderSchema);

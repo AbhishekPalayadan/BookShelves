@@ -56,6 +56,13 @@ const loadAllProducts = async (req, res) => {
       .limit(limit)
       .lean();
 
+      let wishlistIds = [];
+
+if (req.user) {
+  const userData = await User.findById(req.user._id).lean();
+  wishlistIds = userData.wishlist.map(id => id.toString());
+}
+
       const validProducts = products.filter(p => p.category_id);
       products.forEach(product => {
         const bestOffer = getBestOffer(product);
@@ -73,6 +80,10 @@ const loadAllProducts = async (req, res) => {
           product.discountedPrice = product.sale_price;
         }
   
+      });
+
+      validProducts.forEach(product => {
+        product.isWishlisted = wishlistIds.includes(product._id.toString());
       });
 
     const totalProducts = await Product.countDocuments(filter);

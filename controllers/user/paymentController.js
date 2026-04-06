@@ -1,41 +1,41 @@
-const Razorpay=require('razorpay')
-const crypto=require('crypto');
-const Order=require('../../models/orderSchema');
-const Product=require('../../models/productSchema');
-const Cart=require('../../models/cartSchema')
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const Order = require('../../models/orderSchema');
+const Product = require('../../models/productSchema');
+const Cart = require('../../models/cartSchema');
+const Coupon = require('../../models/couponSchema');
 
-const razorpay=new Razorpay({
-    key_id:process.env.RAZORPAY_KEY_ID,
-    key_secret:process.env.RAZORPAY_KEY_SECRET,
-})
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
-const razorpayOrder=async(req,res)=>{
-    try{
-        const {orderId}=req.body;
-        const order=await Order.findOne({orderId});
+const razorpayOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const order = await Order.findOne({ orderId });
 
-        if(!order){
-            return res.json({success:false});
-        }
+    if (!order) return res.json({ success: false });
 
-        const options={
-          amount: Math.round(order.totalAmount * 100),
-            currency:"INR",
-            receipt:order.orderId
-        }
+    const options = {
+      amount: Math.round(order.pricing.finalAmount * 100),
+      currency: "INR",
+      receipt: order.orderId
+    };
 
-        const razorpayOrder=await razorpay.orders.create(options);
+    const razorpayOrder = await razorpay.orders.create(options);
 
-        res.json({
-            success:true,
-            razorpayOrder,
-            key:process.env.RAZORPAY_KEY_ID
-        })
-    }catch(err){
-        console.log(err);
-        res.json({success:false})
-    }
-}
+    res.json({
+      success: true,
+      razorpayOrder,
+      key: process.env.RAZORPAY_KEY_ID
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.json({ success: false });
+  }
+};
 
 const verifyPayment = async (req, res) => {
   try {
@@ -55,23 +55,32 @@ const verifyPayment = async (req, res) => {
 
     if (expectedSignature === razorpay_signature) {
 
-      const order = await Order.findOne({ orderId,userId:req.user._id });
+      const order = await Order.findOne({ orderId, userId: req.user._id });
 
-      if (!order) {
-        return res.json({ success: false });
+      if (!order) return res.json({ success: false });
+
+      if (order.status !== "confirmed") {
+
+        order.status = "confirmed";
+        order.paymentMethod = "Razorpay";
+        await order.save();
+
+        for (let item of order.items) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { stock: -item.quantity }
+          });
+        }
+
+        await Cart.findOneAndDelete({ userId: order.userId });
+
+        if (order.coupon?.code) {
+          await Coupon.findOneAndUpdate(
+            { code: order.coupon.code },
+            { $inc: { usedCount: 1 } }
+          );
+        }
+
       }
-
-      order.status = "confirmed";
-      order.paymentMethod = "Razorpay";
-      await order.save();
-
-      for (let item of order.items) {
-        await Product.findByIdAndUpdate(item.productId, {
-          $inc: { stock: -item.quantity }
-        });
-      }
-
-      await Cart.findOneAndDelete({ userId: order.userId });
 
       return res.json({ success: true });
 
@@ -91,8 +100,7 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-
-module.exports={
-    razorpayOrder,
-    verifyPayment
-}
+module.exports = {
+  razorpayOrder,
+  verifyPayment
+};

@@ -524,6 +524,96 @@
 .status-cancelled { color:#e74c3c; }
 
 
+/* ===== PROFESSIONAL TIMELINE ===== */
+
+.track-steps-pro {
+  padding: 0;
+  margin: 0;
+}
+
+.track-step {
+  display: flex;
+  gap: 15px;
+  position: relative;
+  padding: 20px 0;
+}
+
+/* vertical line */
+.track-step::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #ddd;
+}
+
+/* remove first line top gap */
+.track-step:first-child::before {
+  top: 20px;
+}
+
+/* circle */
+.track-icon {
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  z-index: 2;
+}
+
+/* content */
+.track-content h4 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.track-content p {
+  font-size: 12px;
+  color: #888;
+  margin-top: 3px;
+}
+
+/* ACTIVE (completed) */
+.track-step.active .track-icon {
+  background: #27ae60;
+  color: white;
+}
+
+.track-step.active::before {
+  background: #27ae60;
+}
+
+/* CURRENT STEP */
+.track-step.current .track-icon {
+  background: #f39c12;
+  color: white;
+  transform: scale(1.2);
+}
+
+.track-step.current h4 {
+  color: #f39c12;
+}
+
+/* CANCEL */
+.track-step.cancelled .track-icon {
+  background: #e74c3c;
+  color: white;
+}
+
+/* RETURN */
+.track-step.return .track-icon {
+  background: #9b59b6;
+  color: white;
+}
+
+
     </style>
 </head>
 
@@ -533,7 +623,7 @@
   
   <div class="container">
   
-    <!-- Breadcrumb -->
+
     <div class="breadcrumb">
       <a href="/">Home</a> /
       <a href="/userProfile">Account</a> /
@@ -545,7 +635,7 @@
       </div>
     </div>
   
-    <!-- Header -->
+
     <div class="header">
       <div class="order-info">
         Ordered on <strong><%= new Date(order.createdAt).toDateString() %></strong>
@@ -557,7 +647,7 @@
       </a>
     </div>
   
-    <!-- Order Info -->
+
     <div class="order-details">
       <div class="detail-box">
         <h3>Shipping Address</h3>
@@ -575,14 +665,43 @@
   
       <div class="detail-box">
         <h3>Order Summary</h3>
-        <div class="summary-row">
-          <span>Total</span>
-          <span>₹<%= order.totalAmount %></span>
-        </div>
+
+        <%
+        const offerDisc = order.pricing?.offerDiscount || 0;
+        const couponDisc = order.pricing?.couponDiscount || order.discountAmount || 0;
+        const couponCode = order.coupon?.code || order.couponCode || null;
+        const finalAmt   = order.pricing?.finalAmount || order.totalAmount || 0;
+        const subtotal   = order.pricing?.subtotal || (finalAmt + couponDisc);
+      %>
+    
+      <div class="summary-row">
+        <span>Subtotal (after offer)</span>
+        <span>₹<%= subtotal.toFixed(2) %></span>
+      </div>
+    
+      <% if(offerDisc > 0){ %>
+      <div class="summary-row">
+        <span>Product/Category offer</span>
+        <span>- ₹<%= offerDisc.toFixed(2) %></span>
+      </div>
+      <% } %>
+    
+      <% if(couponCode){ %>
+      <div class="summary-row">
+        <span>Coupon (<%= couponCode %>)</span>
+        <span>- ₹<%= couponDisc.toFixed(2) %></span>
+      </div>
+      <% } %>
+    
+      <div class="summary-row total grand-total">
+        <span>Total Paid</span>
+        <span>₹<%= finalAmt.toFixed(2) %></span>
+      </div>
+    
       </div>
     </div>
   
-    <!-- ITEMS -->
+
     <div style="padding:20px;">
       <% order.items.forEach(item => { %>
   
@@ -594,7 +713,51 @@
   
           <div class="item-info">
             <h4><%= item.productId.product_name %></h4>
-            <div class="item-price">₹ <%= item.price %></div>
+
+
+            <% 
+            const originalPrice = Number(item.originalPrice || item.price || 0);
+const offerDiscount = Number(item.offerDiscount || 0);
+const price = Number(item.price || 0);
+const qty = Number(item.quantity || 0);
+
+const originalTotal = originalPrice * qty;
+const offerTotal = offerDiscount * qty;
+const finalTotal = price * qty;
+            %>
+            
+            <div class="item-price">
+            
+              <div style="font-size:13px;">
+                <% if(item.originalPrice && item.originalPrice > item.price){ %>
+                  <span style="text-decoration: line-through; color:#999;">
+                    ₹<%= item.originalPrice %>
+                  </span>
+                <% } %>
+                
+                <% if(item.appliedOffer && item.appliedOffer > 0){ %>
+                  <span style="color:#27ae60; font-weight:600;">
+                    <%= item.appliedOffer %>% OFF
+                  </span>
+                <% } %>
+              </div>
+            
+              <div>
+                <strong>₹<%= item.price %></strong>
+              </div>
+            
+              <div style="font-size:12px; margin-top:5px;">
+                Item Total: ₹<%= finalTotal %>
+              </div>
+              <% if(offerTotal > 0){ %>
+                <div style="font-size:12px; color:#27ae60;">
+                  You saved ₹<%= offerTotal %>
+                </div>
+              <% } %>
+            
+            </div>
+
+
             <div class="item-qty">Qty: <%= item.quantity %></div>
           </div>
 
@@ -607,15 +770,15 @@
             </div>
             
           
-            <!-- TRACK STATUS (logic only) -->
+
             <% if(item.status !== "cancelled"){ %>
               <button class="action-btn track-btn"
-                onclick="trackOrder('<%= item.status %>')">
+              onclick='trackOrder(<%- JSON.stringify(item) %>)'>
                 Track Order
               </button>
             <% } %>
           
-            <!-- CANCEL -->
+
             <% if(item.status === "pending"){ %>
               <button class="action-btn cancel-btn"
                 onclick="cancelItem(this,'<%= order._id %>','<%= item.productId._id %>')">
@@ -623,7 +786,7 @@
               </button>
             <% } %>
           
-            <!-- RETURN -->
+
             <% if(item.status === "delivered"){ %>
               <button class="action-btn cancel-btn"
                 onclick="returnItem('<%= order._id %>','<%= item.productId._id %>')">
@@ -631,7 +794,7 @@
               </button>
             <% } %>
           
-            <!-- RETURN INFO -->
+
             <% if(item.status === "return_requested"){ %>
               <small style="font-size:12px;color:#666">
                 Return requested
@@ -654,9 +817,7 @@
       <% }) %>
     </div>
   </div>
-  
-  <!-- TRACK MODAL -->
-<!-- TRACK MODAL -->
+
 <div id="trackModal" class="track-modal">
   <div class="track-modal-content">
 
@@ -691,7 +852,7 @@ const result = await Swal.fire({
   cancelButtonText: "No"
 });
 
-// User clicked "No"
+
 if (!result.isConfirmed) return;
 
 try {
@@ -772,79 +933,80 @@ try {
 }
 }
 
-function trackOrder(currentStatus) {
+function trackOrder(item) {
   const modal = document.getElementById("trackModal");
   const stepsEl = document.getElementById("trackSteps");
 
-  const steps = [
-    {
-      key: "pending",
-      title: "Order Placed",
-      desc: "We have received your order",
-      icon: "🛒"
-    },
-    {
-      key: "shipped",
-      title: "Shipped",
-      desc: "Order handed over to courier",
-      icon: "📦"
-    },
-    {
-      key: "out_for_delivery",
-      title: "Out for Delivery",
-      desc: "Courier is on the way",
-      icon: "🚚"
-    },
-    {
-      key: "delivered",
-      title: "Delivered",
-      desc: "Item delivered successfully",
-      icon: "✅"
-    }
-  ];
-
   stepsEl.innerHTML = "";
 
+  const status = item.status;
 
-  if (currentStatus === "cancelled") {
-    stepsEl.innerHTML = `
-      <li class="track-step active">
-        <div class="track-icon">❌</div>
-        <div class="track-content">
-          <h4>Order Cancelled</h4>
-          <p>This order was cancelled</p>
-        </div>
-      </li>
-    `;
-    modal.style.display = "flex";
-    return;
+  let steps = [];
+
+
+  if (status === "cancelled") {
+    steps = [
+      { key: "placed", title: "Order Placed", time: item.createdAt },
+      { key: "cancelled", title: "Cancelled", class: "cancelled" }
+    ];
   }
 
-  let reached = true;
+
+  else if (
+    status === "return_requested" ||
+    status === "returned" ||
+    status === "return_rejected"
+  ) {
+    steps = [
+      { key: "pending", title: "Order Placed" },
+      { key: "shipped", title: "Shipped" },
+      { key: "out_for_delivery", title: "Out for Delivery" },
+      { key: "delivered", title: "Delivered" },
+      { key: "return_requested", title: "Return Requested", time: item.returnRequestedAt },
+      { key: "returned", title: "Returned", time: item.returnProcessedAt },
+      { key: "return_rejected", title: "Return Rejected", time: item.returnProcessedAt }
+    ];
+  }
+
+
+  else {
+    steps = [
+      { key: "pending", title: "Order Placed" },
+      { key: "shipped", title: "Shipped" },
+      { key: "out_for_delivery", title: "Out for Delivery" },
+      { key: "delivered", title: "Delivered" }
+    ];
+  }
 
   steps.forEach(step => {
     const li = document.createElement("li");
     li.className = "track-step";
 
-    if (reached) {
+
+    if (step.key === status) {
+      li.classList.add("current");
+    }
+
+    if (
+      steps.findIndex(s => s.key === step.key) <
+      steps.findIndex(s => s.key === status)
+    ) {
       li.classList.add("active");
-    } else {
-      li.classList.add("pending");
+    }
+
+    if (step.class) {
+      li.classList.add(step.class);
     }
 
     li.innerHTML = `
-      <div class="track-icon">${step.icon}</div>
+      <div class="track-icon">✔</div>
       <div class="track-content">
         <h4>${step.title}</h4>
-        <p>${step.desc}</p>
+        <p>${step.time ? new Date(step.time).toLocaleString() : ""}</p>
       </div>
     `;
 
     stepsEl.appendChild(li);
-
-    if (step.key === currentStatus) {
-      reached = false;
-    }
   });
 
   modal.style.display = "flex";

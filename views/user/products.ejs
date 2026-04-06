@@ -1,6 +1,28 @@
 <%- include("../partials/user/header",{user}) %>
 
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        .wishlist-btn {
+  background: white;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.product-card {
+  position: relative;
+}
 
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.text-red {
+  color: red;
+}
+    </style>
+</head>
 <link rel="stylesheet" href="/css/products.css">
 
 <div class="product-page-container">
@@ -147,13 +169,23 @@ style="display:flex; justify-content:space-between; align-items:center; margin-b
 
                 <% products.forEach(product => { %>
 
-<a href="/product-details/<%= product._id %>" class="product-card" style="text-decoration: none; color: inherit;">
-    <div class="product-image">
-        <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
-    </div>
+                    <a href="/product-details/<%= product._id %>" class="product-card" style="position:relative; text-decoration:none; color:inherit;">
 
-    <div class="product-info">
-        <p class="product-name"><%= product.product_name %></p>
+                        <!-- Wishlist Button -->
+                        <button class="wishlist-btn"
+                            onclick="event.preventDefault(); event.stopPropagation(); toggleWishlist(this)"
+                            data-id="<%= product._id %>"
+                            style="position:absolute; top:10px; right:10px; z-index:10;">
+                    
+                            <i class="fa-heart <%= product.isWishlisted ? 'fa-solid text-red' : 'fa-regular' %>"></i>
+                        </button>
+                    
+                        <div class="product-image">
+                            <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
+                        </div>
+                    
+                        <div class="product-info">
+                            <p class="product-name"><%= product.product_name %></p>
 
         <div class="product-price">
 
@@ -293,7 +325,56 @@ function clearFilters() {
     window.location.href = url.toString();
 }
 
+
+async function toggleWishlist(btn) {
+    const productId = btn.getAttribute("data-id");
+    const icon = btn.querySelector("i");
+
+    const res = await fetch("/wishlist/toggle", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ productId })
+    });
+
+    const data = await res.json();
+
+    if (data.status === "added") {
+        icon.classList.remove("fa-regular");
+        icon.classList.add("fa-solid");
+        icon.style.color = "red";
+        showToast("Added to wishlist","success");
+    } else if (data.status === "removed") {
+        icon.classList.remove("fa-solid");
+        icon.classList.add("fa-regular");
+        icon.style.color = "black";
+        showToast("Removed from wishlist")
+    }
+}
+
+let activeToast = null;
+
+function showToast(message, type = "error") {
+  if (activeToast) {
+    activeToast.hideToast();
+  }
+
+  activeToast = Toastify({
+    text: message,
+    duration: 2000,
+    gravity: "top",
+    position: "center",
+    style: {
+      background: type === "success" ? "#2ecc71" : "#ff4757"
+    }
+  });
+
+  activeToast.showToast();
+}
+
 </script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 
 

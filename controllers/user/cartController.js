@@ -56,10 +56,13 @@ product.appliedOffer = bestOffer.offer;
 product.offerType = bestOffer.type;
 
 if (bestOffer.offer > 0) {
-  product.discountedPrice = Math.round(
-    product.sale_price -
-    (product.sale_price * bestOffer.offer) / 100
-  );
+    const discountAmount = Math.round(
+        (product.sale_price * bestOffer.offer) / 100
+      );
+      
+      product.discountedPrice = Math.round(
+        product.sale_price - discountAmount
+      );
 } else {
   product.discountedPrice = product.sale_price;
 }
@@ -267,9 +270,10 @@ cartTotal += discountedPrice * item.quantity;
             userId: req.user._id
         }).sort({ isPrimary: -1 });
 
-        const allCoupons=await Coupon.find({
-            expiryDate:{$gt:new Date()}
-        });
+        const allCoupons = await Coupon.find({
+            isActive: true,
+            expiryDate: { $gt: new Date() }
+          });
         
         const coupons=[];
 

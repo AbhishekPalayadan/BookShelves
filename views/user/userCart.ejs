@@ -218,6 +218,59 @@
             background: #e63946;
         }
 
+        /* ===== PRICE SECTION ===== */
+
+.cart-item-price {
+  text-align: right;
+  min-width: 120px;
+}
+
+/* Original + Offer */
+.price-top {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 13px;
+}
+
+/* Offer badge */
+.offer-badge {
+  background: #27ae60;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Final price */
+.final-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* Item total */
+.item-total {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Savings */
+.savings {
+  font-size: 12px;
+  color: #27ae60;
+  font-weight: 600;
+  margin-top: 4px;
+}
         /* Responsive */
         @media (max-width: 900px) {
             .cart-layout {
@@ -335,10 +388,39 @@
                               </div>
                               
                         </div>
+                        <%
+                        const originalPrice = item.productId.sale_price || 0;
+                        const price = item.productId.discountedPrice || 0;
+                        const offer = item.productId.appliedOffer || 0;
+                        const qty = item.quantity || 0;
+                        
+                        const itemTotal = price * qty;
+                        %>
 
                         <div class="cart-item-price">
-                            ₹ <%= (item.productId.discountedPrice || 0) * (item.quantity || 0) %>
-                        </div>
+
+                            <% if(offer > 0){ %>
+                              <div class="price-top">
+                                <span class="original-price">₹<%= originalPrice %></span>
+                                <span class="offer-badge"><%= offer %>% OFF</span>
+                              </div>
+                            <% } %>
+                          
+                            <div class="final-price">
+                              ₹<%= price %>
+                            </div>
+                          
+                            <div class="item-total">
+                              Total: ₹<%= itemTotal %>
+                            </div>
+                          
+                            <% if(offer > 0){ %>
+                              <div class="savings">
+                                You saved ₹<%= (originalPrice - price) * qty %>
+                              </div>
+                            <% } %>
+                          
+                          </div>
 
                         <button type="button" class="remove-btn" onclick="removeFromCart('<%= item._id %>')">
                             Remove

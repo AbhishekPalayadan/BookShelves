@@ -1,7 +1,7 @@
-const User = require('../../models/userSchema')
-const Order=require('../../models/orderSchema')
+const User = require('../../models/userSchema');
+const Order=require('../../models/orderSchema');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
 
 const pageError = async (req, res) => {

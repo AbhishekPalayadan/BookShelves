@@ -107,7 +107,7 @@
 .info-input {
   width: 100%;
   padding: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   border-radius: 6px;
   border: 1px solid #ddd;
 }
@@ -132,11 +132,18 @@
   color: white;
   border-radius: 4px;
 }
-  
+.error-msg {
+  color: red;
+  font-size: 12px;
+  margin-bottom:11px;
+}
+.status-expired {
+  background: #fff3cd;
+  color: #856404;
+}
   </style>
   
   <div class="dashboard-content">
-  
     <div class="content-header">
       <h1>Coupon Management</h1>
       <button class="add-btn" onclick="openCouponModal()">
@@ -155,6 +162,7 @@
             <th>Usage Limit</th>
             <th>Expiry</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
 
@@ -185,9 +193,28 @@
         
               <td>
                 <% const isExpired = new Date() > new Date(coupon.expiryDate); %>
-                <span class="status-badge <%= isExpired ? 'status-disabled' : 'status-active' %>">
-                  <%= isExpired ? "Expired" : "Active" %>
+
+                <span class="status-badge 
+                  <%= !coupon.isActive ? 'status-disabled' : (isExpired ? 'status-expired' : 'status-active') %>">
+                
+                  <%= !coupon.isActive 
+                      ? "Blocked" 
+                      : (isExpired ? "Expired" : "Active") %>
+                
                 </span>
+              </td>
+
+              <td>
+              
+                <% if (!isExpired) { %>
+                  <button class="action-btn toggle-btn"
+                    onclick="toggleCoupon('<%= coupon._id %>', <%= coupon.isActive %>)">
+              
+                    <%= coupon.isActive ? "Block" : "Unblock" %>
+                  </button>
+                <% } else { %>
+                  <span style="color: gray; font-size: 12px;">Expired</span>
+                <% } %>
               </td>
         
             </tr>
@@ -207,27 +234,33 @@
       <form id="couponForm">
 
         <label>Coupon Code </label>
-<input name="code" class="info-input" required>
+<input name="code" class="info-input" >
+<div class="error-msg" id="codeError"></div>
 <label>Discount Type</label>
-<select name="discountType" class="info-input" required>
+<select name="discountType" class="info-input" >
   <option value="flat">Flat</option>
   <option value="percentage">percentage</option>
 </select>
 
 <label>Discount Value</label>
-<input type="number" name="discountValue" class="info-input" required>
+<input type="number" name="discountValue" class="info-input" >
+<div class="error-msg" id="discountValueError"></div>
 
 <label id="maxDiscountLabel">Maximum Discount (₹)</label>
 <input type="number" name="maxDiscount" id="maxDiscountField" class="info-input">
+<div class="error-msg" id="maxDiscountError"></div>
 
 <label>Minimum Cart Amount (₹) </label>
-<input type="number" name="minPurchase" class="info-input" required>
+<input type="number" name="minPurchase" class="info-input" >
+<div class="error-msg" id="minPurchaseError"></div>
 
 <label>Usage Limit </label>
-<input type="number" name="usageLimit" class="info-input" required>
+<input type="number" name="usageLimit" class="info-input" >
+<div class="error-msg" id="usageLimitError"></div>
 
 <label>Validity Date </label>
-<input type="date" name="expiryDate" class="info-input" required>
+<input type="date" name="expiryDate" class="info-input" >
+<div class="error-msg" id="expiryDateError"></div>
 
 
         <div class="form-actions">
@@ -246,14 +279,63 @@ document.getElementById("couponForm").addEventListener("submit", async (e) => {
 
   const form = e.target;
 
+  document.querySelectorAll(".error-msg").forEach(el => el.innerText = "");
+
+  let isValid = true;
+
+  const code = form.code.value.trim().toUpperCase();
+  const discountType = form.discountType.value;
+  const discountValue = Number(form.discountValue.value);
+  const maxDiscount = Number(form.maxDiscount.value);
+  const minPurchase = Number(form.minPurchase.value);
+  const usageLimit = Number(form.usageLimit.value);
+  const expiryDate = form.expiryDate.value;
+
+  if (!code || code.length < 3) {
+    document.getElementById("codeError").innerText = "Minimum 3 characters required";
+    isValid = false;
+  }
+
+  if (discountValue <= 0) {
+    document.getElementById("discountValueError").innerText = "Must be greater than 0";
+    isValid = false;
+  }
+
+  if (discountType === "percentage" && discountValue > 100) {
+    document.getElementById("discountValueError").innerText = "Cannot exceed 100%";
+    isValid = false;
+  }
+
+  if (discountType === "percentage" && maxDiscount <= 0) {
+    document.getElementById("maxDiscountError").innerText = "Required for percentage";
+    isValid = false;
+  }
+
+  if (minPurchase <= 0) {
+    document.getElementById("minPurchaseError").innerText = "Must be greater than 0";
+    isValid = false;
+  }
+
+  if (usageLimit <= 0) {
+    document.getElementById("usageLimitError").innerText = "Must be greater than 0";
+    isValid = false;
+  }
+
+  if (!expiryDate) {
+    document.getElementById("expiryDateError").innerText = "Select a valid date";
+    isValid = false;
+  }
+
+  if (!isValid) return;
+
   const data = {
-    code: form.code.value.trim().toUpperCase(),
-    discountType:form.discountType.value,
-    discountValue: form.discountValue.value,
-    maxDiscount: form.maxDiscount.value,
-    minPurchase: form.minPurchase.value,
-    usageLimit: form.usageLimit.value,
-    expiryDate: form.expiryDate.value
+    code,
+    discountType,
+    discountValue,
+    maxDiscount,
+    minPurchase,
+    usageLimit,
+    expiryDate
   };
 
   const res = await fetch("/admin/coupons/add", {
@@ -264,25 +346,60 @@ document.getElementById("couponForm").addEventListener("submit", async (e) => {
 
   const result = await res.json();
 
-  if(result.success){
-    location.reload();
+  if (result.success) {
+    Swal.fire("Success", "Coupon added successfully", "success").then(() => {
+      location.reload();
+    });
   } else {
-    alert(result.message || "Error adding coupon");
+    Swal.fire("Error", result.message || "Error adding coupon", "error");
   }
 });
 
 const today = new Date().toISOString().split("T")[0];
 document.querySelector("input[name='expiryDate']").setAttribute("min", today);
   
-  async function toggleCoupon(id){
-    const res = await fetch(`/admin/coupons/toggle/${id}`, {
-      method: "PATCH"
+async function toggleCoupon(id, isActive) {
+
+const action = isActive ? "Block" : "Unblock";
+
+const confirm = await Swal.fire({
+  title: `${action} Coupon?`,
+  text: `Are you sure you want to ${action.toLowerCase()} this coupon?`,
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: isActive ? "#dc3545" : "#28a745",
+  cancelButtonColor: "#aaa",
+  confirmButtonText: `Yes, ${action} it`,
+  cancelButtonText: "Cancel"
+});
+
+if (!confirm.isConfirmed) return;
+
+try {
+  const res = await fetch(`/admin/coupons/toggle/${id}`, {
+    method: "PATCH"
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    await Swal.fire({
+      icon: "success",
+      title: `${action}ed`,
+      text: `Coupon ${action.toLowerCase()}ed successfully`,
+      timer: 1500,
+      showConfirmButton: false
     });
-    const data = await res.json();
-    if(data.success){
-      location.reload();
-    }
+
+    location.reload();
+  } else {
+    Swal.fire("Error", "Something went wrong", "error");
   }
+
+} catch (err) {
+  Swal.fire("Error", "Server error", "error");
+}
+}
   
   async function deleteCoupon(id){
     const confirm = await Swal.fire({
@@ -330,10 +447,8 @@ function toggleMaxDiscount() {
   }
 }
 
-// run on change
 discountType.addEventListener("change", toggleMaxDiscount);
 
-// run on page load
 window.addEventListener("load", toggleMaxDiscount);
 
 
