@@ -1,12 +1,908 @@
-<%- include("../partials/admin/header", { title: "Admin Dashboard" }) %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — BookShelves Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <div class="page-content" style="padding: 25px;">
-        <h1 style="font-size: 28px; font-weight: bold;">Dashboard</h1>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --border: #e8ecf4;
+      --text-primary: #1a1d2e;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent-purple: #7c3aed;
+      --accent-pink: #ec4899;
+      --accent-cyan: #06b6d4;
+      --accent-amber: #f59e0b;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --sidebar-w: 260px;
+      --radius: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+      --shadow-hover: 0 8px 32px rgba(0,0,0,.12);
+    }
 
-        <p style="margin-top: 10px; color: #555;">
-            Welcome to the admin dashboard.
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .topbar-left p { font-size: 13px; color: var(--text-secondary); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .filter-select {
+      padding: 8px 30px 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      outline: none;
+      transition: border-color .2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    .filter-select:focus { border-color: var(--accent-purple); }
+
+    /* ── CONTENT ── */
+    .content { padding: 28px 32px; }
+
+    /* ── STAT CARDS ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      border-radius: var(--radius);
+      padding: 24px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: -20px; right: 30px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+
+    .card-purple { background: linear-gradient(135deg, #6d28d9, #7c3aed, #a855f7); }
+    .card-pink   { background: linear-gradient(135deg, #be185d, #ec4899, #f472b6); }
+    .card-cyan   { background: linear-gradient(135deg, #0891b2, #06b6d4, #22d3ee); }
+
+    .stat-label { font-size: 13px; font-weight: 500; opacity: .85; letter-spacing: .3px; margin-bottom: 12px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 10px; }
+
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,.2);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stat-icon {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-icon svg { width: 22px; height: 22px; color: white; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── CHART ROWS ── */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .chart-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .chart-wrap  { position: relative; height: 260px; }
+    .donut-wrap  { position: relative; height: 220px; }
+    .bar-wrap    { position: relative; height: 200px; }
+
+    /* ── TABLES ── */
+    .table-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .table-full { margin-bottom: 28px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 2px solid var(--border); }
+
+    th {
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    td {
+      padding: 12px 12px;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+
+    .rank-badge {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .rank-1 { background: linear-gradient(135deg, #ffd700, #ffa500); color: #7a4700; }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #444; }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32, #b8732a); color: #fff; }
+    .rank-n { background: var(--border); color: var(--text-secondary); }
+
+    .product-img {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .product-img-placeholder {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e0d7ff, #fce7f3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      text-transform: capitalize;
+    }
+
+    /* FIX: Schema uses lowercase statuses — all pills keyed to lowercase */
+    .status-confirmed, .status-delivered   { background: #d1fae5; color: #065f46; }
+    .status-pending                        { background: #fef3c7; color: #92400e; }
+    .status-cancelled                      { background: #fee2e2; color: #991b1b; }
+    .status-shipped                        { background: #dbeafe; color: #1e40af; }
+    .status-out_for_delivery               { background: #e0f2fe; color: #075985; }
+    .status-failed                         { background: #fee2e2; color: #7f1d1d; }
+    .status-return_requested               { background: #fed7aa; color: #9a3412; }
+    .status-returned                       { background: #f3e8ff; color: #6b21a8; }
+    .status-return_rejected                { background: #fce7f3; color: #9d174d; }
+
+    /* Payment pills — keyed to normalised labels: COD, Razorpay, Wallet */
+    .payment-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .payment-COD      { background: #fef3c7; color: #92400e; }
+    .payment-Razorpay { background: #dbeafe; color: #1e40af; }
+    .payment-Wallet   { background: #d1fae5; color: #065f46; }
+
+    .view-all-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .view-all-btn:hover { background: var(--accent-purple); color: white; }
+
+    .amount-positive { color: #065f46; font-weight: 600; }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      margin-right: 5px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .legend-item { display: flex; align-items: center; }
+
+    /* Item status mini-grid */
+    .status-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .status-mini-card {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .status-mini-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: capitalize;
+      color: var(--text-muted);
+      letter-spacing: .5px;
+    }
+
+    .status-mini-count {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .chart-row-2 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 1100px) {
+      .chart-row, .table-row { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .main { margin-left: 0; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .content { padding: 20px 16px; }
+      .topbar { padding: 0 16px; }
+      .chart-row-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <%- include("../partials/admin/header", {
+      title: "Dashboard",
+      adminName: typeof adminName !== "undefined" ? adminName : "Admin",
+      activeMenu: "dashboard"
+    }) %>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ── FILTER ROW ── -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <div>
+        <h2 style="font-family:'Playfair Display',serif; font-size:22px; font-weight:700;">Overview</h2>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+          <%= filter === 'yearly' ? 'Yearly' : 'Monthly' %> breakdown · All time stats
         </p>
+      </div>
+      <select class="filter-select" onchange="changeFilter(this.value)">
+        <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
+        <option value="yearly"  <%= filter === 'yearly'  ? 'selected' : '' %>>Yearly</option>
+      </select>
+    </div>
+
+    <!-- ── STAT CARDS ── -->
+    <div class="stat-grid">
+
+      <div class="stat-card card-purple">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">₹<%= Number(totalRevenue).toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:0}) %></div>
+        <div class="stat-badge">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          All time · Confirmed, shipped & delivered
+        </div>
+      </div>
+
+      <div class="stat-card card-pink">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="stat-label">Total Customers</div>
+        <div class="stat-value"><%= totalUsers %></div>
+        <div class="stat-badge">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          Registered users
+        </div>
+      </div>
+
+      <div class="stat-card card-cyan">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
+        </div>
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value"><%= totalOrders %></div>
+        <div class="stat-badge">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          Active orders
+        </div>
+      </div>
 
     </div>
 
-    <%- include("../partials/admin/footer") %>
+    <!-- ── CHART ROW 1: Sales Revenue + Offer/Category Donut ── -->
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Sales Revenue</div>
+            <div class="card-subtitle"><%= filter === 'yearly' ? 'Yearly breakdown' : 'Monthly breakdown' %></div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Offer Type Performance</div>
+            <div class="card-subtitle">Revenue by offer type</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="categoryChart"></canvas>
+        </div>
+        <div class="legend-row" id="categoryLegend"></div>
+      </div>
+    </div>
+
+    <!-- ── CHART ROW 2: Customer Growth + Orders + Payment Methods ── -->
+    <div class="chart-row-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Customer Growth</div>
+            <div class="card-subtitle">New customers over time</div>
+          </div>
+        </div>
+        <div class="bar-wrap">
+          <canvas id="customerChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Orders Overview</div>
+            <div class="card-subtitle">Orders placed per period</div>
+          </div>
+        </div>
+        <div class="bar-wrap">
+          <canvas id="ordersChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Payment Methods</div>
+            <div class="card-subtitle">Orders by payment type</div>
+          </div>
+        </div>
+        <div class="bar-wrap">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TOP PRODUCTS TABLE ── -->
+    <div class="card table-full">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Top 10 Best Selling Products</div>
+          <div class="card-subtitle">Ranked by units sold · Excludes cancelled & returned items</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th style="text-align:right">Qty Sold</th>
+            <th style="text-align:right">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (bestProducts && bestProducts.length > 0) { %>
+            <% bestProducts.forEach((p, i) => { %>
+            <tr>
+              <td>
+                <span class="rank-badge <%= i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n' %>">
+                  <%= i+1 %>
+                </span>
+              </td>
+              <td>
+                <% if (p.productImage) { %>
+                  <%
+                    let imgSrc = p.productImage;
+                    if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                      imgSrc = '/uploads/product-images/' + imgSrc;
+                    }
+                  %>
+                  <img class="product-img"
+                       src="<%= imgSrc %>"
+                       alt="<%= p.productName %>"
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex'"/>
+                  <span class="product-img-placeholder" style="display:none">📚</span>
+                <% } else { %>
+                  <span class="product-img-placeholder">📚</span>
+                <% } %>
+              </td>
+              <td><strong><%= p.productName || 'Unknown Product' %></strong></td>
+              <td style="text-align:right"><%= p.totalSold %></td>
+              <td style="text-align:right" class="amount-positive">
+                ₹<%= Number(p.revenue).toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:0}) %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+          <tr>
+            <td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">
+              No product data available
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── RECENT ORDERS + ITEM STATUS ── -->
+    <div class="table-row">
+
+      <!-- Recent Orders -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Orders</div>
+          <a href="/admin/orders" class="view-all-btn">
+            View All
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Payment</th>
+              <th style="text-align:right">Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (recentOrders && recentOrders.length > 0) { %>
+              <% recentOrders.forEach(o => { %>
+              <tr>
+                <td><strong style="font-size:12px"><%= o.orderId %></strong></td>
+                <td style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  <%
+                    /*
+                     * FIX: User schema field is 'fullname' (not 'name').
+                     * Controller now populates 'fullname email', so use o.userId.fullname.
+                     * Fall back to address.fullname, then 'Guest'.
+                     */
+                    let customerName = 'Guest';
+                    if (o.userId && o.userId.fullname) {
+                      customerName = o.userId.fullname;
+                    } else if (o.address && o.address.fullname) {
+                      customerName = o.address.fullname;
+                    }
+                  %>
+                  <%= customerName %>
+                </td>
+                <td>
+                  <%
+                    /*
+                     * FIX: paymentMethod in schema is uppercase (COD, RAZORPAY, WALLET).
+                     * Controller normalises to display labels (COD, Razorpay, Wallet)
+                     * so CSS class payment-COD / payment-Razorpay / payment-Wallet applies correctly.
+                     * But raw DB values could still arrive here — normalise defensively.
+                     */
+                    const pmRaw = o.paymentMethod || '';
+                    const pmLabel = pmRaw === 'RAZORPAY' ? 'Razorpay'
+                                  : pmRaw === 'WALLET'   ? 'Wallet'
+                                  : pmRaw;   // COD stays COD
+                  %>
+                  <span class="payment-pill payment-<%= pmLabel %>">
+                    <%= pmLabel %>
+                  </span>
+                </td>
+                <td style="text-align:right" class="amount-positive">
+                  ₹<%= Number(o.pricing && o.pricing.finalAmount ? o.pricing.finalAmount : 0).toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:0}) %>
+                </td>
+                <td>
+                  <%
+                    // Status is stored lowercase in schema — pill class matches directly.
+                    const orderStatus = (o.status || 'pending').toLowerCase();
+                  %>
+                  <span class="status-pill status-<%= orderStatus %>">
+                    <%= o.status %>
+                  </span>
+                </td>
+              </tr>
+              <% }) %>
+            <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">
+                No orders found
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Item Status Breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Item Status Breakdown</div>
+            <div class="card-subtitle">Across all order items</div>
+          </div>
+        </div>
+
+        <% if (itemStatusBreakdown && itemStatusBreakdown.length > 0) { %>
+          <div class="status-mini-grid">
+            <% itemStatusBreakdown.forEach(s => { %>
+            <div class="status-mini-card">
+              <div class="status-mini-label"><%= s._id ? s._id.replace(/_/g, ' ') : 'unknown' %></div>
+              <div class="status-mini-count"><%= s.count %></div>
+              <span class="status-pill status-<%= (s._id || 'pending').toLowerCase() %>" style="width:fit-content; margin-top:4px; font-size:10px;">
+                items
+              </span>
+            </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div style="text-align:center; padding:24px; color:var(--text-muted);">
+            No item data
+          </div>
+        <% } %>
+
+        <% if (statusBreakdown && statusBreakdown.length > 0) { %>
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+          <div class="card-subtitle" style="margin-bottom:10px; font-weight:600; color:var(--text-secondary);">
+            Order Status
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <% statusBreakdown.forEach(s => { %>
+            <div style="display:flex; align-items:center; gap:6px; background:var(--bg); padding:6px 12px; border-radius:8px; font-size:12px;">
+              <span class="status-pill status-<%= (s._id || 'pending').toLowerCase() %>" style="padding:2px 6px; font-size:10px;">
+                <%= s._id %>
+              </span>
+              <strong><%= s.count %></strong>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+
+  <%- include("../partials/admin/footer") %>
+
+<script>
+  // ── DATA FROM SERVER ──
+  const salesData      = <%- JSON.stringify(salesData) %>;
+  const categoryData   = <%- JSON.stringify(categoryData) %>;
+  const customerData   = <%- JSON.stringify(customerData) %>;
+  const ordersOverview = <%- JSON.stringify(ordersOverview) %>;
+  const paymentData    = <%- JSON.stringify(paymentData) %>;
+  const filter         = '<%= filter %>';
+
+  // ── CHART DEFAULTS ──
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.color = '#6b7280';
+
+  // ── SALES LINE CHART ──
+  new Chart(document.getElementById('salesChart'), {
+    type: 'line',
+    data: {
+      labels: salesData.map(d => d._id),
+      datasets: [{
+        label: 'Sales Revenue (₹)',
+        data: salesData.map(d => d.totalSales),
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,.1)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.45,
+        pointRadius: 5,
+        pointBackgroundColor: '#7c3aed',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 14, padding: 16, font: { weight: '600' } } },
+        tooltip: { callbacks: { label: ctx => ' ₹' + Number(ctx.parsed.y).toLocaleString('en-IN') } }
+      },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, border: { dash: [4,4] } },
+        y: {
+          grid: { color: '#f0f0f0' },
+          border: { dash: [4,4] },
+          ticks: { callback: v => '₹' + Number(v).toLocaleString('en-IN') }
+        }
+      }
+    }
+  });
+
+  // ── OFFER TYPE DONUT ──
+  const catColors = ['#7c3aed','#ec4899','#06b6d4','#f59e0b','#10b981','#ef4444'];
+
+  if (categoryData.length > 0) {
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: categoryData.map(c => c._id || 'Unknown'),
+        datasets: [{
+          data: categoryData.map(c => c.revenue),
+          backgroundColor: catColors,
+          borderWidth: 3,
+          borderColor: '#fff',
+          hoverBorderColor: '#fff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.label + ': ₹' + Number(ctx.parsed).toLocaleString('en-IN') } }
+        }
+      }
+    });
+
+    // Build donut legend
+    const legend = document.getElementById('categoryLegend');
+    categoryData.forEach((c, i) => {
+      const el = document.createElement('span');
+      el.className = 'legend-item';
+      el.innerHTML = `<span class="legend-dot" style="background:${catColors[i % catColors.length]}"></span>${c._id || 'Unknown'}`;
+      legend.appendChild(el);
+    });
+  }
+
+  // ── CUSTOMER GROWTH BAR ──
+  new Chart(document.getElementById('customerChart'), {
+    type: 'bar',
+    data: {
+      labels: customerData.map(d => d._id),
+      datasets: [{
+        label: 'New Customers',
+        data: customerData.map(d => d.count),
+        backgroundColor: 'rgba(236,72,153,.7)',
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 14, padding: 16, font: { weight: '600' } } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f0f0f0' }, border: { dash: [4,4] }, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  // ── ORDERS OVERVIEW BAR ──
+  new Chart(document.getElementById('ordersChart'), {
+    type: 'bar',
+    data: {
+      labels: ordersOverview.map(d => d._id),
+      datasets: [{
+        label: 'Total Orders',
+        data: ordersOverview.map(d => d.count),
+        backgroundColor: 'rgba(6,182,212,.7)',
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 14, padding: 16, font: { weight: '600' } } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f0f0f0' }, border: { dash: [4,4] }, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  // ── PAYMENT METHOD BAR ──
+  // paymentData._id is now normalised to: COD | Razorpay | Wallet
+  const paymentColors = {
+    'COD':      'rgba(245,158,11,.75)',
+    'Razorpay': 'rgba(59,130,246,.75)',
+    'Wallet':   'rgba(16,185,129,.75)',
+  };
+  new Chart(document.getElementById('paymentChart'), {
+    type: 'bar',
+    data: {
+      labels: paymentData.map(d => d._id),
+      datasets: [{
+        label: 'Orders',
+        data: paymentData.map(d => d.count),
+        backgroundColor: paymentData.map(d => paymentColors[d._id] || 'rgba(124,58,237,.7)'),
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { boxWidth: 14, padding: 16, font: { weight: '600' } } },
+        tooltip: {
+          callbacks: {
+            afterLabel: ctx => {
+              const d = paymentData[ctx.dataIndex];
+              return '₹' + Number(d.revenue).toLocaleString('en-IN') + ' revenue';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f0f0f0' }, border: { dash: [4,4] }, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  // ── FILTER ──
+  function changeFilter(val) {
+    window.location.href = '/admin?filter=' + val;
+  }
+</script>
+</body>
+</html>

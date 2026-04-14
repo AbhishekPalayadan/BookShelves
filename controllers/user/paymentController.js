@@ -13,29 +13,49 @@ const razorpay = new Razorpay({
 const razorpayOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
+
     const order = await Order.findOne({ orderId });
 
-    if (!order) return res.json({ success: false });
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    if (order.status === "confirmed" && order.paymentStatus === "Success") {
+      return res.json({ success: false, message: "Order is already paid" });
+    }
+
+    const activeSubtotal = order.items
+      .filter(i => i.status !== "cancelled")
+      .reduce((sum, i) => sum + Number(i.price) * Number(i.quantity), 0);
+
+    const couponDisc = order.pricing?.couponDiscount || 0;
+    const finalAmount = Math.max(0, Math.round(activeSubtotal - couponDisc));
+
+    order.pricing.finalAmount = finalAmount;
+    await order.save();
+
+    if (finalAmount === 0) {
+      return res.json({ success: false, message: "Nothing to pay" });
+    }
 
     const options = {
-      amount: Math.round(order.pricing.finalAmount * 100),
+      amount: finalAmount * 100, 
       currency: "INR",
       receipt: order.orderId
     };
 
-    const razorpayOrder = await razorpay.orders.create(options);
+    const razorpayOrderData = await razorpay.orders.create(options);
 
     res.json({
       success: true,
-      razorpayOrder,
+      razorpayOrder: razorpayOrderData,
       key: process.env.RAZORPAY_KEY_ID
     });
 
   } catch (err) {
     console.log(err);
-    res.json({ success: false });
+    res.json({ success: false, message: "Server error" });
   }
 };
+
 
 const verifyPayment = async (req, res) => {
   try {
@@ -53,52 +73,60 @@ const verifyPayment = async (req, res) => {
       .update(body.toString())
       .digest("hex");
 
-    if (expectedSignature === razorpay_signature) {
-
-      const order = await Order.findOne({ orderId, userId: req.user._id });
-
-      if (!order) return res.json({ success: false });
-
-      if (order.status !== "confirmed") {
-
-        order.status = "confirmed";
-        order.paymentMethod = "Razorpay";
-        await order.save();
-
-        for (let item of order.items) {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: -item.quantity }
-          });
-        }
-
-        await Cart.findOneAndDelete({ userId: order.userId });
-
-        if (order.coupon?.code) {
-          await Coupon.findOneAndUpdate(
-            { code: order.coupon.code },
-            { $inc: { usedCount: 1 } }
-          );
-        }
-
-      }
-
-      return res.json({ success: true });
-
-    } else {
-
+    if (expectedSignature !== razorpay_signature) {
       await Order.findOneAndUpdate(
-        { orderId },
-        { status: "failed" }
+        { orderId, userId: req.user._id },
+        { paymentStatus: "Failed" }
       );
-
-      return res.json({ success: false });
+      return res.json({ success: false, message: "Payment verification failed" });
     }
+
+    const order = await Order.findOne({ orderId, userId: req.user._id });
+
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    if (order.status === "confirmed" && order.paymentStatus === "Success") {
+      return res.json({ success: true });
+    }
+
+    const activeSubtotal = order.items
+      .filter(i => i.status !== "cancelled")
+      .reduce((sum, i) => sum + Number(i.price) * Number(i.quantity), 0);
+
+    const couponDisc = order.pricing?.couponDiscount || 0;
+    const newFinalAmount = Math.max(0, Math.round(activeSubtotal - couponDisc));
+
+    order.status = "confirmed";
+    order.paymentMethod = "RAZORPAY";
+    order.paymentStatus = "Success";
+    order.pricing.finalAmount = newFinalAmount;
+    await order.save();
+
+    for (let item of order.items) {
+      if (item.status !== "cancelled") {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity }
+        });
+      }
+    }
+
+    await Cart.findOneAndDelete({ userId: order.userId });
+
+    if (order.coupon?.code) {
+      await Coupon.findOneAndUpdate(
+        { code: order.coupon.code },
+        { $inc: { usedCount: 1 } }
+      );
+    }
+
+    return res.json({ success: true });
 
   } catch (err) {
     console.log(err);
-    res.json({ success: false });
+    res.json({ success: false, message: "Server error" });
   }
 };
+
 
 module.exports = {
   razorpayOrder,

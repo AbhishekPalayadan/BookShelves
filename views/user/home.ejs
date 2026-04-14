@@ -1,11 +1,36 @@
 <%-include("../../views/partials/user/header")%>
 
+<style>
+    .explore-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.explore-btn:hover {
+    color: #000000;
+    background: #ffffff;
+    transform: translateY(-3px);
+}
+</style>
+
 <section class="hero">
-    <img src="/images/book-banner3.png" class="hero-banner" alt="Banner Image">
+    <img src="/images/book-banner6.jpg" class="hero-banner" alt="Banner Image">
 
     <div class="hero-text">
-        <h1>Book<br>Bound</h1>
+        <h1>Book Bound</h1>
         <p>Where Every Story<br>Finds a Reader</p>
+
+        <a href="/products" class="explore-btn">
+            <i class="fa-solid fa-book"></i> Explore All Books
+        </a>
     </div>
 </section>
 

@@ -18,17 +18,17 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
       },
-      productName:String,
-      productImage:String,
+      productName: String,
+      productImage: String,
       quantity: Number,
-      originalPrice:Number,
+      originalPrice: Number,
       price: Number,
-      appliedOffer:Number,
-      offerType:String,
-      offerDiscount:Number,
-      itemTotal:Number,
-      taxPercentage:Number,
-      taxAmount:Number,
+      appliedOffer: Number,
+      offerType: String,
+      offerDiscount: Number,
+      itemTotal: Number,
+      taxPercentage: Number,
+      taxAmount: Number,
       status: {
         type: String,
         enum: [
@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema({
       returnReason: String,
       returnedAt: Date
     }
-  ],  
+  ],
 
   address: {
     fullname: String,
@@ -61,23 +61,38 @@ const orderSchema = new mongoose.Schema({
 
   totalAmount: Number,
 
-  pricing:{
-    subtotal:Number,
-    couponDiscount:Number,
-    offerDiscount:Number,
-    shippingCharge:Number,
-    finalAmount:Number
+  pricing: {
+    subtotal: Number,
+    couponDiscount: Number,
+    offerDiscount: Number,
+    shippingCharge: Number,
+    finalAmount: Number
   },
 
-  coupon:{
-    code:String,
-    discountType:String,
-    discountValue:Number
+  coupon: {
+    code: String,
+    discountType: String,
+    discountValue: Number
   },
 
   paymentMethod: {
     type: String,
-    default: "COD"
+    enum: [
+      'COD',
+      'RAZORPAY',
+      'WALLET'
+    ],
+    required: true
+  },
+
+  paymentStatus: {
+    type: String,
+    enum: [
+      "Pending",
+      "Success",
+      "Failed"
+    ],
+    default: "Pending"
   },
 
   status: {
@@ -85,11 +100,10 @@ const orderSchema = new mongoose.Schema({
     enum: [
       "pending",
       "confirmed",
-      "paid",
-      "failed",
       "shipped",
       "delivered",
-      "cancelled"
+      "cancelled",
+      "failed"     
     ],
     default: "pending"
   },

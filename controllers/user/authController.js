@@ -21,7 +21,8 @@ const loadSignup = (req, res) => {
     } else if (req.query.error === 'invalid') {
       message = 'Invalid email or password.';
     }
-  
+
+    
     if (!message && req.session.signupSuccessMessage) {
       message = req.session.signupSuccessMessage;
       req.session.signupSuccessMessage = null;
@@ -34,9 +35,12 @@ const loadSignup = (req, res) => {
   };
   
 
-const loadForgotPassword=(req,res)=>{
-  res.render('user/resetPassword');
-}
+  const loadForgotPassword = (req, res) => {
+    res.render('user/resetPassword', {
+      user: req.user || null,
+      message:null
+    });
+  }
 
 const logout = (req, res) => {
 
@@ -219,7 +223,7 @@ const resendOtp = async (req,res)=>{
 
     const email = req.session.signupData.email;
 
-    await sendOtp(email, otp);
+    await sendMail(email, otp);
 
     console.log("Resent OTP:", otp);
 

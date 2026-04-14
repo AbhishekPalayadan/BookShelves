@@ -3,83 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <title>My Orders | Bookshelves</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter','Segoe UI',sans-serif; background:#f5f6f8; color:#1f2937; }
 
-    .main-container{max-width:1200px;margin:26px auto;padding:0 20px}
-    .profile-layout{display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:flex-start}
-    .breadcrumb{display:flex;justify-content:space-between;margin-bottom:28px;font-size:14px;color:#6b7280}
-    .breadcrumb a{color:#6b7280;text-decoration:none}
-    .breadcrumb a:hover{color:#ff4757}
-    .customer-name{color:#ff4757;font-weight:600}
+    .main-container { max-width:1200px; margin:26px auto; padding:0 20px; }
+    .profile-layout { display:grid; grid-template-columns:280px 1fr; gap:30px; align-items:flex-start; }
+    .breadcrumb { display:flex; justify-content:space-between; margin-bottom:28px; font-size:14px; color:#6b7280; }
+    .breadcrumb a { color:#6b7280; text-decoration:none; }
+    .breadcrumb a:hover { color:#ff4757; }
+    .customer-name { color:#ff4757; font-weight:600; }
 
-    .content-card{background:#fff;border-radius:14px;padding:30px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
-    .page-title{font-size:22px;font-weight:600;margin-bottom:26px}
+    .content-card { background:#fff; border-radius:14px; padding:30px; box-shadow:0 8px 28px rgba(0,0,0,.08); }
+    .page-title { font-size:22px; font-weight:600; margin-bottom:26px; }
 
-    .order-card{border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin-bottom:26px;background:#fff}
+    .order-card { border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; margin-bottom:26px; background:#fff; }
 
-    .order-header{
-      background:#f9fafb;
-      padding:10px;
-      display:grid;
-      grid-template-columns:repeat(5,1fr); /* updated to 5 columns */
-      gap:20px;
-      border-bottom:1px solid #e5e7eb;
-      font-size:13px;
-      justify-items:center;
-      align-items:center;
+    .order-header {
+      background:#f9fafb; padding:10px;
+      display:grid; grid-template-columns:repeat(5,1fr);
+      gap:20px; border-bottom:1px solid #e5e7eb;
+      font-size:13px; justify-items:center; align-items:center;
     }
 
-    .header-label{color:#6b7280;font-size:12px;margin-bottom:4px}
-    .header-value{font-weight:600;color:#111827}
-    .header-link{color:#ff4757;text-decoration:none;font-size:13px}
-    .header-link:hover{text-decoration:underline}
+    .header-label { color:#6b7280; font-size:12px; margin-bottom:4px; }
+    .header-value { font-weight:600; color:#111827; }
+    .header-link  { color:#ff4757; text-decoration:none; font-size:13px; }
+    .header-link:hover { text-decoration:underline; }
 
-    .order-item{
-      display:grid;
-      grid-template-columns:3fr 6fr 2fr;
-      gap:24px;
-      padding:12px;
-      align-items:center
+    .order-item {
+      display:grid; grid-template-columns:3fr 6fr 2fr;
+      gap:24px; padding:12px; align-items:center;
+      border-bottom: 1px solid #f3f4f6;
     }
+    .order-item:last-child { border-bottom: none; }
 
-    .product-image-sec{
-      width:110px;height:150px;border-radius:12px;overflow:hidden;
-      border:1px solid #e5e7eb;background:#f3f4f6;position:relative
+    .product-image-sec {
+      width:110px; height:150px; border-radius:12px; overflow:hidden;
+      border:1px solid #e5e7eb; background:#f3f4f6; position:relative;
     }
+    .product-image-sec img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 
-    .product-image-sec img{
-      position:absolute;inset:0;width:100%;height:100%;object-fit:cover
+    .product-info h3 { font-size:16px; font-weight:600; margin-bottom:8px; line-height:1.4; }
+    .product-meta { font-size:13px; color:#6b7280; margin-bottom:4px; }
+    .product-offer { font-size:12px; color:#27ae60; font-weight:600; margin-bottom:4px; }
+
+    .order-actions { display:flex; flex-direction:column; gap:10px; align-items:center; }
+    .status { padding:5px 12px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.4px; text-align:center; }
+    .pending          { background:#fff3cd; color:#856404; }
+    .processing       { background:#e0f2fe; color:#0369a1; }
+    .shipped          { background:#cce5ff; color:#004085; }
+    .out_for_delivery { background:#e2e3ff; color:#383d7c; }
+    .delivered        { background:#dcfce7; color:#166534; }
+    .cancelled        { background:#fee2e2; color:#991b1b; }
+    .return_requested { background:#fef9c3; color:#854d0e; }
+    .returned         { background:#f3f4f6; color:#374151; }
+    .return_rejected  { background:#fee2e2; color:#991b1b; }
+
+    .actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .btn {
+      padding:7px 14px; font-size:12px; font-weight:600; border-radius:8px;
+      cursor:pointer; border:1px solid transparent; background:transparent; transition:.2s;
     }
+    .btn-cancel { color:#dc2626; border:1px solid #fecaca; }
+    .btn-cancel:hover { background:#fee2e2; }
+    .btn-return { color:#1d4ed8; border:1px solid #bfdbfe; }
+    .btn-return:hover { background:#dbeafe; }
 
-    .product-info h3{font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.4}
-    .product-meta{font-size:13px;color:#6b7280;margin-bottom:4px}
-
-    .order-actions{display:flex;flex-direction:column;gap:20px;align-items:center}
-    .status{padding:5px 30px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px}
-    .pending{background:#fff3cd;color:#856404}
-    .processing{background:#e0f2fe;color:#0369a1}
-    .delivered{background:#dcfce7;color:#166534}
-    .cancelled{background:#fee2e2;color:#991b1b}
-
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{padding:7px 14px;font-size:12px;font-weight:600;border-radius:8px;
-      cursor:pointer;border:1px solid transparent;background:transparent;transition:.2s}
-
-    .btn-cancel{color:#dc2626;border:1px solid #fecaca}
-    .btn-cancel:hover{background:#fee2e2}
-
-    .btn-return{color:#1d4ed8;border:1px solid #bfdbfe}
-    .btn-return:hover{background:#dbeafe}
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #1a73e8, #0b57d0);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+    }
+    .retry-btn i { font-size: 13px; }
+    .retry-btn strong { margin-left: 4px; font-weight: 600; }
+    .retry-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26, 115, 232, 0.35); }
+    .retry-btn:active { transform: scale(0.97); }
+    .retry-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 
     @media(max-width:900px){
-      .profile-layout{grid-template-columns:1fr}
-      .order-header{grid-template-columns:1fr 1fr}
-      .order-item{grid-template-columns:90px 1fr}
-      .order-actions{grid-column:1/-1}
+      .profile-layout { grid-template-columns:1fr; }
+      .order-header   { grid-template-columns:1fr 1fr; }
+      .order-item     { grid-template-columns:90px 1fr; }
+      .order-actions  { grid-column:1/-1; }
     }
   </style>
 </head>
@@ -103,18 +121,37 @@
       <h1 class="page-title">My Orders</h1>
 
       <% if(!orders || orders.length === 0){ %>
-        <p>No orders found.</p>
+        <p style="color:#6b7280;">No orders found.</p>
       <% } %>
 
-      <% orders.forEach(order => { 
+      <% orders.forEach(order => {
 
-        const hasActiveItem = order.items.some(
-          item => item.status !== "cancelled"
-        );
-        
-        if(!hasActiveItem) return;
-        
-        %>
+        /* Skip orders where every item is cancelled */
+        const hasActiveItem = order.items.some(i => i.status !== "cancelled");
+        if (!hasActiveItem) return;
+
+        /* ── Retry payment logic ── */
+        const isRazorpayPending =
+          order.paymentMethod === "RAZORPAY" &&
+          (order.paymentStatus === "Pending" || order.paymentStatus === "Failed") &&
+          order.status !== "confirmed";
+
+        /* 
+         * activeFinalAmount: sum of non-cancelled items' (price × qty)
+         * minus the coupon discount proportionally.
+         * We use order.pricing.finalAmount if it's already been recalculated,
+         * otherwise compute it here.
+         */
+        const activeSubtotal = order.items
+          .filter(i => i.status !== "cancelled")
+          .reduce((s, i) => s + Number(i.price) * Number(i.quantity), 0);
+
+        const couponDiscAmt = order.pricing?.couponDiscount || 0;
+        const activeFinalAmount = Math.max(0, activeSubtotal - couponDiscAmt);
+
+        const hasPending = order.items.some(i => i.status === "pending");
+      %>
+
         <div class="order-card">
 
           <!-- ORDER HEADER -->
@@ -127,17 +164,7 @@
 
             <div>
               <div class="header-label">Total</div>
-              <%
-let activeTotal = 0;
-
-order.items.forEach(item=>{
-  if(item.status !== "cancelled"){
-    activeTotal += item.price * item.quantity;
-  }
-});
-%>
-
-<div class="header-value">₹ <%= activeTotal %></div>
+              <div class="header-value">₹ <%= activeFinalAmount.toFixed(2) %></div>
             </div>
 
             <div>
@@ -150,11 +177,18 @@ order.items.forEach(item=>{
               <a href="/orders/<%= order.orderId %>" class="header-link">View Details</a>
             </div>
 
-            <!-- Cancel Pending Items Button -->
             <div>
-              <% const hasPending = order.items.some(item => item.status === "pending"); %>
-              <% if (hasPending) { %>
-                <button 
+              <% if (isRazorpayPending) { %>
+                <button
+                  class="retry-btn"
+                  onclick="retryPayment('<%= order.orderId %>', <%= activeFinalAmount %>)"
+                >
+                  <i class="fas fa-credit-card"></i>
+                  <span>Retry Payment</span>
+                  <strong>₹<%= activeFinalAmount.toFixed(2) %></strong>
+                </button>
+              <% } else if (hasPending) { %>
+                <button
                   class="btn btn-cancel"
                   onclick="cancelPendingItems('<%= order._id %>')">
                   Cancel Pending Items
@@ -162,34 +196,50 @@ order.items.forEach(item=>{
               <% } %>
             </div>
 
-          </div>
+          </div><!-- /.order-header -->
 
-          <!-- ORDER ITEMS -->
-          <% order.items.forEach(item => { 
-            if(item.status === "cancelled") return;
-         %>
+          <!-- ORDER ITEMS (non-cancelled only) -->
+          <% order.items.forEach(item => {
+            if (item.status === "cancelled") return;
+            const productName = item.productId?.product_name || item.productName || "Product";
+            const productImg  = item.productId?.images?.[0]  || "no-image.png";
+          %>
             <div class="order-item">
 
               <div class="product-image-sec">
-                <img src="/uploads/product-images/<%= item.productId?.images?.[0] || 'no-image.png' %>">
+                <img
+                  src="/uploads/product-images/<%= productImg %>"
+                  onerror="this.src='/uploads/product-images/no-image.png'"
+                >
               </div>
 
               <div class="product-info">
-                <h3><%= item.productId?.product_name || 'Product' %></h3>
+                <h3><%= productName %></h3>
                 <div class="product-meta">Qty: <%= item.quantity %></div>
-                <div class="product-meta">₹ <%= item.price %></div>
+                <% if(item.originalPrice && item.originalPrice > item.price){ %>
+                  <div class="product-meta">
+                    <span style="text-decoration:line-through;color:#9ca3af;">₹<%= item.originalPrice %></span>
+                  </div>
+                <% } %>
+                <div class="product-meta"><strong>₹<%= item.price %></strong> per item</div>
+                <% if(item.appliedOffer && item.appliedOffer > 0){ %>
+                  <div class="product-offer"><%= item.appliedOffer %>% OFF applied</div>
+                <% } %>
+                <div class="product-meta" style="color:#374151;">
+                  Item Total: <strong>₹<%= (Number(item.price) * Number(item.quantity)).toFixed(2) %></strong>
+                </div>
               </div>
 
               <div class="order-actions">
                 <span class="status <%= item.status %>">
-                  <%= item.status.replace("_"," ").toUpperCase() %>
+                  <%= item.status.replace(/_/g," ").toUpperCase() %>
                 </span>
 
                 <div class="actions">
                   <% if(item.status === "pending"){ %>
                     <button
                       class="btn btn-cancel"
-                      onclick="cancelItem('<%= order._id %>','<%= item.productId._id %>', this)">
+                      onclick="cancelItem('<%= order._id %>','<%= item.productId?._id || item.productId %>', this)">
                       Cancel Item
                     </button>
                   <% } %>
@@ -197,9 +247,17 @@ order.items.forEach(item=>{
                   <% if(item.status === "delivered"){ %>
                     <button
                       class="btn btn-return"
-                      onclick="requestReturn('<%= order._id %>','<%= item.productId._id %>')">
+                      onclick="requestReturn('<%= order._id %>','<%= item.productId?._id || item.productId %>')">
                       Return
                     </button>
+                  <% } %>
+
+                  <% if(item.status === "return_requested"){ %>
+                    <small style="color:#854d0e;">Return request pending</small>
+                  <% } %>
+
+                  <% if(item.status === "return_rejected"){ %>
+                    <small style="color:#dc2626;">Return rejected</small>
                   <% } %>
                 </div>
               </div>
@@ -207,7 +265,7 @@ order.items.forEach(item=>{
             </div>
           <% }) %>
 
-        </div>
+        </div><!-- /.order-card -->
       <% }) %>
 
     </div>
@@ -216,122 +274,177 @@ order.items.forEach(item=>{
 
 <%- include("../../views/partials/user/footer") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
 
-// Cancel Single Item
-async function cancelItem(orderId, productId, btn){
-
-const confirmResult = await Swal.fire({
-  title: "Cancel this item?",
-  text: "This action cannot be undone",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#e74c3c",
-  cancelButtonColor: "#6b7280",
-  confirmButtonText: "Yes, cancel it"
-});
-
-if (!confirmResult.isConfirmed) return;
-
-try {
-  const res = await fetch('/orders/cancel-item', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, productId })
+async function cancelItem(orderId, productId, btn) {
+  const confirmResult = await Swal.fire({
+    title: "Cancel this item?",
+    text: "This action cannot be undone.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, cancel it"
   });
+  if (!confirmResult.isConfirmed) return;
 
-  const data = await res.json();
+  try {
+    const res  = await fetch('/orders/cancel-item', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, productId })
+    });
+    const data = await res.json();
 
-  if(!data.success){
-    Swal.fire("Error", data.message || "Unable to cancel item", "error");
-    return;
-  }
-
-  Swal.fire("Cancelled", "Item cancelled", "success");
-  setTimeout(() => location.reload(), 1200);
-
-} catch (error) {
-  Swal.fire("Error", "Something went wrong", "error");
-}
-}
-
-
-// Return Item
-async function requestReturn(orderId, productId){
-
-const { value: reason } = await Swal.fire({
-  title: "Return Item",
-  input: "textarea",
-  inputLabel: "Reason for return",
-  showCancelButton: true,
-  inputValidator: (value) => {
-    if (!value || value.trim().length < 3) {
-      return "Return reason is required";
+    if (!data.success) {
+      Swal.fire("Error", data.message || "Unable to cancel item", "error");
+      return;
     }
+    await Swal.fire({
+      icon: "success", title: "Item Cancelled",
+      text: "The item has been cancelled successfully.",
+      timer: 1500, showConfirmButton: false
+    });
+    location.reload();
+  } catch (error) {
+    Swal.fire("Error", "Something went wrong", "error");
   }
-});
+}
 
-if (!reason) return;
-
-try {
-  const res = await fetch("/orders/return-item", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId, productId, reason })
+async function requestReturn(orderId, productId) {
+  const { value: reason } = await Swal.fire({
+    title: "Return Item",
+    input: "textarea",
+    inputLabel: "Reason for return",
+    inputPlaceholder: "Please describe your reason...",
+    showCancelButton: true,
+    confirmButtonText: "Submit Request",
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#6b7280",
+    inputValidator: value => {
+      if (!value || value.trim().length < 3) return "Please provide a valid reason";
+    }
   });
+  if (!reason) return;
 
-  const data = await res.json();
+  try {
+    const res  = await fetch("/orders/return-item", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, productId, reason })
+    });
+    const data = await res.json();
 
-  if(data.success){
-    Swal.fire("Return Requested", "", "success");
-    setTimeout(() => location.reload(), 1200);
-  } else {
-    Swal.fire("Error", data.message || "Return failed", "error");
+    if (data.success) {
+      await Swal.fire({
+        icon: "success", title: "Return Requested",
+        text: "Your return request has been submitted.",
+        timer: 1500, showConfirmButton: false
+      });
+      location.reload();
+    } else {
+      Swal.fire("Error", data.message || "Return failed", "error");
+    }
+  } catch (err) {
+    Swal.fire("Error", "Something went wrong", "error");
   }
-
-} catch (err) {
-  Swal.fire("Error", "Something went wrong", "error");
-}
 }
 
-
-// Cancel Pending Items (Full Order Level)
-async function cancelPendingItems(orderId){
-
-const confirmResult = await Swal.fire({
-  title: "Cancel Pending Items?",
-  text: "Only pending items will be cancelled",
-  icon: "warning",
-  showCancelButton: true,
-  confirmButtonColor: "#e74c3c",
-  cancelButtonColor: "#6b7280",
-  confirmButtonText: "Yes, cancel them"
-});
-
-if (!confirmResult.isConfirmed) return;
-
-try {
-
-  const res = await fetch("/orders/cancel-order", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId })
+async function cancelPendingItems(orderId) {
+  const confirmResult = await Swal.fire({
+    title: "Cancel Pending Items?",
+    text: "Only items that are still pending will be cancelled.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, cancel them"
   });
+  if (!confirmResult.isConfirmed) return;
 
-  const data = await res.json();
+  try {
+    const res  = await fetch("/orders/cancel-order", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId })
+    });
+    const data = await res.json();
 
-  if(!data.success){
-    Swal.fire("Error", data.message || "Unable to cancel items", "error");
-    return;
+    if (!data.success) {
+      Swal.fire("Error", data.message || "Unable to cancel items", "error");
+      return;
+    }
+    await Swal.fire({
+      icon: "success", title: "Cancelled",
+      text: "Pending items have been cancelled.",
+      timer: 1500, showConfirmButton: false
+    });
+    location.reload();
+  } catch (error) {
+    Swal.fire("Error", "Something went wrong", "error");
   }
-
-  Swal.fire("Cancelled", "Pending items cancelled", "success");
-  setTimeout(() => location.reload(), 1200);
-
-} catch (error) {
-  Swal.fire("Error", "Something went wrong", "error");
 }
+
+async function retryPayment(orderId, amount) {
+  try {
+    const res  = await fetch("/payment/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      Swal.fire("Error", data.message || "Could not initiate payment. Try again.", "error");
+      return;
+    }
+
+    const options = {
+      key:         data.key,
+      amount:      data.razorpayOrder.amount,
+      currency:    "INR",
+      name:        "Bookshelves",
+      description: `Order #${orderId}`,
+      order_id:    data.razorpayOrder.id,
+      handler: async function (response) {
+        const verifyRes  = await fetch("/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id:   response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature:  response.razorpay_signature,
+            orderId
+          })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+          await Swal.fire({
+            icon: "success", title: "Payment Successful!",
+            timer: 1500, showConfirmButton: false
+          });
+          window.location.href = `/order-success/${orderId}`;
+        } else {
+          Swal.fire("Failed", "Payment verification failed. Please try again.", "error");
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          Swal.fire("Cancelled", "Payment was not completed.", "warning");
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Something went wrong. Please try again.", "error");
+  }
 }
 
 </script>

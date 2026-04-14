@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Bookshelves</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -14,7 +15,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #2d2d2d;
+            background-color: #f2f2f2;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -131,6 +132,34 @@
                 font-size: 15px;
             }
         }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 12px 45px 12px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.2s ease;
+        }
+
+        .toggle-icon {
+            position:absolute;
+            right:12px;
+            top:50%;
+            transform:translateY(-50%);
+            cursor: pointer;
+            color: #888;
+            font-size: 18px;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-icon:hover {
+            color: #333;
+        }
     </style>
 </head>
 
@@ -143,14 +172,19 @@
         <form action="/admin/login" id="form" method="POST">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input id="email" name="email" placeholder="Enter Email Here">
+                <div id="input-container">
+                    <input id="email" name="email" placeholder="Enter Email Here">
+                </div>
                 <p id="emailError" style="color: red;"><%= errors?.email %></p>
 
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter Password Here">
+                <div class="input-container">
+                    <input type="password" id="password" name="password" placeholder="Enter Password Here">
+                    <i class="fa-solid fa-eye toggle-icon" id="toggleIcon"></i>
+                </div>
                 <p id="passError" style="color: red;"><%= errors?.password %></p>
             </div>
 
@@ -165,6 +199,7 @@
     const passwordInput= document.getElementById('password')
     const emailError = document.getElementById('emailError');
     const passError = document.getElementById('passError');
+    const icon=document.getElementById('toggleIcon')
 
     form.addEventListener('submit', (e) => {
         let valid=true;
@@ -193,6 +228,18 @@
 
         if(!valid){
             e.preventDefault();
+        }
+    })
+
+    icon.addEventListener("click",()=>{
+        if(password.type === "password"){
+            password.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        }else{
+            password.type="password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
         }
     })
 </script>

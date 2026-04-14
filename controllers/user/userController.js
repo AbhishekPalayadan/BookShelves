@@ -679,13 +679,11 @@ const toggleWishlist = async (req, res) => {
   const user = await User.findById(userId);
 
   if (user.wishlist.includes(productId)) {
-      // remove
       user.wishlist.pull(productId);
       await user.save();
 
       return res.json({ status: "removed" });
   } else {
-      // add
       user.wishlist.push(productId);
       await user.save();
 

@@ -268,7 +268,7 @@
 }
 
 .address-list {
-  max-height: 500px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 5px;
 }
@@ -406,6 +406,37 @@
     @media (max-width: 900px) {
       .checkout-layout { grid-template-columns: 1fr; }
     }
+
+    .payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.payment-option:hover {
+  border-color: #007bff;
+  background: #f8f9ff;
+}
+
+.payment-option input {
+  transform: scale(1.2);
+}
+
+.payment-content strong {
+  font-size: 14px;
+}
+
+.payment-content p {
+  font-size: 12px;
+  color: #666;
+  margin: 2px 0 0;
+}
   </style>
 </head>
 
@@ -476,14 +507,19 @@
 
       <h2 style="margin-top:30px;">Payment Method</h2>
       <label class="payment-option">
-        <input type="radio" name="payment" value="COD" checked> Cash on Delivery
+        <input type="radio" name="payment" value="COD" checked>
+      
+        <div class="payment-content">
+          <strong>Cash on Delivery</strong>
+          <p style="color: red;font-size: 11px;">Available only for orders below ₹1000</p>
+        </div>
       </label>
       <label class="payment-option">
-        <input type="radio" name="payment" value="RAZORPAY" > Online Payment (UPI)
+        <input type="radio" name="payment" value="RAZORPAY" ><strong> Online Payment (UPI)</strong>
       </label>
-      <label>
-        <input type="radio" name="payment" value="Wallet">
-        Wallet
+      <label class="payment-option">
+        <input type="radio" name="payment" value="WALLET">
+        <strong>Wallet</strong>
       </label>
     </div>
 
@@ -815,6 +851,16 @@ async function placeOrder() {
     'input[name="payment"]:checked'
   ).value;
 
+  if (paymentMethod === "COD" && finalAmount > 1000) {
+  Swal.fire({
+    icon: "warning",
+    title: "COD Not Available",
+    text: "Cash on Delivery is only available for orders below ₹1000. Please choose another payment method or reduce your cart.",
+    confirmButtonColor: "#ff4757"
+  });
+  return;
+}
+
   if (!selectedAddress) {
     Swal.fire("Please select an address");
     return;
@@ -860,7 +906,7 @@ if (paymentMethod === "COD") {
 }
 
 // 3️⃣ If WALLET
-if (paymentMethod === "Wallet") {
+if (paymentMethod === "WALLET") {
   window.location.href = `/order-success/${orderData.orderId}`;
   return;
 }

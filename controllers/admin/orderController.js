@@ -1,19 +1,32 @@
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
-const Wallet=require('../../models/walletSchema');
+const Wallet = require('../../models/walletSchema');
 
 
 const loadOrders = async (req, res) => {
   try {
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip  = (page - 1) * limit;
+
+    const totalOrders = await Order.countDocuments();
+
     const orders = await Order.find()
       .populate("userId")
       .populate("items.productId")
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
+
+    const totalPages = Math.ceil(totalOrders / limit);
 
     res.render("admin/orders", {
       orders,
-      adminName: req.admin?.fullname || "Admin"
+      currentPage:  page,
+      totalPages,
+      adminName:    req.admin?.fullname || "Admin",
+      limit
     });
   } catch (err) {
     console.log(err);
@@ -22,15 +35,35 @@ const loadOrders = async (req, res) => {
 };
 
 
+// Valid forward-only status transitions
 const STATUS_FLOW = {
-  pending: ["shipped", "cancelled"],
-  shipped: ["out_for_delivery"],
+  pending:          ["shipped", "cancelled"],
+  shipped:          ["out_for_delivery"],
   out_for_delivery: ["delivered"],
-  delivered: [],
-  cancelled: [],
-  returned: [],
-  return_rejected: []
+  delivered:        [],
+  cancelled:        [],
+  returned:         [],
+  return_rejected:  []
 };
+
+
+/**
+ * Compute refund amount for one item, proportionally deducting coupon share.
+ * Uses pricing.subtotal (post-offer total of ALL items originally placed).
+ */
+function computeItemRefund(order, item) {
+  const itemTotal      = item.quantity * item.price;
+  const couponDiscount = order.pricing?.couponDiscount || 0;
+  const orderSubtotal  = order.pricing?.subtotal       || 0;
+
+  if (couponDiscount > 0 && orderSubtotal > 0) {
+    const itemShare  = itemTotal / orderSubtotal;
+    const couponShare = Math.round(couponDiscount * itemShare);
+    return Math.max(0, itemTotal - couponShare);
+  }
+
+  return itemTotal;
+}
 
 
 const updateOrderItemStatus = async (req, res) => {
@@ -50,43 +83,101 @@ const updateOrderItemStatus = async (req, res) => {
       return res.json({ success: false, message: "Item not found" });
     }
 
-    // Prevent admin from changing return workflow manually
+    // Block manual changes to return workflow
     if (item.status === "return_requested") {
       return res.json({
         success: false,
-        message: "Use return approval actions"
+        message: "Use the return approval action for this item"
       });
     }
 
-    const allowedStatuses = [
-      "pending",
-      "shipped",
-      "out_for_delivery",
-      "delivered",
-      "cancelled",
-      "returned",
-      "return_rejected"
-    ];
-
-    if (!allowedStatuses.includes(status)) {
-      return res.json({ success: false, message: "Invalid status" });
-    }
-
-    // 🔐 FLOW VALIDATION
+    // Flow validation
     const nextAllowed = STATUS_FLOW[item.status] || [];
     if (!nextAllowed.includes(status)) {
       return res.json({
         success: false,
-        message: `Cannot change status from ${item.status} to ${status}`
+        message: `Cannot change status from "${item.status}" to "${status}"`
       });
     }
 
+    const previousStatus = item.status;
     item.status = status;
 
+    // ── Cancellation by admin ──────────────────────────────────────────
     if (status === "cancelled") {
+      // Restore stock
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }
       });
+
+      // Refund only if payment was actually collected
+      if (order.paymentStatus === "Success") {
+        const refundAmount = computeItemRefund(order, item);
+
+        await Wallet.findOneAndUpdate(
+          { userId: order.userId },
+          {
+            $inc: { balance: refundAmount },
+            $push: {
+              transactions: {
+                amount: refundAmount,
+                type: "credit",
+                description: `Admin cancelled item refund - ${order.orderId}`,
+                date: new Date()
+              }
+            }
+          },
+          { upsert: true }
+        );
+      }
+    }
+
+    // ── COD delivered → mark payment Success when all active items done ─
+    if (status === "delivered" && order.paymentMethod === "COD") {
+      const allDone = order.items.every(
+        i => i.status === "delivered" || i.status === "cancelled"
+      );
+      if (allDone) {
+        order.paymentStatus = "Success";
+      }
+    }
+
+    // ── Sync top-level order.status ────────────────────────────────────
+    const allCancelled = order.items.every(i => i.status === "cancelled");
+    if (allCancelled) {
+      order.status = "cancelled";
+    } else {
+      // Derive order-level status from non-cancelled items
+      const nonCancelled = order.items.filter(i => i.status !== "cancelled");
+
+      // Use the "lowest" progress status among active items
+      const statusRank = {
+        pending: 0, shipped: 1, out_for_delivery: 2, delivered: 3
+      };
+
+      const minRank = Math.min(
+        ...nonCancelled.map(i => statusRank[i.status] ?? 99)
+      );
+
+      const rankToStatus = {
+        0: "confirmed",   // pending items still mean order is "confirmed"
+        1: "shipped",
+        2: "shipped",     // out_for_delivery maps to shipped at order level
+        3: "delivered"
+      };
+
+      if (minRank !== 99) {
+        order.status = rankToStatus[minRank] ?? order.status;
+      }
+    }
+
+    // Recalculate finalAmount whenever an item is cancelled
+    if (status === "cancelled") {
+      const activeSubtotal = order.items
+        .filter(i => i.status !== "cancelled")
+        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const couponDiscount = order.pricing?.couponDiscount || 0;
+      order.pricing.finalAmount = Math.max(0, activeSubtotal - couponDiscount);
     }
 
     await order.save();
@@ -100,8 +191,6 @@ const updateOrderItemStatus = async (req, res) => {
 };
 
 
-
-
 const viewOrderDetails = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -111,9 +200,7 @@ const viewOrderDetails = async (req, res) => {
       .populate("items.productId")
       .lean();
 
-    if (!order) {
-      return res.redirect("/admin/orders");
-    }
+    if (!order) return res.redirect("/admin/orders");
 
     res.render("admin/orderDetails", { order });
   } catch (error) {
@@ -121,7 +208,6 @@ const viewOrderDetails = async (req, res) => {
     res.redirect("/admin/orders");
   }
 };
-
 
 
 const processReturn = async (req, res) => {
@@ -141,26 +227,25 @@ const processReturn = async (req, res) => {
       i => i.productId.toString() === productId
     );
 
-    if (item.status !== "return_requested") {
+    if (!item || item.status !== "return_requested") {
       return res.json({
         success: false,
-        message: "No return request for this item"
+        message: "No pending return request for this item"
       });
     }
 
     if (action === "approve") {
       item.status = "returned";
       item.returnProcessedAt = new Date();
-    
-      // 🔹 Restore stock
+
+      // Restore stock
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }
       });
-    
-      // 🔹 Calculate refund amount
-      const refundAmount = item.quantity * item.price;
-    
-      // 🔹 Add money to user's wallet
+
+      const refundAmount = computeItemRefund(order, item);
+
+      // Refund to wallet for all payment methods (product was already delivered)
       await Wallet.findOneAndUpdate(
         { userId: order.userId },
         {
@@ -169,11 +254,21 @@ const processReturn = async (req, res) => {
             transactions: {
               amount: refundAmount,
               type: "credit",
-              description: "Return approved refund"
+              description: `Return approved refund - ${order.orderId}`,
+              date: new Date()
             }
           }
-        }
+        },
+        { upsert: true }
       );
+
+      // Update finalAmount to exclude returned item
+      const activeSubtotal = order.items
+        .filter(i => i.status !== "cancelled" && i.status !== "returned")
+        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const couponDiscount = order.pricing?.couponDiscount || 0;
+      order.pricing.finalAmount = Math.max(0, activeSubtotal - couponDiscount);
+
     } else if (action === "reject") {
       item.status = "return_rejected";
       item.returnProcessedAt = new Date();
@@ -187,6 +282,7 @@ const processReturn = async (req, res) => {
     res.json({ success: false, message: "Server error" });
   }
 };
+
 
 module.exports = {
   loadOrders,
