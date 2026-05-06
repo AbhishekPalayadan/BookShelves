@@ -5,6 +5,7 @@ const Product = require('../../models/productSchema');
 const Coupon = require('../../models/couponSchema');
 const Wallet = require('../../models/walletSchema');
 const pdf = require("html-pdf-node");
+const { getBestOffer } = require("../../utils/offerHelper"); // ✅ ADDED
 
 const placeOrder = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ const placeOrder = async (req, res) => {
 
     const cart = await Cart.findOne({ userId }).populate({
       path: "items.productId",
-      populate: { path: "category_id", select: "isListed offerPercentage" }
+      populate: { path: "category_id", select: "isListed offer" } // ✅ FIXED: offerPercentage → offer
     });
 
     if (!cart || cart.items.length === 0)
@@ -46,17 +47,16 @@ const placeOrder = async (req, res) => {
 
     let offerDiscountTotal = 0;
 
-    const cartTotal = cart.items.reduce((sum, item) => {
+    // ✅ FIXED: use getBestOffer() so category field name and date window are respected
+    const cartTotal = Math.round(cart.items.reduce((sum, item) => {
       const product = item.productId;
-      const productOffer = product.offerPercentage || 0;
-      const categoryOffer = product.category_id?.offerPercentage || 0;
-      const bestOffer = Math.max(productOffer, categoryOffer);
-      const originalPrice = product.sale_price;
-      const discountAmount = (originalPrice * bestOffer) / 100;
+      const bestOffer = getBestOffer(product);
+      const originalPrice = Math.round(product.sale_price);
+      const discountAmount = Math.round((originalPrice * bestOffer.offer) / 100);
       const finalPrice = originalPrice - discountAmount;
       offerDiscountTotal += discountAmount * item.quantity;
       return sum + finalPrice * item.quantity;
-    }, 0);
+    }, 0));
 
     let coupon = null;
     let couponDiscount = 0;
@@ -127,11 +127,11 @@ const placeOrder = async (req, res) => {
       userId,
       items: cart.items.map(item => {
         const product = item.productId;
-        const productOffer = product.offerPercentage || 0;
-        const categoryOffer = product.category_id?.offerPercentage || 0;
-        const bestOffer = Math.max(productOffer, categoryOffer);
+
+        // ✅ FIXED: use getBestOffer() instead of reading wrong fields manually
+        const best = getBestOffer(product);
         const originalPrice = Math.round(product.sale_price);
-        const offerDiscount = Math.round((originalPrice * bestOffer) / 100);
+        const offerDiscount = Math.round((originalPrice * best.offer) / 100);
         const finalPrice = Math.round(originalPrice - offerDiscount);
         const quantity = item.quantity;
         const itemTotal = finalPrice * quantity;
@@ -145,8 +145,8 @@ const placeOrder = async (req, res) => {
           quantity,
           originalPrice,
           price: finalPrice,
-          appliedOffer: bestOffer,
-          offerType: productOffer >= categoryOffer ? "product" : "category",
+          appliedOffer: best.offer,     // ✅ .offer (number)
+          offerType: best.type,         // ✅ .type ("product" | "category")
           offerDiscount,
           itemTotal,
           taxPercentage,
@@ -211,9 +211,7 @@ const placeOrder = async (req, res) => {
       );
     }
 
-    if (paymentMethod === "COD" || paymentMethod === "WALLET") {
-      await Cart.findOneAndDelete({ userId });
-    }
+    await Cart.findOneAndDelete({ userId });
 
     return res.json({ success: true, orderId: order.orderId });
 
@@ -290,9 +288,9 @@ const loadOrderDetails = async (req, res) => {
 
 
 function computeItemRefund(order, item) {
-  const itemTotal = item.quantity * item.price; 
+  const itemTotal = item.quantity * item.price;
   const couponDiscount = order.pricing?.couponDiscount || 0;
-  const orderSubtotal = order.pricing?.subtotal || 0; 
+  const orderSubtotal = order.pricing?.subtotal || 0;
 
   if (couponDiscount > 0 && orderSubtotal > 0) {
     const itemShare = itemTotal / orderSubtotal;

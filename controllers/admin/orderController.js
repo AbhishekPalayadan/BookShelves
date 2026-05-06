@@ -35,7 +35,6 @@ const loadOrders = async (req, res) => {
 };
 
 
-// Valid forward-only status transitions
 const STATUS_FLOW = {
   pending:          ["shipped", "cancelled"],
   shipped:          ["out_for_delivery"],
@@ -47,10 +46,6 @@ const STATUS_FLOW = {
 };
 
 
-/**
- * Compute refund amount for one item, proportionally deducting coupon share.
- * Uses pricing.subtotal (post-offer total of ALL items originally placed).
- */
 function computeItemRefund(order, item) {
   const itemTotal      = item.quantity * item.price;
   const couponDiscount = order.pricing?.couponDiscount || 0;
@@ -83,7 +78,6 @@ const updateOrderItemStatus = async (req, res) => {
       return res.json({ success: false, message: "Item not found" });
     }
 
-    // Block manual changes to return workflow
     if (item.status === "return_requested") {
       return res.json({
         success: false,
@@ -91,7 +85,6 @@ const updateOrderItemStatus = async (req, res) => {
       });
     }
 
-    // Flow validation
     const nextAllowed = STATUS_FLOW[item.status] || [];
     if (!nextAllowed.includes(status)) {
       return res.json({
@@ -103,14 +96,11 @@ const updateOrderItemStatus = async (req, res) => {
     const previousStatus = item.status;
     item.status = status;
 
-    // ── Cancellation by admin ──────────────────────────────────────────
     if (status === "cancelled") {
-      // Restore stock
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }
       });
 
-      // Refund only if payment was actually collected
       if (order.paymentStatus === "Success") {
         const refundAmount = computeItemRefund(order, item);
 
@@ -132,7 +122,6 @@ const updateOrderItemStatus = async (req, res) => {
       }
     }
 
-    // ── COD delivered → mark payment Success when all active items done ─
     if (status === "delivered" && order.paymentMethod === "COD") {
       const allDone = order.items.every(
         i => i.status === "delivered" || i.status === "cancelled"
@@ -142,15 +131,12 @@ const updateOrderItemStatus = async (req, res) => {
       }
     }
 
-    // ── Sync top-level order.status ────────────────────────────────────
     const allCancelled = order.items.every(i => i.status === "cancelled");
     if (allCancelled) {
       order.status = "cancelled";
     } else {
-      // Derive order-level status from non-cancelled items
       const nonCancelled = order.items.filter(i => i.status !== "cancelled");
 
-      // Use the "lowest" progress status among active items
       const statusRank = {
         pending: 0, shipped: 1, out_for_delivery: 2, delivered: 3
       };
@@ -160,9 +146,9 @@ const updateOrderItemStatus = async (req, res) => {
       );
 
       const rankToStatus = {
-        0: "confirmed",   // pending items still mean order is "confirmed"
+        0: "confirmed", 
         1: "shipped",
-        2: "shipped",     // out_for_delivery maps to shipped at order level
+        2: "shipped",
         3: "delivered"
       };
 
@@ -171,7 +157,6 @@ const updateOrderItemStatus = async (req, res) => {
       }
     }
 
-    // Recalculate finalAmount whenever an item is cancelled
     if (status === "cancelled") {
       const activeSubtotal = order.items
         .filter(i => i.status !== "cancelled")
@@ -238,14 +223,12 @@ const processReturn = async (req, res) => {
       item.status = "returned";
       item.returnProcessedAt = new Date();
 
-      // Restore stock
       await Product.findByIdAndUpdate(item.productId, {
         $inc: { stock: item.quantity }
       });
 
       const refundAmount = computeItemRefund(order, item);
 
-      // Refund to wallet for all payment methods (product was already delivered)
       await Wallet.findOneAndUpdate(
         { userId: order.userId },
         {
@@ -262,7 +245,6 @@ const processReturn = async (req, res) => {
         { upsert: true }
       );
 
-      // Update finalAmount to exclude returned item
       const activeSubtotal = order.items
         .filter(i => i.status !== "cancelled" && i.status !== "returned")
         .reduce((sum, i) => sum + i.price * i.quantity, 0);

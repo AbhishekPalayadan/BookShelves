@@ -126,9 +126,6 @@
 
       <% orders.forEach(order => {
 
-        /* Skip orders where every item is cancelled */
-        const hasActiveItem = order.items.some(i => i.status !== "cancelled");
-        if (!hasActiveItem) return;
 
         /* ── Retry payment logic ── */
         const isRazorpayPending =
@@ -200,7 +197,6 @@
 
           <!-- ORDER ITEMS (non-cancelled only) -->
           <% order.items.forEach(item => {
-            if (item.status === "cancelled") return;
             const productName = item.productId?.product_name || item.productName || "Product";
             const productImg  = item.productId?.images?.[0]  || "no-image.png";
           %>

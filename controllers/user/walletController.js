@@ -7,9 +7,12 @@ const crypto = require('crypto');
 
 const loadWallet = async (req, res) => {
   try {
+    const currentPage=parseInt(req.query.page) || 1;
+    const limit=5;
+
+
 
     let wallet = await Wallet.findOne({ userId: req.user._id });
-
 
     if (!wallet) {
       wallet = new Wallet({
@@ -20,10 +23,22 @@ const loadWallet = async (req, res) => {
 
       await wallet.save();
     }
+    
+    const transactions=wallet.transactions || [];
+
+    const totalTransactions=transactions.length;
+
+    const totalPage=Math.ceil(totalTransactions/limit);
+
+    const startIndex=(currentPage - 1)* limit;
+    const paginatedTransactions=transactions.slice(startIndex,startIndex+limit);
 
     res.render("user/wallet", {
       user: req.user,
-      wallet
+      wallet,
+      transactions:paginatedTransactions,
+      currentPage,
+      totalPage,
     });
 
   } catch (error) {

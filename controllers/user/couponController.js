@@ -29,7 +29,6 @@ const applyCoupon = async (req, res) => {
       return res.json({ success: false, message: "Coupon usage limit reached" });
     }
 
-    // Check per-user usage using coupon.code stored in order.coupon.code
     const userUsageCount = await Order.countDocuments({
       userId: req.user._id,
       "coupon.code": coupon.code
