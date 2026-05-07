@@ -9,7 +9,6 @@ const pageError = async (req, res) => {
 };
 
 const loadLogin = (req, res) => {
-  console.log(req.session);
   if (req.session.admin) {
     return res.redirect("/admin");
   }

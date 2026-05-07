@@ -10,7 +10,7 @@ const loadSignup = (req, res) => {
 };
 
 const loadLogin = (req, res) => {
-  console.log(req.session);
+
   if (req.isAuthenticated()) return res.redirect('/');
 
   let message = null;
