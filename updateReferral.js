@@ -215,7 +215,6 @@ function computeItemRefund(order, item) {
 }
 
 calculateAmount();
-
 const updateOrderItemStatus = async (req, res) => {
   try {
     const { orderId, productId, status } = req.body;
@@ -345,7 +344,6 @@ const viewOrderDetails = async (req, res) => {
     res.redirect("/admin/orders");
   }
 };
-
 const processReturn = async (req, res) => {
   try {
     const { orderId, productId, action } = req.body;
@@ -358,7 +356,7 @@ const processReturn = async (req, res) => {
     if (!order) {
       return res.json({ success: false, message: "Order not found" });
     }
-    
+
     const item = order.items.find((i) => i.productId.toString() === productId);
 
     if (!item || item.status !== "return_requested") {
