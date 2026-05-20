@@ -134,29 +134,29 @@
           <% }) %>
         </tbody>
       </table>
+
       <div class="pagination">
 
         <% if (currentPage > 1) { %>
-            <a href="?page=<%= currentPage - 1 %><%= queryString %>" class="page-btn">◀</a>
+          <a href="?page=<%= currentPage - 1 %><%= queryString %>" class="page-btn">◀</a>
         <% } else { %>
-            <span class="page-btn disabled">◀</span>
+          <span class="page-btn disabled">◀</span>
         <% } %>
-    
-        <% for (let i = 1; i <= totalPage; i++) { %>
-            <a href="?page=<%= i %><%= queryString %>" 
-               class="page-number <%= currentPage === i ? 'active' : '' %>">
-                <%= i %>
-            </a>
+      
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <a href="?page=<%= i %><%= queryString %>" 
+             class="page-number <%= currentPage === i ? 'active' : '' %>">
+            <%= i %>
+          </a>
         <% } %>
-    
+      
         <% if (currentPage < totalPages) { %>
-            <a href="?page=<%= currentPage + 1 %><%= queryString %>" class="page-btn">▶</a>
+          <a href="?page=<%= currentPage + 1 %><%= queryString %>" class="page-btn">▶</a>
         <% } else { %>
-            <span class="page-btn disabled">▶</span>
+          <span class="page-btn disabled">▶</span>
         <% } %>
-    
-    </div>
-
+      
+      </div>
       <% } %>
 
     </div>

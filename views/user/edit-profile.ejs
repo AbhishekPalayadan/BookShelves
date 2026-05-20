@@ -1,570 +1,708 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- CropperJS (CORRECT UMD BUILD) -->
-<link rel="stylesheet" href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css">
-<script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css"
+    />
+    <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
 
     <title>My Profile - Bookshelves</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+      }
 
-        header {
-            background-color: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 20px 0;
+      header {
+        background-color: #fff;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px 0;
+      }
+
+      nav {
+        display: flex;
+        gap: 30px;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: #000;
+        font-size: 15px;
+        transition: color 0.3s;
+      }
+
+      nav a:hover {
+        color: #ff4757;
+      }
+
+      /* Main Content */
+      .main-container {
+        max-width: 1200px;
+        margin: 25px auto;
+        padding: 0 20px;
+      }
+
+      /* Breadcrumb */
+      .breadcrumb {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        font-size: 14px;
+        color: #666;
+      }
+
+      .breadcrumb a {
+        color: #666;
+        text-decoration: none;
+      }
+
+      .breadcrumb a:hover {
+        color: #ff4757;
+      }
+
+      .breadcrumb-divider {
+        margin: 0 8px;
+      }
+
+      .welcome-text {
+        font-size: 16px;
+        color: #333;
+      }
+
+      .welcome-text .customer-name {
+        color: #ff4757;
+        font-weight: 600;
+      }
+
+      /* Profile Layout */
+      .profile-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+        align-items: start;
+      }
+
+      .sidebar-top {
+        flex: 1;
+      }
+
+      .profile-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 40px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+      }
+
+      .profile-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .edit-profile-btn {
+        padding: 10px 24px;
+        background: #ff4757;
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        text-decoration: none;
+      }
+
+      .edit-profile-btn:hover {
+        background: #ff3838;
+      }
+
+      .profile-info-section {
+        background: #ffffff;
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+
+      .info-item {
+        background: #fafafa;
+        padding: 16px 18px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .info-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      .info-value {
+        font-size: 16px;
+        color: #333;
+        font-weight: 500;
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+      }
+
+      .info-value.empty {
+        color: #999;
+        font-style: italic;
+      }
+
+      .info-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: #222;
+      }
+
+      /* Security Section */
+      .security-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f0f0;
+      }
+
+      .security-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .security-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .security-btn {
+        padding: 12px 24px;
+        background: #fff;
+        color: #ff4757;
+        border: 2px solid #ff4757;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .security-btn:hover {
+        background: #ff4757;
+        color: #fff;
+      }
+
+      .security-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      /* Edit Profile Inputs */
+      .info-input {
+        width: 100%;
+        font-size: 16px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+        background: #f8f9fa;
+        outline: none;
+        margin-bottom: 20px;
+      }
+
+      .info-input:focus {
+        border-color: #ff4757;
+        background: #fff;
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 25px;
+      }
+
+      .btn-cancel {
+        padding: 10px 22px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        background: #eee;
+        color: #333;
+      }
+
+      .btn-cancel:hover {
+        background: #ddd;
+      }
+      .error-message {
+        color: #b30000;
+        font-size: 12px;
+        margin-top: -12px;
+        margin-bottom: 12px;
+        display: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 968px) {
+        .profile-layout {
+          grid-template-columns: 1fr;
         }
 
         nav {
-            display: flex;
-            gap: 30px;
+          order: 3;
+          width: 100%;
+          justify-content: center;
         }
+      }
 
-        nav a {
-            text-decoration: none;
-            color: #000;
-            font-size: 15px;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: #ff4757;
-        }
-
-
-        /* Main Content */
-        .main-container {
-            max-width: 1200px;
-            margin: 25px auto;
-            padding: 0 20px;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .breadcrumb a {
-            color: #666;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            color: #ff4757;
-        }
-
-        .breadcrumb-divider {
-            margin: 0 8px;
-        }
-
-        .welcome-text {
-            font-size: 16px;
-            color: #333;
-        }
-
-        .welcome-text .customer-name {
-            color: #ff4757;
-            font-weight: 600;
-        }
-
-        /* Profile Layout */
-        .profile-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        .sidebar-top{
-            flex:1
+      @media (max-width: 640px) {
+        .info-grid {
+          grid-template-columns: 1fr;
         }
 
         .profile-content {
-            background: #fff;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .profile-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .profile-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .edit-profile-btn {
-            padding: 10px 24px;
-            background: #ff4757;
-            color: #fff;
-            border: none;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-        }
-
-        .edit-profile-btn:hover {
-            background: #ff3838;
-        }
-
-
-        .profile-info-section {
-    background: #ffffff;
-    padding: 28px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    margin-bottom: 30px;
-}
-
-
-
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 22px;
-}
-
-.info-item {
-    background: #fafafa;
-    padding: 16px 18px;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.info-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-        .info-value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-        }
-
-        .info-value.empty {
-            color: #999;
-            font-style: italic;
-        }
-
-        .info-text {
-    font-size: 16px;
-    font-weight: 600;
-    color: #222;
-}
-
-        /* Security Section */
-        .security-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .security-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
+          padding: 25px 20px;
         }
 
         .security-actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+          flex-direction: column;
         }
 
         .security-btn {
-            padding: 12px 24px;
-            background: #fff;
-            color: #ff4757;
-            border: 2px solid #ff4757;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+          width: 100%;
+          justify-content: center;
         }
+      }
 
-        .security-btn:hover {
-            background: #ff4757;
-            color: #fff;
-        }
+      .edit-icon {
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        background: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+      }
 
-        .security-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-        /* Edit Profile Inputs */
-.info-input {
-    width: 100%;
-    font-size: 16px;
-    padding: 12px 16px;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-    background: #f8f9fa;
-    outline: none;
-    margin-bottom: 20px;
-}
+      .edit-icon:hover {
+        background: #ff4757;
+        color: #fff;
+      }
 
-.info-input:focus {
-    border-color: #ff4757;
-    background: #fff;
-}
+      .avatar-initial2 {
+        font-size: 42px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+      }
 
+      .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+      }
+      .avatar-circle {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff4757, #ff6b81);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        overflow: hidden;
+      }
 
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 25px;
-}
-
-.btn-cancel {
-    padding: 10px 22px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 600;
-    background: #eee;
-    color: #333;
-}
-
-.btn-cancel:hover {
-    background: #ddd;
-}
-
-
-        /* Responsive */
-        @media (max-width: 968px) {
-            .profile-layout {
-                grid-template-columns: 1fr;
-            }
-
-            nav {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-content {
-                padding: 25px 20px;
-            }
-
-            .security-actions {
-                flex-direction: column;
-            }
-
-            .security-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        .edit-icon {
-    position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: 0.3s;
-}
-
-.edit-icon:hover {
-    background: #ff4757;
-    color: #fff;
-}
-
-.avatar-initial2 {
-    font-size: 42px;
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-}
-
-.avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-}
-.avatar-circle {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff4757, #ff6b81);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
-    overflow: hidden; 
-}
-
-.avatar-circle form {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-.avatar-wrapper {
-    position: relative;
-}
-.profile-avatar {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+      .avatar-circle form {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+      .avatar-wrapper {
+        position: relative;
+      }
+      .profile-avatar {
+        text-align: center;
+        margin-bottom: 30px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <%-include("../../views/partials/user/header")%>
 
-
     <div class="main-container">
-
-        <div class="breadcrumb">
-            <div>
-                <a href="/">Home</a>
-                <span class="breadcrumb-divider">/</span>
-                <span>My Account</span>
-            </div>
-            <div class="welcome-text">
-                Welcome! <span class="customer-name"><%= user.fullname || "Guest" %></span>
-            </div>
+      <div class="breadcrumb">
+        <div>
+          <a href="/">Home</a>
+          <span class="breadcrumb-divider">/</span>
+          <span>My Account</span>
         </div>
-
-
-        <div class="profile-layout">
-
-
-            <%- include('../partials/user/profileSidebar',{
-                user:user,
-                activeMenu:'profile'
-            }) %>
-            <main class="profile-content">
-                <h1>Edit Profile</h1>
-                <form id="editProfileForm">
-                    <div class="avatar-circle avatar-wrapper">
-                        <% if (user.profileImage) { %>
-                          <img src="<%= user.profileImage %>" class="avatar-img" id="profileAvatar">
-                        <% } else { %>
-                          <span class="avatar-initial2"><%= user.fullname[0] %></span>
-                        <% } %>
-                      
-                        <input type="file" id="profileInput" accept="image/*" hidden>
-                        <label for="profileInput" class="edit-icon">✏️</label>
-                      </div>
-
-                            <!-- Full Name -->
-                            <div class="info-item">
-                                <label class="info-label">Full Name</label>
-                                <input
-                                    type="text"
-                                    name="fullname"
-                                    value="<%= user.fullname %>"
-                                    class="info-input"
-                                    required
-                                >
-
-                                <label class="info-label">Phone Number</label>
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    value="<%= user.phone || '' %>"
-                                    class="info-input"
-                                >
-
-                                <label class="info-label">Date of Birth</label>
-                                <input
-                                    type="date"
-                                    name="dob"
-                                    value="<%= user.dob ? user.dob.toISOString().split('T')[0] : '' %>"
-                                    class="info-input"
-                                >
-                            </div>
-                
-                    <!-- Form Buttons -->
-                    <div class="form-actions">
-                        <a href="/userProfile" class="btn-cancel">Cancel</a>
-                        <button type="submit" class="edit-profile-btn">
-                            Save Changes
-                        </button>
-                    </div>
-                
-                </form>
-                
-            </main>
-            <div id="cropModal" style="display:none; position:fixed; inset:0;
-background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:#fff; padding:20px; border-radius:10px; width:320px;">
-    <h3>Crop Profile Image</h3>
-
-    <div style="width:260px;height:260px;margin:auto;">
-      <img id="cropImage" style="max-width:100%;">
-    </div>
-
-    <button id="saveCrop"
-      style="margin-top:15px;width:100%;padding:10px;background:#ff4757;
-      color:#fff;border:none;border-radius:6px;">
-      Save
-    </button>
-  </div>
-</div>
+        <div class="welcome-text">
+          Welcome!
+          <span class="customer-name"><%= user.fullname || "Guest" %></span>
         </div>
+      </div>
+
+      <div class="profile-layout">
+        <%- include('../partials/user/profileSidebar',{ user:user,
+        activeMenu:'profile' }) %>
+        <main class="profile-content">
+          <h1>Edit Profile</h1>
+          <form id="editProfileForm">
+            <div class="avatar-circle avatar-wrapper">
+              <% if (user.profileImage) { %>
+              <img
+                src="<%= user.profileImage %>"
+                class="avatar-img"
+                id="profileAvatar"
+              />
+              <% } else { %>
+              <span class="avatar-initial2"><%= user.fullname[0] %></span>
+              <% } %>
+
+              <input type="file" id="profileInput" accept="image/*" hidden />
+              <label for="profileInput" class="edit-icon">✏️</label>
+            </div>
+
+            <!-- Full Name -->
+            <div class="info-item">
+              <label class="info-label">Full Name</label>
+              <input
+                type="text"
+                name="fullname"
+                value="<%= user.fullname %>"
+                class="info-input"
+              />
+              <div class="error-message" id="fullnameError"></div>
+
+              <label class="info-label">Phone Number</label>
+              <input
+                type="text"
+                name="phone"
+                value="<%= user.phone || '' %>"
+                class="info-input"
+              />
+              <div class="error-message" id="phoneError"></div>
+
+              <label class="info-label">Date of Birth</label>
+              <input
+                type="date"
+                name="dob"
+                value="<%= user.dob ? user.dob.toISOString().split('T')[0] : '' %>"
+                class="info-input"
+              />
+              <div class="error-message" id="dobError"></div>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-actions">
+              <a href="/userProfile" class="btn-cancel">Cancel</a>
+              <button type="submit" class="edit-profile-btn">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </main>
+        <div
+          id="cropModal"
+          style="
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <div
+            style="
+              background: #fff;
+              padding: 20px;
+              border-radius: 10px;
+              width: 320px;
+            "
+          >
+            <h3>Crop Profile Image</h3>
+
+            <div style="width: 260px; height: 260px; margin: auto">
+              <img id="cropImage" style="max-width: 100%" />
+            </div>
+
+            <button
+              id="saveCrop"
+              style="
+                margin-top: 15px;
+                width: 100%;
+                padding: 10px;
+                background: #ff4757;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+              "
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <%-include("../../views/partials/user/footer")%>
 
     <script>
+      const form = document.getElementById("editProfileForm");
 
-        const form=document.getElementById('editProfileForm');
+      const fullnameError = document.getElementById("fullnameError");
+      const phoneError = document.getElementById("phoneError");
+      const dobError = document.getElementById("dobError");
 
-        form.addEventListener('submit',async(e)=>{
-            e.preventDefault();
+      function showError(element, message) {
+        element.style.display = "block";
+        element.innerText = message;
+      }
 
-            const formData={
-                fullname:form.fullname.value,
-                phone:form.phone.value,
-                dob:form.dob.value
+      function clearError(element) {
+        element.style.display = "none";
+        element.innerText = "";
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        clearError(fullnameError);
+        clearError(phoneError);
+        clearError(dobError);
+
+        let isValid = true;
+
+        const fullname = form.fullname.value.trim();
+        const phone = form.phone.value.trim();
+        const dob = form.dob.value;
+
+        const namePattern = /^[A-Za-z\s]+$/;
+        const phonePattern = /^[6-9]\d{9}$/;
+
+        if (!fullname) {
+          showError(fullnameError, "Full name is required");
+          isValid = false;
+        } else if (fullname.length < 3) {
+          showError(fullnameError, "Name must be at least 3 characters");
+          isValid = false;
+        } else if (!namePattern.test(fullname)) {
+          showError(fullnameError, "Name can only contain letters and spaces");
+          isValid = false;
+        }
+
+        if (phone && phone.includes(" ")) {
+          showError(phoneError, "Phone number cannot contain spaces");
+          isValid = false;
+        }
+
+        if (phone && !phonePattern.test(phone)) {
+          showError(phoneError, "Enter a valid 10 digit Indian phone number");
+          isValid = false;
+        }
+
+        if (dob) {
+          const selectedDate = new Date(dob);
+          const today = new Date();
+
+          if (selectedDate > today) {
+            showError(dobError, "Date of birth cannot be in the future");
+            isValid = false;
+          } else {
+            let age = today.getFullYear() - selectedDate.getFullYear();
+
+            const monthDiff = today.getMonth() - selectedDate.getMonth();
+
+            if (
+              monthDiff < 0 ||
+              (monthDiff === 0 && today.getDate() < selectedDate.getDate())
+            ) {
+              age--;
             }
 
-            const response=await fetch('/edit-profile',{
-                method:'PATCH',
-                headers:{
-                    'Content-Type':'application/json'
-                },
-                body:JSON.stringify(formData)
-            })
-
-            const data=await response.json();
-
-            if(data.success){
-                Swal.fire({
-                    icon:'success',
-                    title:'Profile Updated',
-                    text:data.message,
-                    confirmButtonColor:'#ff4757'
-
-                }).then(()=>{
-                    window.location.href='/userProfile';
-                })
-            }else{
-                Swal.fire({
-                    icon:'error',
-                    title:'Updated Failed',
-                    text:data.message,
-                    confirmButtonColor: '#ff4757'
-                })
+            if (age < 10) {
+              showError(dobError, "Age must be at least 10 years");
+              isValid = false;
             }
-        })
 
+            if (age > 100) {
+              showError(dobError, "Enter a valid date of birth");
+              isValid = false;
+            }
+          }
+        }
 
-        let cropper;
-    const input = document.getElementById("profileInput");
-    const modal = document.getElementById("cropModal");
-    const cropImage = document.getElementById("cropImage");
-    const saveBtn = document.getElementById("saveCrop");
-    
-    input.addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-    
-      const reader = new FileReader();
-      reader.onload = () => {
-        cropImage.src = reader.result;
-        modal.style.display = "flex";
-    
-        if (cropper) cropper.destroy();
-    
-        cropper = new Cropper(cropImage, {
-          aspectRatio: 1,
-          viewMode: 1,
-          autoCropArea: 1,
-          movable: true,
-          zoomable: true,
+        if (!isValid) return;
+
+        const formData = {
+          fullname,
+          phone,
+          dob,
+        };
+
+        const response = await fetch("/edit-profile", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         });
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    saveBtn.addEventListener("click", () => {
-      if (!cropper) return;
-    
-      cropper.getCroppedCanvas({
-        width: 300,
-        height: 300,
-        imageSmoothingQuality: "high"
-      }).toBlob(async blob => {
-    
-        const formData = new FormData();
-        formData.append("image", blob);
-    
-        const res = await fetch("/profile/photo", {
-          method: "POST",
-          body: formData
-        });
-    
-        if (res.ok) {
-          location.reload();
+
+        const data = await response.json();
+
+        if (data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Profile Updated",
+            text: data.message,
+            confirmButtonColor: "#ff4757",
+          }).then(() => {
+            window.location.href = "/userProfile";
+          });
         } else {
-          alert("Upload failed");
+          Swal.fire({
+            icon: "error",
+            title: "Update Failed",
+            text: data.message,
+            confirmButtonColor: "#ff4757",
+          });
         }
       });
-    
-      cropper.destroy();
-      modal.style.display = "none";
-    });
+
+      let cropper;
+      const input = document.getElementById("profileInput");
+      const modal = document.getElementById("cropModal");
+      const cropImage = document.getElementById("cropImage");
+      const saveBtn = document.getElementById("saveCrop");
+
+      input.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/webp",
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+          Swal.fire(
+            "Invalid Image",
+            "Only JPG, PNG and WEBP images are allowed",
+            "error"
+          );
+          input.value = "";
+          return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+          Swal.fire(
+            "File Too Large",
+            "Image size must be less than 2MB",
+            "error"
+          );
+          input.value = "";
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          cropImage.src = reader.result;
+          modal.style.display = "flex";
+
+          if (cropper) cropper.destroy();
+
+          cropper = new Cropper(cropImage, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+            movable: true,
+            zoomable: true,
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+
+      saveBtn.addEventListener("click", () => {
+        if (!cropper) return;
+
+        cropper
+          .getCroppedCanvas({
+            width: 300,
+            height: 300,
+            imageSmoothingQuality: "high",
+          })
+          .toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append("image", blob);
+
+            const res = await fetch("/profile/photo", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (res.ok) {
+              location.reload();
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Upload Failed",
+                text: "Profile image upload failed",
+                confirmButtonColor: "#ff4757",
+              });
+            }
+          });
+
+        cropper.destroy();
+        modal.style.display = "none";
+      });
     </script>
-</body>
+  </body>
 </html>

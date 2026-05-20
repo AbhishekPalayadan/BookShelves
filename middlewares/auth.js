@@ -52,8 +52,21 @@ const adminAuth = async (req, res, next) => {
   }
 }
 
+const userAuthAjax=(req,res,next)=>{
+  if(req.user){
+    return next();
+  }
+
+  return res.status(401).json({
+    success:false,
+    redirect:"/login",
+    message:"Please login first"
+  })
+}
+
 
 module.exports = {
   userAuth,
-  adminAuth
+  adminAuth,
+  userAuthAjax
 }

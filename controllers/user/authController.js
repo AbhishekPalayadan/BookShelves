@@ -15,8 +15,12 @@ const loadLogin = (req, res) => {
 
   let message = null;
 
-  if (req.query.error === 'blocked') {
+  if (req.query.message) {
+    message = req.query.message;
+
+  } else if (req.query.error === 'blocked') {
     message = 'Your account has been blocked. Please contact support.';
+
   } else if (req.query.error === 'invalid') {
     message = 'Invalid email or password.';
   }

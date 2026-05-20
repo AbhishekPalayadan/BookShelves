@@ -183,14 +183,18 @@
       &nbsp;| Order# <strong><%= order.orderId %></strong>
     </div>
     <%
-      /* Only show invoice link if at least one item is not cancelled */
-      const hasDeliverableItem = order.items.some(i => i.status !== "cancelled");
-    %>
-    <% if(hasDeliverableItem){ %>
-      <a href="/orders/<%= order.orderId %>/invoice" class="invoice-link">
-        <i class="fas fa-file-invoice"></i> Invoice
-      </a>
-    <% } %>
+const hasInvoiceEligibleItem = order.items.some(i =>
+  i.status === "delivered" ||
+  i.status === "returned"  ||
+  i.status === "return_requested"
+);
+%>
+
+<% if(hasInvoiceEligibleItem){ %>
+  <a href="/orders/<%= order.orderId %>/invoice" class="invoice-link">
+    <i class="fas fa-file-invoice"></i> Invoice
+  </a>
+<% } %>
   </div>
 
   <%

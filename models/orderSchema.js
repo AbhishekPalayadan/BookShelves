@@ -3,20 +3,20 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema({
   orderId: {
     type: String,
-    unique: true
+    unique: true,
   },
 
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: true,
   },
 
   items: [
     {
       productId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Product"
+        ref: "Product",
       },
       productName: String,
       productImage: String,
@@ -39,15 +39,17 @@ const orderSchema = new mongoose.Schema({
           "cancelled",
           "return_requested",
           "returned",
-          "return_rejected"
+          "return_rejected",
         ],
-        default: "pending"
+        default: "pending",
       },
+      cancelReason: String,
+      cancelledAt: Date,
       returnRequestedAt: Date,
       returnProcessedAt: Date,
       returnReason: String,
-      returnedAt: Date
-    }
+      returnedAt: Date,
+    },
   ],
 
   address: {
@@ -56,7 +58,7 @@ const orderSchema = new mongoose.Schema({
     house: String,
     place: String,
     state: String,
-    pincode: String
+    pincode: String,
   },
 
   totalAmount: Number,
@@ -66,33 +68,25 @@ const orderSchema = new mongoose.Schema({
     couponDiscount: Number,
     offerDiscount: Number,
     shippingCharge: Number,
-    finalAmount: Number
+    finalAmount: Number,
   },
 
   coupon: {
     code: String,
     discountType: String,
-    discountValue: Number
+    discountValue: Number,
   },
 
   paymentMethod: {
     type: String,
-    enum: [
-      'COD',
-      'RAZORPAY',
-      'WALLET'
-    ],
-    required: true
+    enum: ["COD", "RAZORPAY", "WALLET"],
+    required: true,
   },
 
   paymentStatus: {
     type: String,
-    enum: [
-      "Pending",
-      "Success",
-      "Failed"
-    ],
-    default: "Pending"
+    enum: ["Pending", "Success", "Failed"],
+    default: "Pending",
   },
 
   status: {
@@ -103,14 +97,14 @@ const orderSchema = new mongoose.Schema({
       "shipped",
       "delivered",
       "cancelled",
-      "failed"     
+      "failed",
     ],
-    default: "pending"
+    default: "pending",
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 });
 

@@ -93,7 +93,16 @@ const MAX_PER_PRODUCT = 10;
 
 const addToCart = async (req, res) => {
     try {
+        if(!req.user){
+            return res.status(401).json({
+                success:false,
+                redirect:"/login",
+                message:"Please login to add product to cart"
+            })
+        }
+
         const userId = req.user._id;
+
         const { productId, quantity = 1 } = req.body;
 
         if (!quantity || quantity < 1) {

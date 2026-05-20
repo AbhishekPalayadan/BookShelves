@@ -224,6 +224,27 @@
 
 
       </table>
+      <nav aria-label="Page Navigation">
+        <ul class="pagination">
+      
+          <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+            <a class="page-link" href="?page=1">First</a>
+          </li>
+      
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+              <a class="page-link" href="?page=<%= i %>">
+                <%= i %>
+              </a>
+            </li>
+          <% } %>
+      
+          <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+            <a class="page-link" href="?page=<%= totalPages %>">Last</a>
+          </li>
+      
+        </ul>
+      </nav>
     </div>
   </div>
   
@@ -290,6 +311,40 @@ document.getElementById("couponForm").addEventListener("submit", async (e) => {
   const minPurchase = Number(form.minPurchase.value);
   const usageLimit = Number(form.usageLimit.value);
   const expiryDate = form.expiryDate.value;
+
+  if (discountValue <= 0) {
+  discountValueError.innerText = "Discount must be greater than 0";
+  isValid = false;
+}
+
+if (minPurchase <= 0) {
+  minPurchaseError.innerText = "Minimum cart amount must be greater than 0";
+  isValid = false;
+}
+
+if (discountType === "percentage") {
+  if (discountValue > 90) {
+    discountValueError.innerText = "Percentage discount cannot be more than 90%";
+    isValid = false;
+  }
+
+  if (maxDiscount <= 0) {
+    maxDiscountError.innerText = "Maximum discount is required for percentage coupon";
+    isValid = false;
+  }
+
+  if (maxDiscount >= minPurchase) {
+    maxDiscountError.innerText = "Maximum discount must be less than minimum cart amount";
+    isValid = false;
+  }
+}
+
+if (discountType === "flat") {
+  if (discountValue >= minPurchase) {
+    discountValueError.innerText = "Flat discount must be less than minimum cart amount";
+    isValid = false;
+  }
+}
 
   if (!code || code.length < 3) {
     document.getElementById("codeError").innerText = "Minimum 3 characters required";

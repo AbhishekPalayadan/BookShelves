@@ -2,26 +2,7 @@
 
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <style>
-        .wishlist-btn {
-  background: white;
-  border-radius: 50%;
-  padding: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.product-card {
-  position: relative;
-}
-
-.wishlist-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-.text-red {
-  color: red;
-}
-    </style>
+   
 </head>
 <link rel="stylesheet" href="/css/products.css">
 
@@ -168,62 +149,8 @@ style="display:flex; justify-content:space-between; align-items:center; margin-b
             <% if (products.length > 0) { %>
 
                 <% products.forEach(product => { %>
-
-                    <a href="/product-details/<%= product._id %>" class="product-card" style="position:relative; text-decoration:none; color:inherit;">
-
-                        <!-- Wishlist Button -->
-                        <button class="wishlist-btn"
-                            onclick="event.preventDefault(); event.stopPropagation(); toggleWishlist(this)"
-                            data-id="<%= product._id %>"
-                            style="position:absolute; top:10px; right:10px; z-index:10;">
                     
-                            <i class="fa-heart <%= product.isWishlisted ? 'fa-solid text-red' : 'fa-regular' %>"></i>
-                        </button>
-                    
-                        <div class="product-image">
-                            <img src="/uploads/product-images/<%= product.images[0] %>" alt="">
-                        </div>
-                    
-                        <div class="product-info">
-                            <p class="product-name"><%= product.product_name %></p>
-
-        <div class="product-price">
-
-            <% if(product.appliedOffer > 0){ %>
-        
-                <!-- Offer Badge -->
-                <div style="background:#ff4757; color:white; 
-                            font-size:12px; padding:3px 8px; 
-                            border-radius:4px; display:inline-block; margin-bottom:5px;">
-                    <%= product.appliedOffer %>% OFF
-                </div>
-        
-                <div>
-                    <span class="price-sale" style="color:#2ecc71; font-weight:bold;">
-                        ₹<%= product.discountedPrice.toFixed(2) %>
-                    </span>
-        
-                    <span class="price-original" style="text-decoration:line-through; color:gray; margin-left:6px;">
-                        ₹<%= product.sale_price %>
-                    </span>
-                </div>
-        
-            <% } else { %>
-        
-                <span class="price-sale">₹<%= product.sale_price %></span>
-        
-                <% if (product.sale_price < product.regular_price) { %>
-                    <span class="price-original">₹<%= product.regular_price %></span>
-                <% } %>
-        
-            <% } %>
-        
-        </div>
-
-        <div class="product-rating">⭐⭐⭐⭐⭐</div>
-    </div>
-</a>
-
+                    <%- include("../partials/user/productCard", { product }) %>
 
                 <% }) %>
 

@@ -7,10 +7,8 @@ const crypto = require('crypto');
 
 const loadWallet = async (req, res) => {
   try {
-    const currentPage=parseInt(req.query.page) || 1;
-    const limit=5;
-
-
+    const currentPage = parseInt(req.query.page) || 1;
+    const limit = 5;
 
     let wallet = await Wallet.findOne({ userId: req.user._id });
 
@@ -23,22 +21,32 @@ const loadWallet = async (req, res) => {
 
       await wallet.save();
     }
-    
-    const transactions=wallet.transactions || [];
 
-    const totalTransactions=transactions.length;
+    const transactions = wallet.transactions || [];
 
-    const totalPage=Math.ceil(totalTransactions/limit);
+    const totalTransactions = transactions.length;
+    const totalPages = Math.ceil(totalTransactions / limit) || 1;
 
-    const startIndex=(currentPage - 1)* limit;
-    const paginatedTransactions=transactions.slice(startIndex,startIndex+limit);
+    const startIndex = (currentPage - 1) * limit;
+    const paginatedTransactions = transactions.slice(
+      startIndex,
+      startIndex + limit
+    );
+
+    const queryParams = new URLSearchParams(req.query);
+    queryParams.delete("page");
+
+    const queryString = queryParams.toString()
+      ? "&" + queryParams.toString()
+      : "";
 
     res.render("user/wallet", {
       user: req.user,
       wallet,
-      transactions:paginatedTransactions,
+      transactions: paginatedTransactions,
       currentPage,
-      totalPage,
+      totalPages,
+      queryString
     });
 
   } catch (error) {
@@ -46,7 +54,6 @@ const loadWallet = async (req, res) => {
     res.redirect("/");
   }
 };
-
 
 
 

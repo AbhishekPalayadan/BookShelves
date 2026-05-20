@@ -46,7 +46,6 @@ app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/payment', paymentRoutes);
 
-
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 })
