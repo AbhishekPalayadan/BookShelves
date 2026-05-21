@@ -6,7 +6,7 @@ const {adminAuth}=require('../../middlewares/auth')
 router.get('/category',adminAuth,categoryController.categoryInfo);
 
 router.post('/addCategory',adminAuth,categoryController.addCategory);
-router.post('/editCategory',adminAuth,categoryController.editCategory)
+router.post('/editCategory/:id',adminAuth,categoryController.editCategory);
 
 router.get('/categoryStatus',adminAuth,categoryController.categoryStatus);
 

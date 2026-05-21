@@ -168,7 +168,7 @@
 
  
 
-        <form onsubmit="return submitEdit(event)" id="form">
+        <form onsubmit="return submitEdit(event)" id="editForm">
 
             <h2 style="margin-bottom: 10px;">Edit Category</h2>
             <input type="hidden" id="edit-id">
@@ -235,281 +235,332 @@
 
 
 <script>
-
-const form=document.getElementById('form');
-const catName=document.getElementById('add-name');
-const catDes=document.getElementById('descriptionId');
-const nameError=document.getElementById('nameError');
-const desError=document.getElementById('desError')
-
-form.addEventListener('keyup', (e) => {
-    let valid = true;
-
-    nameError.innerText = "";
-    desError.innerText = "";
-
-    const nameValue = catName.value.trim();
-    const desValue = catDes.value.trim();
-
-    if (nameValue === "") {
-        nameError.innerText = "Category name cannot be empty";
-        valid = false;
+    const addForm = document.querySelector("#main-modal form");
+    const editForm = document.querySelector("#edit-modal form");
+    
+    const catName = document.getElementById("add-name");
+    const catDes = document.getElementById("descriptionId");
+    const nameError = document.getElementById("nameError");
+    const desError = document.getElementById("desError");
+    
+    const modal = document.getElementById("main-modal");
+    const addCategoryBtn = document.getElementById("addCategoryBtn");
+    const closeModal = document.getElementById("close-modal");
+    
+    const editModal = document.getElementById("edit-modal");
+    const editClose = document.getElementById("close-edit-modal");
+    
+    function validateCategory(name, description) {
+        const errors = {};
+        const nameRegex = /^[A-Za-z][A-Za-z0-9\s&-]*$/;
+    
+        name = name.trim();
+        description = description.trim();
+    
+        if (!name) {
+            errors.name = "Category name is required";
+        } else if (name.length < 3) {
+            errors.name = "Category name must be at least 3 characters";
+        } else if (name.length > 30) {
+            errors.name = "Category name cannot exceed 30 characters";
+        } else if (!nameRegex.test(name)) {
+            errors.name = "Only letters, numbers, space, & and - are allowed";
+        }
+    
+        if (!description) {
+            errors.description = "Description is required";
+        } else if (description.length < 10) {
+            errors.description = "Description must be at least 10 characters";
+        } else if (description.length > 300) {
+            errors.description = "Description cannot exceed 300 characters";
+        }
+    
+        return errors;
     }
-
-    if (desValue === "") {
-        desError.innerText = "Description cannot be empty";
-        valid = false;
+    
+    addCategoryBtn.onclick = () => {
+        catName.value = "";
+        catDes.value = "";
+        nameError.innerText = "";
+        desError.innerText = "";
+        modal.style.display = "block";
+    };
+    
+    closeModal.onclick = () => modal.style.display = "none";
+    editClose.onclick = () => editModal.style.display = "none";
+    
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) modal.style.display = "none";
+        if (e.target === editModal) editModal.style.display = "none";
+    });
+    
+    function openEditModal(id, name, description) {
+        document.getElementById("edit-id").value = id;
+        document.getElementById("edit-name").value = name;
+        document.getElementById("edit-description").value = description;
+    
+        document.getElementById("editNameError").innerText = "";
+        document.getElementById("editDesError").innerText = "";
+    
+        editModal.style.display = "block";
     }
-
-    if (!valid) {
-        e.preventDefault();
-    }
-});
-
-
-
-const modal = document.getElementById("main-modal");
-const addCategoryBtn = document.getElementById("addCategoryBtn");
-const closeModal = document.getElementById("close-modal");
-
-const editModal = document.getElementById("edit-modal");
-const editClose = document.getElementById("close-edit-modal");
-
-
-addCategoryBtn.onclick = () => modal.style.display = "block";
-closeModal.onclick = () => modal.style.display = "none";
-
-
-function openEditModal(id, name, description) {
-    document.getElementById("edit-id").value = id;
-    document.getElementById("edit-name").value = name;
-    document.getElementById("edit-description").value = description;
-
-    editModal.style.display = "block";
-}
-
-editClose.onclick = () => editModal.style.display = "none";
-
-
-window.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-    if (e.target === editModal) editModal.style.display = "none";
-});
-
-
-async function submitEdit(event) {
-    event.preventDefault();
-
-    document.getElementById('editNameError').innerText="";
-    document.getElementById('editDesError').innerText="";
-
-    const id = document.getElementById("edit-id").value;
-    const name = document.getElementById("edit-name").value.trim();
-    const description = document.getElementById("edit-description").value.trim();
-
-    let valid=true;
-
-    if(name===""){
-        document.getElementById('editNameError').innerText="Category name cannot be empty";
-        valid=false;
-    }
-    if(description===""){
-        document.getElementById('editDesError').innerText="Description cannot be empty";
-        valid=false;
-    }
-    if(!valid){
-        return;
-    }
-    try {
-        const res = await fetch(`/admin/editCategory/${id}`, {
+    
+    catName.addEventListener("input", () => {
+        const errors = validateCategory(catName.value, catDes.value);
+        nameError.innerText = errors.name || "";
+    });
+    
+    catDes.addEventListener("input", () => {
+        const errors = validateCategory(catName.value, catDes.value);
+        desError.innerText = errors.description || "";
+    });
+    
+    function handleFormSubmit(event) {
+        event.preventDefault();
+    
+        nameError.innerText = "";
+        desError.innerText = "";
+    
+        const name = catName.value.trim();
+        const description = catDes.value.trim();
+    
+        const errors = validateCategory(name, description);
+    
+        if (errors.name) nameError.innerText = errors.name;
+        if (errors.description) desError.innerText = errors.description;
+    
+        if (Object.keys(errors).length > 0) return false;
+    
+        fetch("/admin/addCategory", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, description })
+        })
+        .then(async response => {
+            const data = await response.json();
+    
+            if (!response.ok) {
+                throw new Error(data.error || "Error while adding category");
+            }
+    
+            return data;
+        })
+        .then(() => {
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Category added successfully"
+            }).then(() => location.reload());
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: "error",
+                title: "Oops",
+                text: error.message
+            });
+        });
+    
+        return false;
+    }
+    
+    async function submitEdit(event) {
+        event.preventDefault();
+    
+        const editNameError = document.getElementById("editNameError");
+        const editDesError = document.getElementById("editDesError");
+    
+        editNameError.innerText = "";
+        editDesError.innerText = "";
+    
+        const id = document.getElementById("edit-id").value;
+        const name = document.getElementById("edit-name").value.trim();
+        const description = document.getElementById("edit-description").value.trim();
+    
+        const errors = validateCategory(name, description);
+    
+        if (errors.name) editNameError.innerText = errors.name;
+        if (errors.description) editDesError.innerText = errors.description;
+    
+        if (Object.keys(errors).length > 0) return false;
+    
+        try {
+            const res = await fetch(`/admin/editCategory/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description })
+            });
+    
+            const data = await res.json();
+    
+            if (!res.ok) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.error || "Something went wrong"
+                });
+                return false;
+            }
+    
+            Swal.fire({
+                icon: "success",
+                title: "Updated",
+                text: "Category updated successfully"
+            }).then(() => location.reload());
+    
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unexpected error"
+            });
+        }
+    
+        return false;
+    }
+    
+    function changeCategoryStatus(id, isChecked) {
+        const action = isChecked ? "List" : "Unlist";
+    
+        Swal.fire({
+            title: `${action} this category?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${action}`,
+        }).then((res) => {
+            if (res.isConfirmed) {
+                window.location.href = `/admin/categoryStatus?id=${id}&status=${isChecked}`;
+            } else {
+                location.reload();
+            }
+        });
+    }
+    
+    function openCategoryOfferModal(id) {
+    document.getElementById("offerId").value = id;
+    document.getElementById("offerType").value = "category";
+
+    document.getElementById("discountInput").value = "";
+    document.getElementById("startDate").value = "";
+    document.getElementById("endDate").value = "";
+
+    document.getElementById("offerModal").style.display = "block";
+}
+    
+    function closeOfferModal() {
+        document.getElementById("offerModal").style.display = "none";
+    }
+    
+    async function saveOffer() {
+    const id = document.getElementById("offerId").value;
+    const type = document.getElementById("offerType").value;
+
+    const discountInput = document.getElementById("discountInput");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+
+    const discount = Number(discountInput.value);
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    if (!id) {
+        Swal.fire("Error", "Invalid category", "error");
+        return;
+    }
+
+    if (!discountInput.value || !startDate || !endDate) {
+        Swal.fire("Error", "All fields are required", "error");
+        return;
+    }
+
+    if (isNaN(discount)) {
+        Swal.fire("Error", "Discount must be a number", "error");
+        return;
+    }
+
+    if (!Number.isInteger(discount)) {
+        Swal.fire("Error", "Discount must be a whole number", "error");
+        return;
+    }
+
+    if (discount < 1) {
+        Swal.fire("Error", "Discount must be at least 1%", "error");
+        return;
+    }
+
+    if (discount > 90) {
+        Swal.fire("Error", "Discount cannot be more than 90%", "error");
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        Swal.fire("Error", "Invalid date selected", "error");
+        return;
+    }
+
+    if (start < today) {
+        Swal.fire("Error", "Start date cannot be in the past", "error");
+        return;
+    }
+
+    if (end <= start) {
+        Swal.fire("Error", "End date must be after start date", "error");
+        return;
+    }
+
+    if (type !== "category" && type !== "product") {
+        Swal.fire("Error", "Invalid offer type", "error");
+        return;
+    }
+
+    const url = type === "product"
+        ? `/admin/setProductOffer/${id}`
+        : `/admin/setCategoryOffer/${id}`;
+
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                discount,
+                startDate,
+                endDate
+            })
         });
 
         const data = await res.json();
 
-        editModal.style.display = "none"; 
-
-        if (!res.ok) {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: data.error || "Something went wrong."
-            });
+        if (!res.ok || !data.success) {
+            Swal.fire("Error", data.message || "Could not add offer", "error");
             return;
         }
 
         Swal.fire({
             icon: "success",
-            title: "Updated Successfully",
-            text: "Category updated"
+            title: "Success",
+            text: "Offer added successfully"
         }).then(() => location.reload());
 
-    } catch (err) {
-        editModal.style.display = "none";
-
-        Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Unexpected error"
-        });
+    } catch (error) {
+        Swal.fire("Error", "Server error. Please try again.", "error");
     }
 }
-
-function handleFormSubmit(event) {
-
-    event.preventDefault();
-
-    nameError.innerText="";
-    desError.innerText="";
-
-    const name = catName.value.trim();
-    const description = catDes.value.trim();
-
-    let valid=true;
-
-    if(name===""){
-        nameError.innerText="Category Name cannot be empty";
-        valid=false;
-    }
     
-    if(description===""){
-        desError.innerText="Description cannot be empty";
-        valid=false;
-    }
-
-    if(!valid){
-        return;
-    }
-
-    fetch('/admin/addCategory', {
-        method: "POST",
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, description })
-    })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error); });
+    async function removeCategoryOffer(id) {
+        Swal.fire({
+            title: "Remove offer?",
+            icon: "warning",
+            showCancelButton: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await fetch(`/admin/removeCategoryOffer/${id}`);
+                location.reload();
             }
-            return response.json();
-        })
-        .then(data => location.reload())
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops',
-                text: error.message === "Category already exists"
-                    ? "Category already exists"
-                    : "Error while adding category"
-            });
         });
-}
-
-function changeCategoryStatus(id, isChecked) {
-    const action = isChecked ? "List" : "Unlist";
-
-    Swal.fire({
-        title: `${action} this category?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: `Yes, ${action}`,
-    }).then((res) => {
-        if (res.isConfirmed) {
-            window.location.href = `/admin/categoryStatus?id=${id}&status=${isChecked}`;
-        } else {
-            location.reload();
-        }
-    });
-}
-
-function deleteCategory(id) {
-    Swal.fire({
-        title: "Delete this category?",
-        text: "It will be soft deleted. You can restore later.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#e63946",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Yes, Delete"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = `/admin/deleteCategory/${id}`;
-        }
-    });
-}
-
-function openProductOfferModal(id){
-  document.getElementById("offerId").value = id;
-  document.getElementById("offerType").value = "product";
-  document.getElementById("offerModal").style.display = "block";
-}
-
-function openCategoryOfferModal(id){
-  document.getElementById("offerId").value = id;
-  document.getElementById("offerType").value = "category";
-  document.getElementById("offerModal").style.display = "block";
-}
-
-function closeOfferModal(){
-  document.getElementById("offerModal").style.display = "none";
-}
-
-async function saveOffer(){
-  const id = document.getElementById("offerId").value;
-  const type = document.getElementById("offerType").value;
-  const discount = document.getElementById("discountInput").value;
-  const startDate = document.getElementById("startDate").value;
-  const endDate = document.getElementById("endDate").value;
-
-  if(!discount || !startDate || !endDate){
-    Swal.fire("All fields required");
-    return;
-  }
-
-  const url = type === "product"
-      ? `/admin/setProductOffer/${id}`
-      : `/admin/setCategoryOffer/${id}`;
-
-  const res = await fetch(url,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ discount, startDate, endDate })
-  });
-
-  const data = await res.json();
-
-  if(data.success){
-    Swal.fire("Offer Added");
-    location.reload();
-  }else{
-    Swal.fire("Error");
-  }
-}
-
-async function removeProductOffer(id){
-  Swal.fire({
-    title:"Remove offer?",
-    icon:"warning",
-    showCancelButton:true
-  }).then(async(result)=>{
-    if(result.isConfirmed){
-      await fetch(`/admin/removeProductOffer/${id}`);
-      location.reload();
     }
-  });
-}
-
-async function removeCategoryOffer(id){
-  Swal.fire({
-    title:"Remove offer?",
-    icon:"warning",
-    showCancelButton:true
-  }).then(async(result)=>{
-    if(result.isConfirmed){
-      await fetch(`/admin/removeCategoryOffer/${id}`);
-      location.reload();
-    }
-  });
-}
-</script>
+    </script>
