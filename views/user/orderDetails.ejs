@@ -187,6 +187,7 @@ const hasInvoiceEligibleItem = order.items.some(i =>
   i.status === "delivered" ||
   i.status === "returned"  ||
   i.status === "return_requested"
+  i.status === "return_rejected"
 );
 %>
 
