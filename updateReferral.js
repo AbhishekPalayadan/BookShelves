@@ -115,7 +115,7 @@ const loadCoupons = async (req, res) => {
 };
 
 app.get("/contact", (req, res) => {
-  res.send("Its just contact page");
+  res.send("Its just contact page"); 
 });
 
 app.get("/home", (req, res) => {
