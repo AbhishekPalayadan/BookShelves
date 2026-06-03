@@ -5,7 +5,8 @@ const sendMail = require('../../utils/sendOtp');
 
 
 const loadProfile = (req, res) => {
-    res.render('user/userProfile', { user: req.user });
+  const referralLink=`${process.env.BASE_URL}/signup?ref=${user.referralCode}`;
+    res.render('user/userProfile', { user: req.user,referralLink });
   };
 
 
