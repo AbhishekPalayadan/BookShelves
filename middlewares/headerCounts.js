@@ -1,5 +1,5 @@
 const Cart = require("../models/cartSchema");
-const Wishlist = require("../models/wishlistSchema");
+const User = require("../models/userSchema");
 
 const headerCounts = async (req, res, next) => {
   try {
@@ -8,20 +8,20 @@ const headerCounts = async (req, res, next) => {
 
     if (req.user) {
       const cart = await Cart.findOne({ userId: req.user._id });
-      const wishlist = await Wishlist.findOne({ userId: req.user._id });
+      const user = await User.findById(req.user._id).select("wishlist");
 
       res.locals.cartCount = cart
         ? cart.items.reduce((total, item) => total + item.quantity, 0)
         : 0;
 
-      res.locals.wishlistCount = wishlist
-        ? wishlist.products.length
+      res.locals.wishlistCount = user && user.wishlist
+        ? user.wishlist.length
         : 0;
     }
 
     next();
   } catch (error) {
-    console.log(error);
+    console.log("Header count error:", error);
     next();
   }
 };
