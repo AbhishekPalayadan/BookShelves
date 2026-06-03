@@ -8,14 +8,21 @@ const headerCounts = async (req, res, next) => {
 
     if (req.user) {
       const cart = await Cart.findOne({ userId: req.user._id });
-      const user = await User.findById(req.user._id).select("wishlist");
+
+      const user = await User.findById(req.user._id)
+        .populate("wishlist")
+        .select("wishlist");
 
       res.locals.cartCount = cart
         ? cart.items.reduce((total, item) => total + item.quantity, 0)
         : 0;
 
-      res.locals.wishlistCount = user && user.wishlist
-        ? user.wishlist.length
+      res.locals.wishlistCount = user?.wishlist
+        ? user.wishlist.filter(product =>
+            product &&
+            !product.isDeleted &&
+            product.status !== "removed"
+          ).length
         : 0;
     }
 
