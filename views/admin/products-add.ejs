@@ -136,10 +136,9 @@
 </div>
 
 <script>
-const currentPage = "<%= typeof currentPage !== 'undefined' ? currentPage : 1 %>";
 
-const existingImages = <%- JSON.stringify(product.images || []) %>;
-let keptExisting = [...existingImages];
+const existingImages = [];
+let keptExisting = [];
 
 const MAX_FILES = 4;
 
