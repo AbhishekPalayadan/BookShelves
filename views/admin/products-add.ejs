@@ -80,13 +80,9 @@
 
       <div class="form-field">
         <label>Category</label>
-        <select id="f_category" name="category">
+        <select id="category" name="category">
           <% cat.forEach(c => { %>
-            <option 
-              value="<%= c._id %>" 
-              <%= String(c._id) === String(product.category_id || product.category) ? 'selected' : '' %>>
-              <%= c.name %>
-            </option>
+            <option value="<%= c._id %>"><%= c.name %></option>
           <% }) %>
         </select>
       </div>
