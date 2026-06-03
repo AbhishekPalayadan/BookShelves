@@ -1,10 +1,10 @@
-<%- include("../partials/admin/header", { title: "Edit Product", adminName: "Admin", activeMenu: "products" }) %>
+<%- include("../partials/admin/header", { title: "Add Product", adminName: "Admin", activeMenu: "products" }) %>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <style>
-.edit-wrapper { padding:20px 17px; }
+.add-wrapper { padding:20px 17px; }
 .product-card { background:#fff; padding:22px; border-radius:10px; border:1px solid #e6e6e6; display:flex; gap:30px; flex-wrap:wrap; }
 .left-column { width:280px; min-width:220px; }
 .main-preview { width:100%; height:280px; border-radius:12px; background:#f7f7f7; border:2px dashed #ddd; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
@@ -24,9 +24,9 @@
 .error-message { color:red; font-size:12px; margin:4px 0 0; }
 </style>
 
-<div class="edit-wrapper">
+<div class="add-wrapper">
   <div class="content-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-    <h1 style="font-size:28px; font-weight:600; color:#333;">Edit Product</h1>
+    <h1 style="font-size:28px; font-weight:600; color:#333;">Add Product</h1>
   </div>
 
   <div class="product-card">
@@ -62,7 +62,7 @@
 
       <div class="form-field" style="grid-column:1 / -1;">
         <label>Description</label>
-        <textarea id="description" name="description"></textarea>
+        <textarea id="description" name="description" rows="4"></textarea>
         <p class="error-message"></p>
       </div>
 
@@ -89,13 +89,13 @@
 
       <div class="form-field">
         <label>Stock Quantity</label>
-        <input id="stockQuantity" type="number" name="stockQuantity">
+        <input id="stockQuantity" type="number" name="stockQuantity" min="0">
         <p class="error-message"></p>
       </div>
 
       <div class="form-field">
         <label>Page Count</label>
-        <input id="pageCount" type="number" name="pageCount">
+        <input id="pageCount" type="number" name="pageCount" min="1">
         <p class="error-message"></p>
       </div>
 
@@ -107,17 +107,17 @@
 
       <div class="form-field">
         <label>Regular Price</label>
-        <input id="regular_price" type="number" name="regularPrice">
+        <input id="regular_price" type="number" name="regularPrice" min="1">
         <p class="error-message"></p>
       </div>
 
       <div class="form-field">
         <label>Sale Price</label>
-        <input id="sale_price" type="number" name="salePrice">
+        <input id="sale_price" type="number" name="salePrice" min="0">
         <p class="error-message"></p>
       </div>
 
-      <button id="saveBtn" type="button" class="submit-btn">Save Changes</button>
+      <button id="saveBtn" type="button" class="submit-btn">Add Product</button>
     </div>
   </div>
 </div>
@@ -136,10 +136,6 @@
 </div>
 
 <script>
-
-const existingImages = [];
-let keptExisting = [];
-
 const MAX_FILES = 4;
 
 const input1 = document.getElementById("input1");
@@ -157,35 +153,19 @@ let filesDT = new DataTransfer();
 let mainIndex = null;
 let cropper = null;
 
-function buildCombinedList() {
-  const combined = [];
-
-  keptExisting.forEach((name, index) => {
-    combined.push({
-      type: "existing",
-      existingIndex: index,
-      name,
-      url: "/uploads/product-images/" + name
-    });
-  });
-
-  Array.from(filesDT.files).forEach((file, index) => {
-    combined.push({
-      type: "new",
-      newIndex: index,
-      file,
-      url: URL.createObjectURL(file)
-    });
-  });
-
-  return combined;
+function buildImageList() {
+  return Array.from(filesDT.files).map((file, index) => ({
+    index,
+    file,
+    url: URL.createObjectURL(file)
+  }));
 }
 
 function renderThumbnails() {
-  const combined = buildCombinedList();
+  const images = buildImageList();
   addedImagesContainer.innerHTML = "";
 
-  if (combined.length === 0) {
+  if (images.length === 0) {
     imgViewMain.style.display = "none";
     placeholderBlock.style.display = "block";
     mainCropBtn.style.display = "none";
@@ -193,13 +173,13 @@ function renderThumbnails() {
     return;
   }
 
-  if (mainIndex === null || mainIndex >= combined.length) {
+  if (mainIndex === null || mainIndex >= images.length) {
     mainIndex = 0;
   }
 
   updateMainPreview(mainIndex);
 
-  combined.forEach((item, idx) => {
+  images.forEach((item, idx) => {
     const div = document.createElement("div");
     div.className = "thumb";
 
@@ -216,6 +196,7 @@ function renderThumbnails() {
     rm.type = "button";
     rm.className = "rm";
     rm.innerHTML = "&times;";
+
     rm.addEventListener("click", (e) => {
       e.stopPropagation();
       removeImage(idx);
@@ -227,8 +208,8 @@ function renderThumbnails() {
 }
 
 function updateMainPreview(index) {
-  const combined = buildCombinedList();
-  const item = combined[index];
+  const images = buildImageList();
+  const item = images[index];
 
   if (!item) {
     imgViewMain.style.display = "none";
@@ -244,30 +225,20 @@ function updateMainPreview(index) {
 }
 
 function removeImage(index) {
-  const combined = buildCombinedList();
-  const item = combined[index];
-  if (!item) return;
+  const dt = new DataTransfer();
 
-  if (item.type === "existing") {
-    keptExisting.splice(item.existingIndex, 1);
-  } else {
-    const dt = new DataTransfer();
+  Array.from(filesDT.files).forEach((file, i) => {
+    if (i !== index) {
+      dt.items.add(file);
+    }
+  });
 
-    Array.from(filesDT.files).forEach((file, i) => {
-      if (i !== item.newIndex) {
-        dt.items.add(file);
-      }
-    });
+  filesDT = dt;
+  input1.files = filesDT.files;
 
-    filesDT = dt;
-    input1.files = filesDT.files;
-  }
-
-  const newLength = buildCombinedList().length;
-
-  if (newLength === 0) {
+  if (filesDT.files.length === 0) {
     mainIndex = null;
-  } else if (mainIndex >= newLength) {
+  } else if (mainIndex >= filesDT.files.length) {
     mainIndex = 0;
   }
 
@@ -276,8 +247,7 @@ function removeImage(index) {
 
 input1.addEventListener("change", (e) => {
   const selected = Array.from(e.target.files || []);
-  const currentCount = keptExisting.length + filesDT.files.length;
-  const space = MAX_FILES - currentCount;
+  const space = MAX_FILES - filesDT.files.length;
 
   if (space <= 0) {
     alert("Maximum 4 images allowed");
@@ -290,7 +260,7 @@ input1.addEventListener("change", (e) => {
     selected.splice(space);
   }
 
-  selected.forEach(file => {
+  selected.forEach((file) => {
     filesDT.items.add(file);
   });
 
@@ -303,7 +273,14 @@ input1.addEventListener("change", (e) => {
   renderThumbnails();
 });
 
-function startCropper(src, type, index) {
+function startCropper(index) {
+  const file = filesDT.files[index];
+
+  if (!file) {
+    alert("Image not found");
+    return;
+  }
+
   cropModal.style.display = "flex";
 
   if (cropper) {
@@ -311,10 +288,7 @@ function startCropper(src, type, index) {
     cropper = null;
   }
 
-  delete cropModal.dataset.existingIndex;
-  delete cropModal.dataset.newIndex;
-
-  cropModal.dataset[type] = index;
+  cropModal.dataset.index = index;
 
   cropImage.onload = function () {
     if (cropper) {
@@ -331,38 +305,25 @@ function startCropper(src, type, index) {
     });
   };
 
-  cropImage.src = src;
-}
-
-function openCropper(index) {
-  const combined = buildCombinedList();
-  const item = combined[index];
-  if (!item) return;
-
-  if (item.type === "existing") {
-    startCropper(item.url, "existingIndex", item.existingIndex);
-  } else {
-    startCropper(item.url, "newIndex", item.newIndex);
-  }
+  cropImage.src = URL.createObjectURL(file);
 }
 
 imgViewMain.addEventListener("click", () => {
   if (mainIndex !== null) {
-    openCropper(mainIndex);
+    startCropper(mainIndex);
   }
 });
 
 mainCropBtn.addEventListener("click", () => {
   if (mainIndex !== null) {
-    openCropper(mainIndex);
+    startCropper(mainIndex);
   }
 });
 
 applyCrop.addEventListener("click", () => {
   if (!cropper) return;
 
-  const existingIndex = cropModal.dataset.existingIndex;
-  const newIndex = cropModal.dataset.newIndex;
+  const index = Number(cropModal.dataset.index);
 
   cropper.getCroppedCanvas({
     width: 600,
@@ -373,31 +334,25 @@ applyCrop.addEventListener("click", () => {
       return;
     }
 
+    const oldFile = filesDT.files[index];
+
     const croppedFile = new File(
       [blob],
-      "cropped_" + Date.now() + ".png",
+      oldFile ? oldFile.name : "cropped_" + Date.now() + ".png",
       { type: "image/png" }
     );
 
-    if (existingIndex !== undefined) {
-      keptExisting.splice(Number(existingIndex), 1);
-      filesDT.items.add(croppedFile);
-    }
+    const dt = new DataTransfer();
 
-    if (newIndex !== undefined) {
-      const dt = new DataTransfer();
+    Array.from(filesDT.files).forEach((file, i) => {
+      if (i === index) {
+        dt.items.add(croppedFile);
+      } else {
+        dt.items.add(file);
+      }
+    });
 
-      Array.from(filesDT.files).forEach((file, i) => {
-        if (i === Number(newIndex)) {
-          dt.items.add(croppedFile);
-        } else {
-          dt.items.add(file);
-        }
-      });
-
-      filesDT = dt;
-    }
-
+    filesDT = dt;
     input1.files = filesDT.files;
 
     cropper.destroy();
@@ -405,11 +360,8 @@ applyCrop.addEventListener("click", () => {
 
     cropModal.style.display = "none";
     cropImage.src = "";
+    delete cropModal.dataset.index;
 
-    delete cropModal.dataset.existingIndex;
-    delete cropModal.dataset.newIndex;
-
-    mainIndex = 0;
     renderThumbnails();
   }, "image/png");
 });
@@ -422,13 +374,11 @@ cancelCrop.addEventListener("click", () => {
 
   cropModal.style.display = "none";
   cropImage.src = "";
-
-  delete cropModal.dataset.existingIndex;
-  delete cropModal.dataset.newIndex;
+  delete cropModal.dataset.index;
 });
 
 function clearErrors() {
-  document.querySelectorAll(".error-message").forEach(el => {
+  document.querySelectorAll(".error-message").forEach((el) => {
     el.innerText = "";
   });
 }
@@ -436,7 +386,10 @@ function clearErrors() {
 function showError(id, message) {
   const field = document.getElementById(id);
   const errorTag = field.parentElement.querySelector(".error-message");
-  if (errorTag) errorTag.innerText = message;
+
+  if (errorTag) {
+    errorTag.innerText = message;
+  }
 }
 
 document.getElementById("saveBtn").addEventListener("click", async (e) => {
@@ -445,75 +398,79 @@ document.getElementById("saveBtn").addEventListener("click", async (e) => {
 
   let isValid = true;
 
-  const productName = document.getElementById("f_productName").value.trim();
-  const author = document.getElementById("f_author").value.trim();
-  const description = document.getElementById("f_description").value.trim();
-  const publisher = document.getElementById("f_publisher").value.trim();
-  const publishedDate = document.getElementById("f_publishedDate").value.trim();
-  const stockQuantity = document.getElementById("f_stockQuantity").value.trim();
-  const pageCount = document.getElementById("f_pageCount").value.trim();
-  const language = document.getElementById("f_language").value.trim();
-  const regularPrice = document.getElementById("f_regularPrice").value.trim();
-  const salePrice = document.getElementById("f_salePrice").value.trim();
+  const productName = document.getElementById("productName").value.trim();
+  const author = document.getElementById("author").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const publisher = document.getElementById("publisher").value.trim();
+  const publishedDate = document.getElementById("published_date").value.trim();
+  const category = document.getElementById("category").value;
+  const stockQuantity = document.getElementById("stockQuantity").value.trim();
+  const pageCount = document.getElementById("pageCount").value.trim();
+  const language = document.getElementById("language").value.trim();
+  const regularPrice = document.getElementById("regular_price").value.trim();
+  const salePrice = document.getElementById("sale_price").value.trim();
 
   if (!productName) {
-    showError("f_productName", "Product name is required");
+    showError("productName", "Product name is required");
     isValid = false;
   }
 
   if (!author) {
-    showError("f_author", "Author is required");
+    showError("author", "Author is required");
     isValid = false;
   }
 
   if (!description) {
-    showError("f_description", "Description is required");
+    showError("description", "Description is required");
     isValid = false;
   }
 
   if (!publisher) {
-    showError("f_publisher", "Publisher is required");
+    showError("publisher", "Publisher is required");
     isValid = false;
   }
 
   if (!publishedDate) {
-    showError("f_publishedDate", "Published date is required");
+    showError("published_date", "Published date is required");
     isValid = false;
   }
 
-  if (!stockQuantity || Number(stockQuantity) < 0) {
-    showError("f_stockQuantity", "Stock must be 0 or greater");
+  if (!category) {
+    alert("Category is required");
+    isValid = false;
+  }
+
+  if (!stockQuantity || Number(stockQuantity) < 5) {
+    showError("stockQuantity", "Stock must be greater than or equal to 5");
     isValid = false;
   }
 
   if (!pageCount || Number(pageCount) <= 0) {
-    showError("f_pageCount", "Page count must be greater than 0");
+    showError("pageCount", "Page count must be greater than 0");
     isValid = false;
   }
 
   if (!language) {
-    showError("f_language", "Language is required");
+    showError("language", "Language is required");
     isValid = false;
   }
 
   if (!regularPrice || Number(regularPrice) <= 0) {
-    showError("f_regularPrice", "Regular price must be greater than 0");
+    showError("regular_price", "Regular price must be greater than 0");
     isValid = false;
   }
 
   if (salePrice && Number(salePrice) > Number(regularPrice)) {
-    showError("f_salePrice", "Sale price cannot be greater than regular price");
+    showError("sale_price", "Sale price cannot be greater than regular price");
     isValid = false;
   }
 
-  const totalImages = keptExisting.length + filesDT.files.length;
-
-  if (totalImages === 0) {
+  if (filesDT.files.length === 0) {
     alert("At least one image is required");
     isValid = false;
   }
 
-  if (totalImages > MAX_FILES) {
+  if (filesDT.files.length > MAX_FILES) {
     alert("Maximum 4 images allowed");
     isValid = false;
   }
@@ -527,23 +484,19 @@ document.getElementById("saveBtn").addEventListener("click", async (e) => {
   fd.append("description", description);
   fd.append("publisher", publisher);
   fd.append("publishedDate", publishedDate);
-  fd.append("category", document.getElementById("f_category").value);
+  fd.append("category", category);
   fd.append("stockQuantity", stockQuantity);
   fd.append("pageCount", pageCount);
   fd.append("language", language);
   fd.append("regularPrice", regularPrice);
   fd.append("salePrice", salePrice);
 
-  keptExisting.forEach(img => {
-    fd.append("keepImages", img);
-  });
-
-  Array.from(filesDT.files).forEach(file => {
+  Array.from(filesDT.files).forEach((file) => {
     fd.append("images", file, file.name);
   });
 
   try {
-    const res = await fetch("/admin/editProducts/<%= product._id %>?page=" + currentPage, {
+    const res = await fetch("/admin/addProducts", {
       method: "POST",
       body: fd
     });
@@ -554,19 +507,28 @@ document.getElementById("saveBtn").addEventListener("click", async (e) => {
     }
 
     if (!res.ok) {
-      const text = await res.text();
-      alert("Update failed: " + text);
+      let message = "Product creation failed";
+
+      try {
+        const data = await res.json();
+        message = data.message || message;
+      } catch (error) {
+        const text = await res.text();
+        message = text || message;
+      }
+
+      alert(message);
       return;
     }
 
-    window.location.href = "/admin/products?page=" + currentPage;
+    window.location.href = "/admin/products";
   } catch (error) {
     console.error(error);
-    alert("Network error while updating product");
+    alert("Network error while adding product");
   }
 });
 
-document.getElementById("f_stockQuantity").addEventListener("input", function () {
+document.getElementById("stockQuantity").addEventListener("input", function () {
   if (Number(this.value) < 0) {
     this.value = 0;
   }
