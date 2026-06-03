@@ -66,7 +66,7 @@
 
       <div class="form-field">
         <label>Publisher (optional)</label>
-        <input id="f_publisher" type="text" name="publisher" value="" />
+        <input id="f_publisher" type="text" name="publisher" value="<%= product.publisher || '' %>" />
       </div>
 
       <div class="form-field">
@@ -90,7 +90,7 @@
 
       <div class="form-field">
         <label>Page Count</label>
-        <input id="f_pageCount" type="number" name="pageCount" value="" />
+        <input id="f_pageCount" type="number" name="pageCount" value="<%= product.page_count || product.pageCount || '' %>" />
       </div>
 
       <div class="form-field">
@@ -159,9 +159,24 @@ let cropper = null;
 function buildCombinedList() {
   const combined = [];
 
-  keptExisting.forEach(fn => combined.push({ type: 'existing', name: fn, url: '/uploads/product-images/' + fn }));
+  keptExisting.forEach((fn, index) => {
+    combined.push({
+      type: "existing",
+      existingIndex: index,
+      name: fn,
+      url: "/uploads/product-images/" + fn
+    });
+  });
 
-  Array.from(filesDT.files).forEach(f => combined.push({ type: 'new', file: f, url: URL.createObjectURL(f) }));
+  Array.from(filesDT.files).forEach((file, index) => {
+    combined.push({
+      type: "new",
+      newIndex: index,
+      file,
+      url: URL.createObjectURL(file)
+    });
+  });
+
   return combined;
 }
 
@@ -216,25 +231,24 @@ function removeCombinedIndex(idx) {
   const item = combined[idx];
   if (!item) return;
 
-  if (item.type === 'existing') {
-
-    keptExisting = keptExisting.filter(fn => fn !== item.name);
+  if (item.type === "existing") {
+    keptExisting.splice(item.existingIndex, 1);
   } else {
+    const dt = new DataTransfer();
 
-    const newDT = new DataTransfer();
-    Array.from(filesDT.files).forEach((f, i) => {
-      if (i !== (idx - existingImages.length + (existingImages.length - keptExisting.length))) {
-
+    Array.from(filesDT.files).forEach((file, index) => {
+      if (index !== item.newIndex) {
+        dt.items.add(file);
       }
     });
 
-    const removeUrl = item.url;
-    const tmpFiles = Array.from(filesDT.files).filter(f => URL.createObjectURL(f) !== removeUrl);
-    const dt2 = new DataTransfer();
-    tmpFiles.forEach(f => dt2.items.add(f));
-    filesDT = dt2;
+    filesDT = dt;
+    input1.files = filesDT.files;
   }
 
+  if (mainIndex >= buildCombinedList().length) {
+    mainIndex = 0;
+  }
 
   renderThumbnails();
 }
