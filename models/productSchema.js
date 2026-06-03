@@ -65,7 +65,16 @@ const productSchema = new mongoose.Schema({
     },
     offerEndDate:{
         type:Date
-    }
+    },
+    publisher: {
+        type: String,
+        trim: true
+    },
+    
+    pageCount: {
+        type: Number,
+        default: 0
+    },
 }, { timestamps: true })
 
 
