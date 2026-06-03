@@ -115,15 +115,15 @@ const updatePhoto = async (req, res) => {
       user: req.user
     });
   };
-  
+
   const sendChangeEmailOtp = async (req, res) => {
     try {
       const { newEmail, password } = req.body;
   
-      if (!newEmail || !password) {
+      if (!newEmail) {
         return res.status(400).json({
           success: false,
-          message: "Email and password are required"
+          message: "New email is required"
         });
       }
   
@@ -154,13 +154,22 @@ const updatePhoto = async (req, res) => {
         });
       }
   
-      const isMatch = await bcrypt.compare(password, user.password);
+      if (user.password) {
+        if (!password) {
+          return res.status(400).json({
+            success: false,
+            message: "Current password is required"
+          });
+        }
   
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          message: "Password is incorrect"
-        });
+        const isMatch = await bcrypt.compare(password, user.password);
+  
+        if (!isMatch) {
+          return res.status(401).json({
+            success: false,
+            message: "Current password is incorrect"
+          });
+        }
       }
   
       const otp = Math.floor(100000 + Math.random() * 900000);
