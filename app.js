@@ -37,6 +37,9 @@ app.use(
 app.use(passport.initialize())
 app.use(passport.session())
 
+const headerCounts = require("./middlewares/headerCounts");
+app.use(headerCounts);
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
