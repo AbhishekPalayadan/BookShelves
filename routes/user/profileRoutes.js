@@ -20,4 +20,8 @@ router.post(
 router.get('/change-password',userAuth,profileController.loadChangePassword);
 router.post('/change-password',userAuth,profileController.changePassword);
 
+router.get('/change-email',userAuth,profileController.loadChangeEmail);
+router.post("/change-email/send-otp",userAuth,profileController.sendChangeEmailOtp);
+router.post('/change-email/verify-otp',userAuth,profileController.verifyChangeEmailOtp);
+
 module.exports=router;

@@ -1,5 +1,6 @@
 const User=require('../../models/userSchema')
 const bcrypt=require('bcrypt')
+const sendMail = require('../../utils/sendOtp');
 
 
 
@@ -15,11 +16,10 @@ const loadProfile = (req, res) => {
 
 const editProfile = async (req, res) => {
   try {
-    const { fullname, email, phone, dob } = req.body;
+    const { fullname, phone, dob } = req.body;
 
     await User.findByIdAndUpdate(req.user._id, {
       fullname,
-      email,
       phone,
       dob
     });
@@ -107,8 +107,142 @@ const updatePhoto = async (req, res) => {
       })
     }
   }
-  
 
+
+  
+  const loadChangeEmail = (req, res) => {
+    res.render("user/changeEmail", {
+      user: req.user
+    });
+  };
+  
+  const sendChangeEmailOtp = async (req, res) => {
+    try {
+      const { newEmail, password } = req.body;
+  
+      if (!newEmail || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email and password are required"
+        });
+      }
+  
+      const email = newEmail.trim().toLowerCase();
+  
+      if (email === req.user.email) {
+        return res.status(400).json({
+          success: false,
+          message: "New email cannot be same as current email"
+        });
+      }
+  
+      const emailExists = await User.findOne({ email });
+  
+      if (emailExists) {
+        return res.status(409).json({
+          success: false,
+          message: "This email is already registered"
+        });
+      }
+  
+      const user = await User.findById(req.user._id);
+  
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+  
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: "Password is incorrect"
+        });
+      }
+  
+      const otp = Math.floor(100000 + Math.random() * 900000);
+  
+      await sendMail(email, otp);
+  
+      req.session.changeEmail = email;
+      req.session.changeEmailOtp = otp;
+      req.session.changeEmailOtpExpires = Date.now() + 2 * 60 * 1000;
+  
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent to your new email"
+      });
+  
+    } catch (error) {
+      console.log("Send change email OTP error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong"
+      });
+    }
+  };
+  
+  const verifyChangeEmailOtp = async (req, res) => {
+    try {
+      const { otp } = req.body;
+  
+      if (!otp) {
+        return res.status(400).json({
+          success: false,
+          message: "OTP is required"
+        });
+      }
+  
+      if (!req.session.changeEmail || !req.session.changeEmailOtp) {
+        return res.status(400).json({
+          success: false,
+          message: "Session expired. Please try again"
+        });
+      }
+  
+      if (Date.now() > req.session.changeEmailOtpExpires) {
+        req.session.changeEmail = null;
+        req.session.changeEmailOtp = null;
+        req.session.changeEmailOtpExpires = null;
+  
+        return res.status(400).json({
+          success: false,
+          message: "OTP expired. Please request again"
+        });
+      }
+  
+      if (String(otp).trim() !== String(req.session.changeEmailOtp)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid OTP"
+        });
+      }
+  
+      await User.findByIdAndUpdate(req.user._id, {
+        email: req.session.changeEmail
+      });
+  
+      req.session.changeEmail = null;
+      req.session.changeEmailOtp = null;
+      req.session.changeEmailOtpExpires = null;
+  
+      return res.status(200).json({
+        success: true,
+        message: "Email changed successfully",
+        redirectUrl: "/userProfile"
+      });
+  
+    } catch (error) {
+      console.log("Verify change email OTP error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong"
+      });
+    }
+  };
 
 module.exports={
     loadProfile,
@@ -116,5 +250,8 @@ module.exports={
     editProfile,
     updatePhoto,
     loadChangePassword,
-    changePassword
+    changePassword,
+    loadChangeEmail,
+    sendChangeEmailOtp,
+    verifyChangeEmailOtp
 }

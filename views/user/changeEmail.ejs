@@ -435,175 +435,257 @@
         <%- include('../partials/user/profileSidebar',{ user:user,
         activeMenu:'address' }) %>
 
-        <main class="profile-content">
-          <h2>Change Password</h2>
 
-          <form id="changePasswordForm">
-            <div class="info-item">
-              <label class="info-label">Old Password</label>
-              <input
-                type="password"
-                name="oldPassword"
-                class="info-input"
-                placeholder="Enter old password"
-              />
-              <small class="error" id="oldPasswordError"></small>
+        <h2>Change Email</h2>
 
-              <label class="info-label">New Password</label>
-              <input
-                type="password"
-                name="newPassword"
-                class="info-input"
-                placeholder="Enter new password"
-              />
-              <small class="error" id="newPasswordError"></small>
+<form id="changeEmailForm">
 
-              <label class="info-label">Confirm New Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                class="info-input"
-                placeholder="Confirm new password"
-              />
-              <small class="error" id="confirmPasswordError"></small>
-            </div>
+  <div class="info-item">
 
-            <div class="form-actions">
-              <a
-                href="/userProfile"
-                type="button"
-                id="cancelBtn"
-                class="btn-cancel"
-                >Cancel</a
-              >
-              <button type="submit" class="edit-profile-btn">
-                Update Password
-              </button>
-            </div>
-          </form>
-        </main>
+    <label class="info-label">Current Email</label>
+    <input
+      type="email"
+      class="info-input"
+      value="<%= user.email %>"
+      disabled
+    >
+
+    <label class="info-label">New Email</label>
+    <input
+      type="email"
+      id="newEmail"
+      class="info-input"
+      placeholder="Enter new email"
+    >
+    <small class="error" id="newEmailError"></small>
+
+    <label class="info-label">Current Password</label>
+    <input
+      type="password"
+      id="password"
+      class="info-input"
+      placeholder="Enter current password"
+    >
+    <small class="error" id="passwordError"></small>
+
+  </div>
+
+  <div class="form-actions">
+    <a href="/userProfile" class="btn-cancel">
+      Cancel
+    </a>
+
+    <button type="submit" class="edit-profile-btn">
+      Send OTP
+    </button>
+  </div>
+
+</form>
+
+<form id="otpForm" style="display:none;">
+
+  <div class="info-item">
+
+    <label class="info-label">OTP</label>
+
+    <input
+      type="text"
+      id="otp"
+      class="info-input"
+      placeholder="Enter OTP"
+      maxlength="6"
+    >
+
+    <small class="error" id="otpError"></small>
+
+  </div>
+
+  <div class="form-actions">
+
+    <button
+      type="button"
+      id="resendBtn"
+      class="btn-cancel"
+    >
+      Resend OTP
+    </button>
+
+    <button
+      type="submit"
+      class="edit-profile-btn"
+    >
+      Verify OTP
+    </button>
+
+  </div>
+
+</form>
+
+
+
       </div>
     </div>
 
     <%-include("../../views/partials/user/footer")%>
-
     <script>
-        const form = document.getElementById('changePasswordForm');
+
+        const changeEmailForm = document.getElementById("changeEmailForm");
+        const otpForm = document.getElementById("otpForm");
         
-        const oldPasswordInput = document.querySelector('[name="oldPassword"]');
-        const newPasswordInput = document.querySelector('[name="newPassword"]');
-        const confirmPasswordInput = document.querySelector('[name="confirmPassword"]');
+        const newEmailInput = document.getElementById("newEmail");
+        const passwordInput = document.getElementById("password");
+        const otpInput = document.getElementById("otp");
         
-        const oldPasswordError = document.getElementById('oldPasswordError');
-        const newPasswordError = document.getElementById('newPasswordError');
-        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const newEmailError = document.getElementById("newEmailError");
+        const passwordError = document.getElementById("passwordError");
+        const otpError = document.getElementById("otpError");
         
         function clearErrors() {
         
-            oldPasswordError.innerText = "";
-            newPasswordError.innerText = "";
-            confirmPasswordError.innerText = "";
+          newEmailError.innerText = "";
+          passwordError.innerText = "";
+          otpError.innerText = "";
         
-            document.querySelectorAll('.info-input').forEach(input => {
-                input.classList.remove('input-error');
+          document.querySelectorAll(".info-input").forEach(input => {
+            input.classList.remove("input-error");
+          });
+        
+        }
+        
+        function showError(input,errorElement,message){
+        
+          input.classList.add("input-error");
+          errorElement.innerText = message;
+        
+        }
+        
+        changeEmailForm.addEventListener("submit", async (e) => {
+        
+          e.preventDefault();
+        
+          clearErrors();
+        
+          const newEmail = newEmailInput.value.trim();
+          const password = passwordInput.value.trim();
+        
+          let hasError = false;
+        
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+          if(!emailRegex.test(newEmail)){
+            showError(
+              newEmailInput,
+              newEmailError,
+              "Please enter a valid email"
+            );
+            hasError = true;
+          }
+        
+          if(!password){
+            showError(
+              passwordInput,
+              passwordError,
+              "Please enter your password"
+            );
+            hasError = true;
+          }
+        
+          if(hasError) return;
+        
+          const res = await fetch("/change-email/send-otp",{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+              newEmail,
+              password
+            })
+          });
+        
+          const data = await res.json();
+        
+          if(!data.success){
+        
+            Swal.fire({
+              icon:"error",
+              title:"Error",
+              text:data.message
             });
-        }
         
-        function showError(input, errorElement, message) {
-            input.classList.add('input-error');
-            errorElement.innerText = message;
-        }
+            return;
+          }
         
-        form.addEventListener('submit', async (e) => {
+          Swal.fire({
+            icon:"success",
+            title:"OTP Sent",
+            text:data.message
+          });
         
-            e.preventDefault();
+          changeEmailForm.style.display = "none";
+          otpForm.style.display = "block";
         
-            clearErrors();
-        
-            const oldPassword = oldPasswordInput.value.trim();
-            const newPassword = newPasswordInput.value.trim();
-            const confirmPassword = confirmPasswordInput.value.trim();
-        
-            let hasError = false;
-        
-            const alpha = /[a-zA-Z]/;
-            const digit = /\d/;
-        
-            // old password
-        
-            if (!oldPassword) {
-                showError(oldPasswordInput, oldPasswordError, "Please enter old password");
-                hasError = true;
-            }
-        
-            // new password
-        
-            if (newPassword.length < 8) {
-                showError(newPasswordInput, newPasswordError, "Password must be at least 8 characters");
-                hasError = true;
-        
-            } else if (!alpha.test(newPassword) || !digit.test(newPassword)) {
-        
-                showError(newPasswordInput, newPasswordError, "Password must contain letters and numbers");
-                hasError = true;
-            }
-        
-            // confirm password
-        
-            if (newPassword !== confirmPassword) {
-                showError(confirmPasswordInput, confirmPasswordError, "Passwords do not match");
-                hasError = true;
-            }
-        
-            if (hasError) return;
-        
-            try {
-        
-                const res = await fetch('/change-password', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        oldPassword,
-                        newPassword
-                    })
-                });
-        
-                const data = await res.json();
-        
-                if (!res.ok) {
-        
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message
-                    });
-        
-                    return;
-                }
-        
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: data.message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-        
-                setTimeout(() => {
-                    window.location.href = "/userProfile";
-                }, 2000);
-        
-            } catch (error) {
-        
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Something went wrong'
-                });
-            }
         });
+        
+        
+        otpForm.addEventListener("submit", async (e)=>{
+        
+          e.preventDefault();
+        
+          clearErrors();
+        
+          const otp = otpInput.value.trim();
+        
+          if(!otp){
+        
+            showError(
+              otpInput,
+              otpError,
+              "Please enter OTP"
+            );
+        
+            return;
+          }
+        
+          const res = await fetch(
+            "/change-email/verify-otp",
+            {
+              method:"POST",
+              headers:{
+                "Content-Type":"application/json"
+              },
+              body:JSON.stringify({ otp })
+            }
+          );
+        
+          const data = await res.json();
+        
+          if(!data.success){
+        
+            Swal.fire({
+              icon:"error",
+              title:"Error",
+              text:data.message
+            });
+        
+            return;
+          }
+        
+          Swal.fire({
+            icon:"success",
+            title:"Success",
+            text:data.message,
+            timer:2000,
+            showConfirmButton:false
+          });
+        
+          setTimeout(()=>{
+            window.location.href = "/userProfile";
+          },2000);
+        
+        });
+        
         </script>
+        
   </body>
 </html>
