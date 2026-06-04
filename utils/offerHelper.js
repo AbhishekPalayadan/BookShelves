@@ -4,38 +4,40 @@ function getBestOffer(product) {
   let productOffer = 0;
   let categoryOffer = 0;
 
-  const start = new Date(product.offerStartDate);
-  const end = new Date(product.offerEndDate);
+  if (product.offerPercentage && product.offerStartDate && product.offerEndDate) {
+    const start = new Date(product.offerStartDate);
+    const end = new Date(product.offerEndDate);
 
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
 
-  if (
-    product.offerPercentage &&
-    start <= now &&
-    end >= now
-  ) {
-    productOffer = product.offerPercentage;
+    if (start <= now && end >= now) {
+      productOffer = product.offerPercentage;
+    }
   }
 
+  const cat = product.category_id;
   if (
-    product.category_id &&
-    product.category_id.offer &&
-    product.category_id.offer > 0
+    cat &&
+    typeof cat === 'object' &&          
+    cat.offerPercentage > 0 &&
+    cat.offerStartDate && cat.offerEndDate
   ) {
-    categoryOffer = product.category_id.offer;
+    const catStart = new Date(cat.offerStartDate);
+    const catEnd = new Date(cat.offerEndDate);
+
+    catStart.setHours(0, 0, 0, 0);
+    catEnd.setHours(23, 59, 59, 999);
+
+    if (catStart <= now && catEnd >= now) {
+      categoryOffer = cat.offerPercentage;  
+    }
   }
 
   if (productOffer >= categoryOffer) {
-    return {
-      offer: productOffer,
-      type: "product"
-    };
+    return { offer: productOffer, type: "product" };
   } else {
-    return {
-      offer: categoryOffer,
-      type: "category"
-    };
+    return { offer: categoryOffer, type: "category" };
   }
 }
 
